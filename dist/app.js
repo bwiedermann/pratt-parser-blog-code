@@ -1317,9 +1317,13 @@ class MudCheckChoose {
         const otherErrors = mudCheckNode(otherwise, nodes, registeredNodes, dependsMap);
         errors = errors.concat(predErrors).concat(consErrors).concat(otherErrors);
         node.outputType.valueType = consequent.outputType.valueType;
+        // DEFUALT status = maybe-undefined
+        if (otherwise.outputType.status == 'Maybe-Undefined') {
+            node.outputType.status = 'Maybe-Undefined';
+        }
         // propagate maybe-undefined type, or change to definitely
         // if the predicate is not a function, we cannot error check its type
-        if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'Function') {
+        else if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'Function') {
             // we can only errorr check with IsDefined function
             // IsDefined has only one argument
             if (predicate.name == 'IsDefined') {
@@ -1340,13 +1344,6 @@ class MudCheckChoose {
                     node.outputType.status = 'Definitely';
                 }
             }
-            else {
-                // if the predicate doesn't error check (with isDefined), it can't be Definitely
-                node.outputType.status = 'Maybe-Undefined';
-            }
-        }
-        if (otherwise.outputType.status == 'Maybe-Undefined') {
-            node.outputType.status = 'Maybe-Undefined';
         }
         else {
             node.outputType.status = 'Definitely';

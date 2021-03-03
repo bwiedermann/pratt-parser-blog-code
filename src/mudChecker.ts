@@ -136,40 +136,39 @@ class MudCheckChoose implements MudChecker {
 
         node.outputType.valueType = consequent.outputType.valueType;
 
+        // DEFUALT status = maybe-undefined
+
+        if (otherwise.outputType.status == 'Maybe-Undefined') {
+          node.outputType.status = 'Maybe-Undefined';
+        }
         // propagate maybe-undefined type, or change to definitely
         // if the predicate is not a function, we cannot error check its type
-        if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'Function') {
+        else if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'Function') {
           // we can only errorr check with IsDefined function
           // IsDefined has only one argument
           if (predicate.name == 'IsDefined') {
-              // we need to make sure the pred and cons are equal
-              // OR make sure all the dependencies of the consequent are in the predicate
+            // we need to make sure the pred and cons are equal
+            // OR make sure all the dependencies of the consequent are in the predicate
 
-              // find bases of consequent
-              let consBases = findBases(consequent, dependsMap);
-              // look up the bases of the predicate
-              let predBases = findBases(predicate, dependsMap);
-              // set outputType to Definitely if consBases are contained in predBases
+            // find bases of consequent
+            let consBases = findBases(consequent, dependsMap);
+            // look up the bases of the predicate
+            let predBases = findBases(predicate, dependsMap);
+            // set outputType to Definitely if consBases are contained in predBases
 
-              let contained = true;
-              for (let i = 0; i < consBases.length; i++) {
-                if (predBases.find(e => e == consBases[i]) == undefined) {
-                  contained = false;
-                }
+            let contained = true;
+            for (let i = 0; i < consBases.length; i++) {
+              if (predBases.find(e => e == consBases[i]) == undefined) {
+                contained = false;
               }
-              if (contained) {
-                node.outputType.status = 'Definitely';
-              }
+            }
 
-          } else {
-              // if the predicate doesn't error check (with isDefined), it can't be Definitely
-              node.outputType.status = 'Maybe-Undefined';
+            if (contained) {
+              node.outputType.status = 'Definitely';
+            }
           }
         }
-        
-        if (otherwise.outputType.status == 'Maybe-Undefined') {
-        node.outputType.status = 'Maybe-Undefined';
-        } else {
+        else {
         node.outputType.status = 'Definitely';
         }
 
