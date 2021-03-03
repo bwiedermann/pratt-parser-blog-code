@@ -1345,7 +1345,7 @@ class MudCheckChoose {
                 node.outputType.status = 'Maybe-Undefined';
             }
         }
-        else if (otherwise.outputType.status == 'Maybe-Undefined') {
+        if (otherwise.outputType.status == 'Maybe-Undefined') {
             node.outputType.status = 'Maybe-Undefined';
         }
         else {
