@@ -1096,7 +1096,7 @@ class CheckBoolean {
 }
 class CheckBinary {
     check(node, registeredNodes) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         const errors = typecheckNode(node.left, registeredNodes).concat(typecheckNode(node.right, registeredNodes));
         // Check if same operand type (both numbers, both booleans)
         if (((_b = (_a = node.left) === null || _a === void 0 ? void 0 : _a.outputType) === null || _b === void 0 ? void 0 : _b.valueType) != ((_d = (_c = node.right) === null || _c === void 0 ? void 0 : _c.outputType) === null || _d === void 0 ? void 0 : _d.valueType)) {
@@ -1109,6 +1109,7 @@ class CheckBinary {
         else if (((_h = (_g = node.right) === null || _g === void 0 ? void 0 : _g.outputType) === null || _h === void 0 ? void 0 : _h.valueType) == 'number' && (node.operator == "|" || node.operator == '&')) {
             errors.push(new TypeError("incompatible operation for number operands", node.pos));
         }
+        node.outputType.valueType = (_k = (_j = node.left) === null || _j === void 0 ? void 0 : _j.outputType) === null || _k === void 0 ? void 0 : _k.valueType;
         return errors;
     }
 }
@@ -1145,7 +1146,7 @@ class CheckFunction {
 }
 class CheckChoose {
     check(node, registeredNodes) {
-        var _a, _b;
+        var _a, _b, _c;
         let errors = [];
         const predicate = node.case.predicate;
         const consequent = node.case.consequent;
@@ -1164,15 +1165,18 @@ class CheckChoose {
         if (predicate.outputType.valueType != 'boolean') {
             errors.push(new TypeError("Predicate must return a boolean", predicate.pos));
         }
+        node.outputType.valueType = (_c = consequent === null || consequent === void 0 ? void 0 : consequent.outputType) === null || _c === void 0 ? void 0 : _c.valueType;
         return errors;
     }
 }
 class CheckVariable {
     check(node, registeredNodes) {
+        var _a, _b;
         let errors = [];
         // First typecheck the assignment node
         const assignmentErrors = typecheckNode(node.assignment, registeredNodes);
         errors = errors.concat(assignmentErrors);
+        node.outputType.valueType = (_b = (_a = node.assignment) === null || _a === void 0 ? void 0 : _a.outputType) === null || _b === void 0 ? void 0 : _b.valueType;
         return errors;
     }
 }
@@ -1185,6 +1189,7 @@ class CheckIdentifier {
         if (valueNode == undefined) {
             errors.push(new TypeError("This variable doesn't have a value", node.pos));
         }
+        node.outputType.valueType = valueNode.outputType.valueType;
         return errors;
     }
 }

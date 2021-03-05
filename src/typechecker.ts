@@ -49,6 +49,8 @@ class CheckBinary implements TypeChecker {
       errors.push(new TypeError("incompatible operation for number operands", node.pos));
     }
 
+    node.outputType.valueType = node.left?.outputType?.valueType;
+
     return errors;
   }
 }
@@ -115,6 +117,8 @@ class CheckChoose implements TypeChecker {
       errors.push(new TypeError("Predicate must return a boolean", predicate.pos));
     }
 
+    node.outputType.valueType = consequent?.outputType?.valueType;
+
     return errors;
   }
 }
@@ -125,6 +129,8 @@ class CheckVariable implements TypeChecker {
     // First typecheck the assignment node
     const assignmentErrors = typecheckNode(node.assignment, registeredNodes);
     errors = errors.concat(assignmentErrors);
+
+    node.outputType.valueType = node.assignment?.outputType?.valueType;
 
     return errors;
   }
@@ -141,6 +147,8 @@ class CheckIdentifier implements TypeChecker {
     if (valueNode == undefined) {
       errors.push(new TypeError("This variable doesn't have a value", node.pos));
     }
+
+    node.outputType.valueType = valueNode.outputType.valueType;
 
     return errors;
   }
