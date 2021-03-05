@@ -20,10 +20,11 @@ function updateOutput() {
   let varMap: {[key: string]: string} = {};
   let registeredNodes: {[key: string]: AST.Node} = {};
   let dependsMap: {[key: string]: string[]} = {};
+  let assertMap: {[key: string]: boolean} = {};
 
   /***** ITERATION: Remove mudErrors *****/
   const ast = parse(cm.getDoc().getValue(), varMap, registeredNodes, dependsMap);
-  const mudErrors = mudCheck(ast.nodes, registeredNodes, dependsMap); // add dependsMap
+  const mudErrors = mudCheck(ast.nodes, registeredNodes, dependsMap, assertMap);
   const typeErrors = typecheck(ast.nodes, registeredNodes);
   const allTypeErrors = mudErrors.concat(typeErrors);
 

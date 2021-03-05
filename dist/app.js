@@ -22,9 +22,10 @@ function updateOutput() {
     let varMap = {};
     let registeredNodes = {};
     let dependsMap = {};
+    let assertMap = {};
     /***** ITERATION: Remove mudErrors *****/
     const ast = parser_1.parse(cm.getDoc().getValue(), varMap, registeredNodes, dependsMap);
-    const mudErrors = mudChecker_1.mudCheck(ast.nodes, registeredNodes, dependsMap); // add dependsMap
+    const mudErrors = mudChecker_1.mudCheck(ast.nodes, registeredNodes, dependsMap, assertMap);
     const typeErrors = typechecker_1.typecheck(ast.nodes, registeredNodes);
     const allTypeErrors = mudErrors.concat(typeErrors);
     if (ast.errors.length > 0) {
@@ -997,9 +998,16 @@ class BaseFunction {
     }
 }
 // assume that choose nodes will never create their own bases
+// they can still error check previously defined bases
 class BaseChoose {
-    findBase(node) {
-        return [];
+    findBase(node, dependsMap) {
+        let baseList = [];
+        // the bases of the cons and the otherwise
+        let consBases = findBases(node.case.consequent, dependsMap);
+        baseList = baseList.concat(consBases);
+        let otherBases = findBases(node.otherwise, dependsMap);
+        baseList = baseList.concat(otherBases);
+        return baseList;
     }
 }
 class BaseVariableAssignment {
@@ -1220,13 +1228,13 @@ ___scope___.file("src/mudChecker.js", function(exports, require, module, __filen
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TypeError = exports.mudCheck = void 0;
 const findBase_1 = require("./findBase");
-function mudCheck(nodes, registeredNodes, dependsMap) {
-    const errors = nodes.map(n => mudCheckNode(n, nodes, registeredNodes, dependsMap));
+function mudCheck(nodes, registeredNodes, dependsMap, assertMap) {
+    const errors = nodes.map(n => mudCheckNode(n, nodes, registeredNodes, dependsMap, assertMap));
     return [].concat(...errors);
 }
 exports.mudCheck = mudCheck;
-function mudCheckNode(node, nodes, registeredNodes, dependsMap) {
-    return mudCheckerMap[node.nodeType].mudCheck(node, nodes, registeredNodes, dependsMap);
+function mudCheckNode(node, nodes, registeredNodes, dependsMap, assertMap) {
+    return mudCheckerMap[node.nodeType].mudCheck(node, nodes, registeredNodes, dependsMap, assertMap);
 }
 class TypeError {
     constructor(message, position) {
@@ -1246,9 +1254,10 @@ class MudCheckBoolean {
     }
 }
 class MudCheckBinary {
-    mudCheck(node, nodes, registeredNodes, dependsMap) {
+    mudCheck(node, nodes, registeredNodes, dependsMap, assertMap) {
         var _a, _b, _c, _d, _e, _f, _g, _h;
-        const errors = mudCheckNode(node.left, nodes, registeredNodes, dependsMap).concat(mudCheckNode(node.right, nodes, registeredNodes, dependsMap));
+        const errors = mudCheckNode(node.left, nodes, registeredNodes, dependsMap, assertMap)
+            .concat(mudCheckNode(node.right, nodes, registeredNodes, dependsMap, assertMap));
         // If no type errors, update the output type of this node, based on the outputType of its inputs
         if (((_b = (_a = node.right) === null || _a === void 0 ? void 0 : _a.outputType) === null || _b === void 0 ? void 0 : _b.status) == 'Maybe-Undefined' || ((_d = (_c = node.left) === null || _c === void 0 ? void 0 : _c.outputType) === null || _d === void 0 ? void 0 : _d.status) == 'Maybe-Undefined') {
             node.outputType = { status: 'Maybe-Undefined', valueType: (_f = (_e = node.left) === null || _e === void 0 ? void 0 : _e.outputType) === null || _f === void 0 ? void 0 : _f.valueType };
@@ -1260,14 +1269,17 @@ class MudCheckBinary {
     }
 }
 class MudCheckFunction {
-    mudCheck(node, nodes, registeredNodes, dependsMap) {
+    mudCheck(node, nodes, registeredNodes, dependsMap, assertMap) {
         var _a, _b, _c, _d;
         let errors = [];
+        if (node.name == 'Sink') {
+            assertMap = {};
+        }
         // First typecheck the argument
-        const arg1Errors = mudCheckNode(node.args[0], nodes, registeredNodes, dependsMap);
+        const arg1Errors = mudCheckNode(node.args[0], nodes, registeredNodes, dependsMap, assertMap);
         errors = errors.concat(arg1Errors);
         if (node.args.length > 1) {
-            const arg2Errors = mudCheckNode(node.args[1], nodes, registeredNodes, dependsMap);
+            const arg2Errors = mudCheckNode(node.args[1], nodes, registeredNodes, dependsMap, assertMap);
             errors = errors.concat(arg2Errors);
         }
         const functionName = node.name;
@@ -1311,56 +1323,64 @@ class MudCheckFunction {
     }
 }
 class MudCheckChoose {
-    mudCheck(node, nodes, registeredNodes, dependsMap) {
+    mudCheck(node, nodes, registeredNodes, dependsMap, assertMap) {
         let errors = [];
         const predicate = node.case.predicate;
         const consequent = node.case.consequent;
         const otherwise = node.otherwise;
+        // add stuff to the assertMap
         // First typecheck the inner nodes
-        const predErrors = mudCheckNode(predicate, nodes, registeredNodes, dependsMap);
-        const consErrors = mudCheckNode(consequent, nodes, registeredNodes, dependsMap);
-        const otherErrors = mudCheckNode(otherwise, nodes, registeredNodes, dependsMap);
+        const predErrors = mudCheckNode(predicate, nodes, registeredNodes, dependsMap, assertMap);
+        const consErrors = mudCheckNode(consequent, nodes, registeredNodes, dependsMap, assertMap);
+        const otherErrors = mudCheckNode(otherwise, nodes, registeredNodes, dependsMap, assertMap);
         errors = errors.concat(predErrors).concat(consErrors).concat(otherErrors);
         node.outputType.valueType = consequent.outputType.valueType;
         // DEFUALT status = maybe-undefined
-        if (otherwise.outputType.status == 'Maybe-Undefined') {
-            node.outputType.status = 'Maybe-Undefined';
+        let consDef = false;
+        let otherDef = false;
+        if (otherwise.outputType.status == 'Definitely') {
+            otherDef = true;
         }
         // propagate maybe-undefined type, or change to definitely
         // if the predicate is not a function, we cannot error check its type
-        else if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'Function') {
+        if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'Function') {
             // we can only errorr check with IsDefined function
             // IsDefined has only one argument
             if (predicate.name == 'IsDefined') {
                 // we need to make sure the pred and cons are equal
                 // OR make sure all the dependencies of the consequent are in the predicate
+                // add pred bases to a map of assertions?
                 // find bases of consequent
                 let consBases = findBase_1.findBases(consequent, dependsMap);
                 // look up the bases of the predicate
                 let predBases = findBase_1.findBases(predicate, dependsMap);
                 // set outputType to Definitely if consBases are contained in predBases
+                // add to assertMap
+                for (let k = 0; k < predBases.length; k++) {
+                    assertMap[predBases[k]] = true;
+                }
                 let contained = true;
                 for (let i = 0; i < consBases.length; i++) {
-                    if (predBases.find(e => e == consBases[i]) == undefined) {
+                    if (!assertMap[consBases[i]]) {
                         contained = false;
                     }
                 }
                 if (contained) {
-                    node.outputType.status = 'Definitely';
+                    consDef = true;
                 }
             }
         }
-        else {
+        if (consDef && otherDef) {
             node.outputType.status = 'Definitely';
         }
         return errors;
     }
 }
 class MudCheckVariable {
-    mudCheck(node, nodes, registeredNodes, dependsMap) {
+    mudCheck(node, nodes, registeredNodes, dependsMap, assertMap) {
         let errors = [];
         // First typecheck the assignment node
-        const assignmentErrors = mudCheckNode(node.assignment, nodes, registeredNodes, dependsMap);
+        const assignmentErrors = mudCheckNode(node.assignment, nodes, registeredNodes, dependsMap, assertMap);
         errors = errors.concat(assignmentErrors);
         // Set variable assignment node output type to the same as it's assignment
         node.outputType.status = node.assignment.outputType.status;
@@ -1406,62 +1426,6 @@ const mudCheckerMap = {
     'VariableAssignment': new MudCheckVariable(),
     'Identifier': new MudCheckIdentifier()
 };
-/********** MOVE TO CmfChecker **********/
-/* function checkDependencies(pred: AST.Node, cons: AST.Node, nodes: AST.Node[]): boolean {
-  const depends = cons.outputType.dependsOn;
-  // Our only way to error check is with the IsDefined function
-  // IsDefined can only take one input
-  // If our consequent node depends on more than one other node, then we can't error check both
-  if (depends.length > 1) {
-    return false;
-  } else if (equals(pred, findNode(nodes, depends[0]))) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-function findNode(nodes: AST.Node[], nodeId: string): AST.Node {
-  for (let i = 0; i < nodes.length; i++) {
-    findNode2(nodes[i], nodeId);
-  }
-}
-
-function findNode2(node: AST.Node, nodeId: string): AST.Node {
-  if (node.nodeType == "Number" || node.nodeType == "Boolean") {
-    if (nodeId = node.nodeId) {
-      return node;
-    } else {
-      return undefined;
-    }
-  } else if (node.nodeType == "BinaryOperation") {
-    const left = findNode2(node.left, nodeId);
-    const right = findNode2(node.right, nodeId);
-    if (left) {
-      return left;
-    } else {
-      return right
-    }
-  } else if (node.nodeType == "Function") {
-    const arg1 = findNode2(node.args[0], nodeId);
-    if (node.args.length == 1) {
-      return arg1;
-    } else {
-      const arg2 = findNode2(node.args[1], nodeId);
-      if (arg1) {
-        return arg1;
-      } else {
-        return arg2;
-      }
-    }
-  } else if (node.nodeType == "Choose") {
-    const pred =
-  } else if (node.nodeType == "Identifier") {
-
-  } else if (node.nodeType == "VariableAssignment") {
-
-  }
-} */ 
 
 });
 return ___scope___.entry = "src/index.js";

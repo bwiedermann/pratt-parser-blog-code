@@ -53,9 +53,16 @@ class BaseFunction implements BaseFinder {
 }
 
 // assume that choose nodes will never create their own bases
+// they can still error check previously defined bases
 class BaseChoose implements BaseFinder {
-    findBase(node: AST.ChooseNode): string[] {
-        return []
+    findBase(node: AST.ChooseNode, dependsMap: {[key: string]: string[]}): string[] {
+        let baseList: string[] = [];
+        // the bases of the cons and the otherwise
+        let consBases = findBases(node.case.consequent, dependsMap);
+        baseList = baseList.concat(consBases);
+        let otherBases = findBases(node.otherwise, dependsMap);
+        baseList = baseList.concat(otherBases);
+        return baseList;
     }
 }
 
