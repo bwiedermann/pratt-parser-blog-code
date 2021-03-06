@@ -22,7 +22,7 @@ function updateOutput() {
     let varMap = {};
     let registeredNodes = {};
     let dependsMap = {};
-    let assertMap = {};
+    let assertMap = [];
     /***** ITERATION: Remove mudErrors *****/
     const ast = parser_1.parse(cm.getDoc().getValue(), varMap, registeredNodes, dependsMap);
     const mudErrors = mudChecker_1.mudCheck(ast.nodes, registeredNodes, dependsMap, assertMap);
@@ -1273,7 +1273,7 @@ class MudCheckFunction {
         var _a, _b, _c, _d;
         let errors = [];
         if (node.name == 'Sink') {
-            assertMap = {};
+            assertMap = [];
         }
         // First typecheck the argument
         const arg1Errors = mudCheckNode(node.args[0], nodes, registeredNodes, dependsMap, assertMap);
@@ -1316,9 +1316,6 @@ class MudCheckFunction {
             node.outputType.status = 'Definitely';
         }
         node.outputType.valueType = returnType;
-        for (let i = 0; i < node.args.length; i++) {
-            // node.outputType.dependsOn.push(node.args[i].nodeId);
-        }
         return errors;
     }
 }
@@ -1338,8 +1335,65 @@ class MudCheckChoose {
         // DEFUALT status = maybe-undefined
         let consDef = false;
         let otherDef = false;
+        let localAsserts = [];
         if (otherwise.outputType.status == 'Definitely') {
             otherDef = true;
+        }
+        // consequent in MU and we have a binary predicate
+        if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'BinaryOperation') {
+            // Cases: both bool *******************************
+            //        bool, function (and vice versa) *********
+            //        bool, binary op (and vice versa)
+            //        function, binary op (and vice versa)
+            //        both function ***************************
+            //        both binary op
+            // no need for bool, bool
+            // function, boolean
+            if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'Boolean') {
+                if (predicate.left.name == 'IsDefined') {
+                    handleAsserts(predicate.left, dependsMap, assertMap);
+                    consDef = handleCheck(consequent, dependsMap, assertMap);
+                }
+            }
+            // boolean, function
+            if (predicate.left.nodeType == 'Boolean' && predicate.right.nodeType == 'Function') {
+                if (predicate.right.name == 'IsDefined') {
+                    handleAsserts(predicate.right, dependsMap, assertMap);
+                    consDef = handleCheck(consequent, dependsMap, assertMap);
+                }
+            }
+            // function, function
+            if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'Function') {
+                let consDefLeft = false;
+                let consDefRight = false;
+                let consDefBoth = false;
+                if (predicate.left.name == 'IsDefined') {
+                    handleAsserts(predicate.left, dependsMap, localAsserts);
+                    consDefLeft = handleCheck(consequent, dependsMap, localAsserts);
+                    if (consDefLeft) {
+                        assertMap = assertMap.concat(localAsserts);
+                    }
+                    localAsserts = [];
+                }
+                if (predicate.right.name == 'IsDefined') {
+                    handleAsserts(predicate.right, dependsMap, localAsserts);
+                    consDefRight = handleCheck(consequent, dependsMap, localAsserts);
+                    if (consDefRight) {
+                        assertMap = assertMap.concat(localAsserts);
+                    }
+                    localAsserts = [];
+                }
+                if (predicate.left.name == 'IsDefined' && predicate.right.name == 'IsDefined' && predicate.operator == '&') {
+                    handleAsserts(predicate.left, dependsMap, localAsserts);
+                    handleAsserts(predicate.right, dependsMap, localAsserts);
+                    consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
+                    if (consDefBoth) {
+                        assertMap = assertMap.concat(localAsserts);
+                    }
+                    localAsserts = [];
+                }
+                consDef = consDefLeft || consDefRight || consDefBoth;
+            }
         }
         // propagate maybe-undefined type, or change to definitely
         // if the predicate is not a function, we cannot error check its type
@@ -1347,27 +1401,8 @@ class MudCheckChoose {
             // we can only errorr check with IsDefined function
             // IsDefined has only one argument
             if (predicate.name == 'IsDefined') {
-                // we need to make sure the pred and cons are equal
-                // OR make sure all the dependencies of the consequent are in the predicate
-                // add pred bases to a map of assertions?
-                // find bases of consequent
-                let consBases = findBase_1.findBases(consequent, dependsMap);
-                // look up the bases of the predicate
-                let predBases = findBase_1.findBases(predicate, dependsMap);
-                // set outputType to Definitely if consBases are contained in predBases
-                // add to assertMap
-                for (let k = 0; k < predBases.length; k++) {
-                    assertMap[predBases[k]] = true;
-                }
-                let contained = true;
-                for (let i = 0; i < consBases.length; i++) {
-                    if (!assertMap[consBases[i]]) {
-                        contained = false;
-                    }
-                }
-                if (contained) {
-                    consDef = true;
-                }
+                handleAsserts(predicate, dependsMap, assertMap);
+                consDef = handleCheck(consequent, dependsMap, assertMap);
             }
         }
         if (consDef && otherDef) {
@@ -1385,7 +1420,6 @@ class MudCheckVariable {
         // Set variable assignment node output type to the same as it's assignment
         node.outputType.status = node.assignment.outputType.status;
         node.outputType.valueType = node.assignment.outputType.valueType;
-        // node.outputType.dependsOn = [node.assignment.nodeId];
         return errors;
     }
 }
@@ -1402,7 +1436,6 @@ class MudCheckIdentifier {
             // If we found the assignment node, set the output type of the identifier
             node.outputType.status = valueNode.outputType.status;
             node.outputType.valueType = valueNode.outputType.valueType;
-            // node.outputType.dependsOn = [node.assignmentId];
         }
         return errors;
     }
@@ -1426,6 +1459,25 @@ const mudCheckerMap = {
     'VariableAssignment': new MudCheckVariable(),
     'Identifier': new MudCheckIdentifier()
 };
+function handleAsserts(predicate, dependsMap, assertMap) {
+    // look up the bases of the predicate
+    let predBases = findBase_1.findBases(predicate, dependsMap);
+    // set outputType to Definitely if consBases are contained in predBases
+    // add to assertMap
+    for (let k = 0; k < predBases.length; k++) {
+        assertMap.push(predBases[k]);
+    }
+}
+function handleCheck(consequent, dependsMap, assertMap) {
+    let consBases = findBase_1.findBases(consequent, dependsMap);
+    let contained = true;
+    for (let i = 0; i < consBases.length; i++) {
+        if (!assertMap.find(e => e == consBases[i])) {
+            contained = false;
+        }
+    }
+    return contained;
+}
 
 });
 return ___scope___.entry = "src/index.js";

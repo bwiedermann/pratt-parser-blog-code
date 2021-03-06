@@ -20,7 +20,7 @@ function updateOutput() {
   let varMap: {[key: string]: string} = {};
   let registeredNodes: {[key: string]: AST.Node} = {};
   let dependsMap: {[key: string]: string[]} = {};
-  let assertMap: {[key: string]: boolean} = {};
+  let assertMap: string[] = [];
 
   /***** ITERATION: Remove mudErrors *****/
   const ast = parse(cm.getDoc().getValue(), varMap, registeredNodes, dependsMap);
