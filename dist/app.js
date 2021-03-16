@@ -1343,57 +1343,12 @@ class MudCheckChoose {
         if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'BinaryOperation') {
             // Cases: both bool *******************************
             //        bool, function (and vice versa) *********
-            //        bool, binary op (and vice versa)
+            //        bool, binary op (and vice versa) IN PROGRESS
             //        function, binary op (and vice versa)
             //        both function ***************************
             //        both binary op
             // no need for bool, bool
-            // function, boolean
-            if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'Boolean') {
-                if (predicate.left.name == 'IsDefined') {
-                    handleAsserts(predicate.left, dependsMap, assertMap);
-                    consDef = handleCheck(consequent, dependsMap, assertMap);
-                }
-            }
-            // boolean, function
-            if (predicate.left.nodeType == 'Boolean' && predicate.right.nodeType == 'Function') {
-                if (predicate.right.name == 'IsDefined') {
-                    handleAsserts(predicate.right, dependsMap, assertMap);
-                    consDef = handleCheck(consequent, dependsMap, assertMap);
-                }
-            }
-            // function, function
-            if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'Function') {
-                let consDefLeft = false;
-                let consDefRight = false;
-                let consDefBoth = false;
-                if (predicate.left.name == 'IsDefined') {
-                    handleAsserts(predicate.left, dependsMap, localAsserts);
-                    consDefLeft = handleCheck(consequent, dependsMap, localAsserts);
-                    if (consDefLeft) {
-                        assertMap = assertMap.concat(localAsserts);
-                    }
-                    localAsserts = [];
-                }
-                if (predicate.right.name == 'IsDefined') {
-                    handleAsserts(predicate.right, dependsMap, localAsserts);
-                    consDefRight = handleCheck(consequent, dependsMap, localAsserts);
-                    if (consDefRight) {
-                        assertMap = assertMap.concat(localAsserts);
-                    }
-                    localAsserts = [];
-                }
-                if (predicate.left.name == 'IsDefined' && predicate.right.name == 'IsDefined' && predicate.operator == '&') {
-                    handleAsserts(predicate.left, dependsMap, localAsserts);
-                    handleAsserts(predicate.right, dependsMap, localAsserts);
-                    consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
-                    if (consDefBoth) {
-                        assertMap = assertMap.concat(localAsserts);
-                    }
-                    localAsserts = [];
-                }
-                consDef = consDefLeft || consDefRight || consDefBoth;
-            }
+            consDef = doBinOp(predicate, consequent, dependsMap, assertMap);
         }
         // propagate maybe-undefined type, or change to definitely
         // if the predicate is not a function, we cannot error check its type
@@ -1404,6 +1359,9 @@ class MudCheckChoose {
                 handleAsserts(predicate, dependsMap, assertMap);
                 consDef = handleCheck(consequent, dependsMap, assertMap);
             }
+        }
+        if ((consequent === null || consequent === void 0 ? void 0 : consequent.outputType.status) == 'Definitely') {
+            consDef = true;
         }
         if (consDef && otherDef) {
             node.outputType.status = 'Definitely';
@@ -1477,6 +1435,245 @@ function handleCheck(consequent, dependsMap, assertMap) {
         }
     }
     return contained;
+}
+function resolveBF(predicate, consequent, dependsMap, assertMap) {
+    // boolean, function
+    if (predicate.right.name == 'IsDefined') {
+        handleAsserts(predicate.right, dependsMap, assertMap);
+        return handleCheck(consequent, dependsMap, assertMap);
+    }
+    else {
+        return false;
+    }
+}
+function resolveFB(predicate, consequent, dependsMap, assertMap) {
+    // function, boolean
+    if (predicate.left.name == 'IsDefined') {
+        handleAsserts(predicate.left, dependsMap, assertMap);
+        return handleCheck(consequent, dependsMap, assertMap);
+    }
+    else {
+        return false;
+    }
+}
+function resolveFF(predicate, consequent, dependsMap, assertMap) {
+    // function, function
+    let consDefLeft = false;
+    let consDefRight = false;
+    let consDefBoth = false;
+    let localAsserts = [];
+    if (predicate.left.name == 'IsDefined') {
+        handleAsserts(predicate.left, dependsMap, localAsserts);
+        consDefLeft = handleCheck(consequent, dependsMap, localAsserts);
+        if (consDefLeft) {
+            assertMap = assertMap.concat(localAsserts);
+        }
+        localAsserts = [];
+    }
+    if (predicate.right.name == 'IsDefined') {
+        handleAsserts(predicate.right, dependsMap, localAsserts);
+        consDefRight = handleCheck(consequent, dependsMap, localAsserts);
+        if (consDefRight) {
+            assertMap = assertMap.concat(localAsserts);
+        }
+        localAsserts = [];
+    }
+    if (predicate.left.name == 'IsDefined' && predicate.right.name == 'IsDefined' && predicate.operator == '&') {
+        handleAsserts(predicate.left, dependsMap, localAsserts);
+        handleAsserts(predicate.right, dependsMap, localAsserts);
+        consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
+        if (consDefBoth) {
+            assertMap = assertMap.concat(localAsserts);
+        }
+        localAsserts = [];
+    }
+    if (predicate.operator == '&') {
+        return consDefLeft || consDefRight || consDefBoth;
+    }
+    else if (predicate.operator == '|') {
+        return consDefLeft && consDefRight;
+    }
+    else {
+        return false;
+    }
+}
+function resolveBBO(predicate, consequent, dependsMap, assertMap) {
+    // boolean, binary operation
+    // recurse on the right
+    let consDefRight = doBinOp(predicate.right, consequent, dependsMap, assertMap);
+    if (predicate.left.value == false && predicate.operator == '|') {
+        return consDefRight;
+    }
+    if (predicate.left.value == true && predicate.operator == '&') {
+        return consDefRight;
+    }
+    else {
+        // this may change to true
+        return false;
+    }
+}
+function resolveBOB(predicate, consequent, dependsMap, assertMap) {
+    // binary operation, boolean
+    let consDefLeft = doBinOp(predicate.left, consequent, dependsMap, assertMap);
+    if (predicate.right.value == false && predicate.operator == '|') {
+        return consDefLeft;
+    }
+    if (predicate.right.value == true && predicate.operator == '&') {
+        return consDefLeft;
+    }
+    else {
+        // this may change to true
+        return false;
+    }
+}
+function resolveBOF(predicate, consequent, dependsMap, assertMap) {
+    // binary operation, function
+    // recurse on the left with local asserts
+    let consDefLeft = false;
+    let consDefRight = false;
+    let consDefBoth = false;
+    let localAsserts = [];
+    consDefLeft = doBinOp(predicate.left, consequent, dependsMap, localAsserts);
+    if (consDefLeft) {
+        assertMap = assertMap.concat(localAsserts);
+    }
+    localAsserts = [];
+    if (predicate.right.name == 'IsDefined') {
+        handleAsserts(predicate.right, dependsMap, localAsserts);
+        consDefRight = handleCheck(consequent, dependsMap, localAsserts);
+        if (consDefRight) {
+            assertMap = assertMap.concat(localAsserts);
+        }
+        localAsserts = [];
+    }
+    if (predicate.right.name == 'IsDefined' && predicate.operator == '&') {
+        let temp = doBinOp(predicate.left, consequent, dependsMap, localAsserts);
+        handleAsserts(predicate.right, dependsMap, localAsserts);
+        consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
+        if (consDefBoth) {
+            assertMap = assertMap.concat(localAsserts);
+        }
+        localAsserts = [];
+    }
+    if (predicate.operator == '&') {
+        return consDefLeft || consDefRight || consDefBoth;
+    }
+    else if (predicate.operator == '|') {
+        return consDefLeft && consDefRight;
+    }
+    else {
+        return false;
+    }
+}
+function resolveFBO(predicate, consequent, dependsMap, assertMap) {
+    // function, binary operation
+    // recurse on the left with local asserts
+    let consDefLeft = false;
+    let consDefRight = false;
+    let consDefBoth = false;
+    let localAsserts = [];
+    consDefRight = doBinOp(predicate.right, consequent, dependsMap, localAsserts);
+    if (consDefRight) {
+        assertMap = assertMap.concat(localAsserts);
+    }
+    localAsserts = [];
+    if (predicate.left.name == 'IsDefined') {
+        handleAsserts(predicate.left, dependsMap, localAsserts);
+        consDefLeft = handleCheck(consequent, dependsMap, localAsserts);
+        if (consDefLeft) {
+            assertMap = assertMap.concat(localAsserts);
+        }
+        localAsserts = [];
+    }
+    if (predicate.left.name == 'IsDefined' && predicate.operator == '&') {
+        let temp = doBinOp(predicate.right, consequent, dependsMap, localAsserts);
+        handleAsserts(predicate.left, dependsMap, localAsserts);
+        consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
+        if (consDefBoth) {
+            assertMap = assertMap.concat(localAsserts);
+        }
+        localAsserts = [];
+    }
+    if (predicate.operator == '&') {
+        return consDefLeft || consDefRight || consDefBoth;
+    }
+    else if (predicate.operator == '|') {
+        return consDefLeft && consDefRight;
+    }
+    else {
+        return false;
+    }
+}
+function resolveBOBO(predicate, consequent, dependsMap, assertMap) {
+    // binary operation, binary operation
+    let consDefLeft = false;
+    let consDefRight = false;
+    let consDefBoth = false;
+    let localAsserts = [];
+    consDefRight = doBinOp(predicate.right, consequent, dependsMap, localAsserts);
+    if (consDefRight) {
+        assertMap = assertMap.concat(localAsserts);
+    }
+    localAsserts = [];
+    consDefLeft = doBinOp(predicate.left, consequent, dependsMap, localAsserts);
+    if (consDefLeft) {
+        assertMap = assertMap.concat(localAsserts);
+    }
+    localAsserts = [];
+    if (predicate.operator == '&') {
+        let temp = doBinOp(predicate.right, consequent, dependsMap, localAsserts);
+        let temp2 = doBinOp(predicate.left, consequent, dependsMap, localAsserts);
+        consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
+        if (consDefBoth) {
+            assertMap = assertMap.concat(localAsserts);
+        }
+        localAsserts = [];
+    }
+    if (predicate.operator == '&') {
+        return consDefLeft || consDefRight || consDefBoth;
+    }
+    else if (predicate.operator == '|') {
+        return consDefLeft && consDefRight;
+    }
+    else {
+        return false;
+    }
+}
+function doBinOp(predicate, consequent, dependsMap, assertMap) {
+    let consDef = false;
+    // function, boolean
+    if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'Boolean') {
+        consDef = resolveFB(predicate, consequent, dependsMap, assertMap);
+    }
+    // boolean, function
+    if (predicate.left.nodeType == 'Boolean' && predicate.right.nodeType == 'Function') {
+        consDef = resolveBF(predicate, consequent, dependsMap, assertMap);
+    }
+    // function, function
+    if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'Function') {
+        consDef = resolveFF(predicate, consequent, dependsMap, assertMap);
+    }
+    // bool, binary op
+    if (predicate.left.nodeType == 'Boolean' && predicate.right.nodeType == 'BinaryOperation') {
+        consDef = resolveBBO(predicate, consequent, dependsMap, assertMap);
+    }
+    // binary op, bool
+    if (predicate.left.nodeType == 'BinaryOperation' && predicate.right.nodeType == 'Boolean') {
+        consDef = resolveBOB(predicate, consequent, dependsMap, assertMap);
+    }
+    // function, binary op
+    if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'BinaryOperation') {
+        consDef = resolveFBO(predicate, consequent, dependsMap, assertMap);
+    }
+    // binary op, function
+    if (predicate.left.nodeType == 'BinaryOperation' && predicate.right.nodeType == 'Function') {
+        consDef = resolveBOF(predicate, consequent, dependsMap, assertMap);
+    }
+    // binary op, binary op
+    if (predicate.left.nodeType == 'BinaryOperation' && predicate.right.nodeType == 'BinaryOperation') {
+        consDef = resolveBOBO(predicate, consequent, dependsMap, assertMap);
+    }
+    return consDef;
 }
 
 });
