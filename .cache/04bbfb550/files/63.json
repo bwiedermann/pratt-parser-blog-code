@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nvar dice_js_1 = __fusereq(61);\nvar dice_js_1d = __fuse.dt(dice_js_1);\nvar slice_js_1 = __fusereq(62);\nvar slice_js_1d = __fuse.dt(slice_js_1);\nfunction __DefaultExport__(parent, x0, y0, x1, y1) {\n  (parent.depth & 1 ? slice_js_1d.default : dice_js_1d.default)(parent, x0, y0, x1, y1);\n}\nexports.default = __DefaultExport__;\n"}

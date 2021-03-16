@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nfunction __DefaultExport__(node) {\n  return node.ownerDocument && node.ownerDocument.defaultView || node.document && node || node.defaultView;\n}\nexports.default = __DefaultExport__;\n"}

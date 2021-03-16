@@ -1,0 +1,2829 @@
+{
+  "currentId": 189,
+  "modules": {
+    "1": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/index.ts",
+      "dependencies": [
+        9,
+        11,
+        4,
+        6,
+        2,
+        5,
+        3,
+        7,
+        8
+      ],
+      "id": 1,
+      "mtime": 1615938130811,
+      "packageId": "default",
+      "publicPath": "src/index.ts"
+    },
+    "2": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/fuse-box-hot-reload/clientHotReload.ts",
+      "dependencies": [
+        12
+      ],
+      "id": 2,
+      "mtime": 499162500000,
+      "packageId": "fuse-box-hot-reload@1.0.0",
+      "publicPath": "node_modules/fuse-box/modules/fuse-box-hot-reload/clientHotReload.ts"
+    },
+    "3": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/basic-setup/dist/index.js",
+      "dependencies": [
+        16,
+        18,
+        4,
+        19,
+        20,
+        21,
+        24,
+        23,
+        22,
+        25,
+        26,
+        29,
+        28,
+        27,
+        30
+      ],
+      "id": 3,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/basic-setup@0.18.0",
+      "publicPath": "node_modules/@codemirror/basic-setup/dist/index.js"
+    },
+    "4": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/lint/dist/index.js",
+      "dependencies": [
+        18,
+        16,
+        31,
+        32,
+        33
+      ],
+      "id": 4,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/lint@0.18.1",
+      "publicPath": "node_modules/@codemirror/lint/dist/index.js"
+    },
+    "5": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/miniCL.ts",
+      "dependencies": [
+        7,
+        13,
+        14,
+        15
+      ],
+      "id": 5,
+      "mtime": 1615938130812,
+      "packageId": "default",
+      "publicPath": "src/miniCL.ts"
+    },
+    "6": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/stream-parser/dist/index.js",
+      "dependencies": [
+        30,
+        21,
+        35,
+        34
+      ],
+      "id": 6,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/stream-parser@0.18.1",
+      "publicPath": "node_modules/@codemirror/stream-parser/dist/index.js"
+    },
+    "7": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/parseResults.ts",
+      "dependencies": [
+        16,
+        17
+      ],
+      "id": 7,
+      "mtime": 1615938130812,
+      "packageId": "default",
+      "publicPath": "src/parseResults.ts"
+    },
+    "8": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/devTools.ts",
+      "dependencies": [
+        20,
+        3,
+        4,
+        7,
+        36,
+        37
+      ],
+      "id": 8,
+      "mtime": 1615938130810,
+      "packageId": "default",
+      "publicPath": "src/devTools.ts"
+    },
+    "9": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/styles.css",
+      "dependencies": [
+        10
+      ],
+      "id": 9,
+      "mtime": 1615938130812,
+      "packageId": "default",
+      "publicPath": "src/styles.css"
+    },
+    "10": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/fuse-box-css/index.js",
+      "dependencies": [],
+      "id": 10,
+      "mtime": 499162500000,
+      "packageId": "fuse-box-css@1.0.0",
+      "publicPath": "node_modules/fuse-box/modules/fuse-box-css/index.js"
+    },
+    "11": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/desmos_icons.css",
+      "dependencies": [
+        10
+      ],
+      "id": 11,
+      "mtime": 1615938130810,
+      "packageId": "default",
+      "publicPath": "src/desmos_icons.css"
+    },
+    "12": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/fuse-box-websocket/index.js",
+      "dependencies": [
+        38
+      ],
+      "id": 12,
+      "mtime": 499162500000,
+      "packageId": "fuse-box-websocket@1.0.0",
+      "publicPath": "node_modules/fuse-box/modules/fuse-box-websocket/index.js"
+    },
+    "13": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/lexer.ts",
+      "dependencies": [
+        6
+      ],
+      "id": 13,
+      "mtime": 1615938130812,
+      "packageId": "default",
+      "publicPath": "src/lexer.ts"
+    },
+    "14": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/typechecker.ts",
+      "dependencies": [],
+      "id": 14,
+      "mtime": 1614905334188,
+      "packageId": "default",
+      "publicPath": "src/typechecker.ts"
+    },
+    "15": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/mudChecker.ts",
+      "dependencies": [
+        42
+      ],
+      "id": 15,
+      "mtime": 1615859682134,
+      "packageId": "default",
+      "publicPath": "src/mudChecker.ts"
+    },
+    "16": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/state/dist/index.js",
+      "dependencies": [
+        35
+      ],
+      "id": 16,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/state@0.18.2",
+      "publicPath": "node_modules/@codemirror/state/dist/index.js"
+    },
+    "17": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/parser.ts",
+      "dependencies": [
+        47,
+        49,
+        48
+      ],
+      "id": 17,
+      "mtime": 1614652650882,
+      "packageId": "default",
+      "publicPath": "src/parser.ts"
+    },
+    "18": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/view/dist/index.js",
+      "dependencies": [
+        16,
+        39,
+        35,
+        40,
+        41
+      ],
+      "id": 18,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/view@0.18.1",
+      "publicPath": "node_modules/@codemirror/view/dist/index.js"
+    },
+    "19": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/history/dist/index.js",
+      "dependencies": [
+        16,
+        18
+      ],
+      "id": 19,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/history@0.18.0",
+      "publicPath": "node_modules/@codemirror/history/dist/index.js"
+    },
+    "20": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/fold/dist/index.js",
+      "dependencies": [
+        16,
+        18,
+        21,
+        22,
+        39
+      ],
+      "id": 20,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/fold@0.18.0",
+      "publicPath": "node_modules/@codemirror/fold/dist/index.js"
+    },
+    "21": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/language/dist/index.js",
+      "dependencies": [
+        34,
+        35,
+        16,
+        18
+      ],
+      "id": 21,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/language@0.18.0",
+      "publicPath": "node_modules/@codemirror/language/dist/index.js"
+    },
+    "22": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/gutter/dist/index.js",
+      "dependencies": [
+        18,
+        39,
+        16
+      ],
+      "id": 22,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/gutter@0.18.0",
+      "publicPath": "node_modules/@codemirror/gutter/dist/index.js"
+    },
+    "23": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/commands/dist/index.js",
+      "dependencies": [
+        16,
+        35,
+        18,
+        24,
+        21,
+        34
+      ],
+      "id": 23,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/commands@0.18.0",
+      "publicPath": "node_modules/@codemirror/commands/dist/index.js"
+    },
+    "24": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/matchbrackets/dist/index.js",
+      "dependencies": [
+        16,
+        21,
+        18,
+        34
+      ],
+      "id": 24,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/matchbrackets@0.18.0",
+      "publicPath": "node_modules/@codemirror/matchbrackets/dist/index.js"
+    },
+    "25": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/closebrackets/dist/index.js",
+      "dependencies": [
+        18,
+        16,
+        39,
+        35,
+        21
+      ],
+      "id": 25,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/closebrackets@0.18.0",
+      "publicPath": "node_modules/@codemirror/closebrackets/dist/index.js"
+    },
+    "26": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/search/dist/index.js",
+      "dependencies": [
+        18,
+        16,
+        32,
+        39,
+        33,
+        35
+      ],
+      "id": 26,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/search@0.18.1",
+      "publicPath": "node_modules/@codemirror/search/dist/index.js"
+    },
+    "27": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/autocomplete/dist/index.js",
+      "dependencies": [
+        16,
+        18,
+        31,
+        21,
+        35
+      ],
+      "id": 27,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/autocomplete@0.18.3",
+      "publicPath": "node_modules/@codemirror/autocomplete/dist/index.js"
+    },
+    "28": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/comment/dist/index.js",
+      "dependencies": [
+        16
+      ],
+      "id": 28,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/comment@0.18.0",
+      "publicPath": "node_modules/@codemirror/comment/dist/index.js"
+    },
+    "29": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/rectangular-selection/dist/index.js",
+      "dependencies": [
+        16,
+        18,
+        35
+      ],
+      "id": 29,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/rectangular-selection@0.18.0",
+      "publicPath": "node_modules/@codemirror/rectangular-selection/dist/index.js"
+    },
+    "30": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/highlight/dist/index.js",
+      "dependencies": [
+        34,
+        40,
+        18,
+        16,
+        21,
+        39
+      ],
+      "id": 30,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/highlight@0.18.3",
+      "publicPath": "node_modules/@codemirror/highlight/dist/index.js"
+    },
+    "31": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/tooltip/dist/index.js",
+      "dependencies": [
+        18,
+        16
+      ],
+      "id": 31,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/tooltip@0.18.4",
+      "publicPath": "node_modules/@codemirror/tooltip/dist/index.js"
+    },
+    "32": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/panel/dist/index.js",
+      "dependencies": [
+        18,
+        16
+      ],
+      "id": 32,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/panel@0.18.1",
+      "publicPath": "node_modules/@codemirror/panel/dist/index.js"
+    },
+    "33": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/crelt/index.es.js",
+      "dependencies": [],
+      "id": 33,
+      "mtime": 499162500000,
+      "packageId": "crelt@1.0.5",
+      "publicPath": "node_modules/crelt/index.es.js"
+    },
+    "34": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/lezer-tree/dist/tree.es.js",
+      "dependencies": [],
+      "id": 34,
+      "mtime": 499162500000,
+      "packageId": "lezer-tree@0.13.2",
+      "publicPath": "node_modules/lezer-tree/dist/tree.es.js"
+    },
+    "35": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/text/dist/index.js",
+      "dependencies": [],
+      "id": 35,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/text@0.18.0",
+      "publicPath": "node_modules/@codemirror/text/dist/index.js"
+    },
+    "36": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/lang-json/dist/index.js",
+      "dependencies": [
+        21,
+        30,
+        43
+      ],
+      "id": 36,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/lang-json@0.18.0",
+      "publicPath": "node_modules/@codemirror/lang-json/dist/index.js"
+    },
+    "37": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/visualization.ts",
+      "dependencies": [
+        44,
+        46,
+        45
+      ],
+      "id": 37,
+      "mtime": 1615938130813,
+      "packageId": "default",
+      "publicPath": "src/visualization.ts"
+    },
+    "38": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/events/index.js",
+      "dependencies": [],
+      "id": 38,
+      "mtime": 499162500000,
+      "packageId": "events@1.0.0",
+      "publicPath": "node_modules/fuse-box/modules/events/index.js"
+    },
+    "39": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/rangeset/dist/index.js",
+      "dependencies": [
+        16
+      ],
+      "id": 39,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/rangeset@0.18.0",
+      "publicPath": "node_modules/@codemirror/rangeset/dist/index.js"
+    },
+    "40": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/style-mod/src/style-mod.js",
+      "dependencies": [],
+      "id": 40,
+      "mtime": 499162500000,
+      "packageId": "style-mod@4.0.0",
+      "publicPath": "node_modules/style-mod/src/style-mod.js"
+    },
+    "41": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/w3c-keyname/index.es.js",
+      "dependencies": [],
+      "id": 41,
+      "mtime": 499162500000,
+      "packageId": "w3c-keyname@2.2.4",
+      "publicPath": "node_modules/w3c-keyname/index.es.js"
+    },
+    "42": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/findBase.ts",
+      "dependencies": [],
+      "id": 42,
+      "mtime": 1614905962371,
+      "packageId": "default",
+      "publicPath": "src/findBase.ts"
+    },
+    "43": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/lezer-json/dist/index.es.js",
+      "dependencies": [
+        50
+      ],
+      "id": 43,
+      "mtime": 499162500000,
+      "packageId": "lezer-json@0.13.1",
+      "publicPath": "node_modules/lezer-json/dist/index.es.js"
+    },
+    "44": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/index.js",
+      "dependencies": [
+        51,
+        55,
+        57,
+        58,
+        60,
+        61,
+        59,
+        65,
+        64,
+        62,
+        63,
+        53,
+        54,
+        52,
+        56
+      ],
+      "id": 44,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/index.js"
+    },
+    "45": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/index.js",
+      "dependencies": [
+        111,
+        110,
+        117,
+        115,
+        118,
+        114,
+        112,
+        121,
+        113,
+        122,
+        124,
+        123,
+        116,
+        119,
+        120
+      ],
+      "id": 45,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/index.js"
+    },
+    "46": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/index.js",
+      "dependencies": [
+        68,
+        72,
+        71,
+        74,
+        73,
+        76,
+        78,
+        79,
+        75,
+        77,
+        84,
+        80,
+        81,
+        83,
+        86,
+        85,
+        88,
+        87,
+        89,
+        90,
+        93,
+        94,
+        96,
+        95,
+        92,
+        100,
+        99,
+        97,
+        98,
+        102,
+        103,
+        101,
+        104,
+        106,
+        108,
+        109,
+        107,
+        105,
+        91,
+        70,
+        82,
+        67,
+        69,
+        66
+      ],
+      "id": 46,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/index.js"
+    },
+    "47": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/parselet.ts",
+      "dependencies": [
+        49,
+        42
+      ],
+      "id": 47,
+      "mtime": 1614652463067,
+      "packageId": "default",
+      "publicPath": "src/parselet.ts"
+    },
+    "48": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/tokenstream.ts",
+      "dependencies": [
+        13,
+        49
+      ],
+      "id": 48,
+      "mtime": 1611882494225,
+      "packageId": "default",
+      "publicPath": "src/tokenstream.ts"
+    },
+    "49": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/position.ts",
+      "dependencies": [],
+      "id": 49,
+      "mtime": 1614302927787,
+      "packageId": "default",
+      "publicPath": "src/position.ts"
+    },
+    "50": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/lezer/dist/index.es.js",
+      "dependencies": [
+        34,
+        125
+      ],
+      "id": 50,
+      "mtime": 499162500000,
+      "packageId": "lezer@0.13.4",
+      "publicPath": "node_modules/lezer/dist/index.es.js"
+    },
+    "51": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/cluster.js",
+      "dependencies": [],
+      "id": 51,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/cluster.js"
+    },
+    "52": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/index.js",
+      "dependencies": [
+        128,
+        129,
+        130,
+        131,
+        132,
+        135,
+        133,
+        136,
+        134,
+        139,
+        137,
+        138,
+        140
+      ],
+      "id": 52,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/index.js"
+    },
+    "53": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/pack/index.js",
+      "dependencies": [
+        54,
+        127,
+        126
+      ],
+      "id": 53,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/pack/index.js"
+    },
+    "54": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/pack/siblings.js",
+      "dependencies": [
+        55,
+        141
+      ],
+      "id": 54,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/pack/siblings.js"
+    },
+    "55": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/pack/enclose.js",
+      "dependencies": [
+        141
+      ],
+      "id": 55,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/pack/enclose.js"
+    },
+    "56": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/partition.js",
+      "dependencies": [
+        61,
+        142
+      ],
+      "id": 56,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/partition.js"
+    },
+    "57": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/stratify.js",
+      "dependencies": [
+        126,
+        52
+      ],
+      "id": 57,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/stratify.js"
+    },
+    "58": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/tree.js",
+      "dependencies": [
+        52
+      ],
+      "id": 58,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/tree.js"
+    },
+    "59": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/treemap/index.js",
+      "dependencies": [
+        142,
+        64,
+        126,
+        127
+      ],
+      "id": 59,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/index.js"
+    },
+    "60": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/treemap/binary.js",
+      "dependencies": [],
+      "id": 60,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/binary.js"
+    },
+    "61": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/treemap/dice.js",
+      "dependencies": [],
+      "id": 61,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/dice.js"
+    },
+    "62": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/treemap/slice.js",
+      "dependencies": [],
+      "id": 62,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/slice.js"
+    },
+    "63": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/treemap/sliceDice.js",
+      "dependencies": [
+        61,
+        62
+      ],
+      "id": 63,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/sliceDice.js"
+    },
+    "64": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/treemap/squarify.js",
+      "dependencies": [
+        61,
+        62
+      ],
+      "id": 64,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/squarify.js"
+    },
+    "65": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/treemap/resquarify.js",
+      "dependencies": [
+        61,
+        62,
+        64
+      ],
+      "id": 65,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/resquarify.js"
+    },
+    "66": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/arc.js",
+      "dependencies": [
+        145,
+        144,
+        143
+      ],
+      "id": 66,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/arc.js"
+    },
+    "67": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/area.js",
+      "dependencies": [
+        143,
+        144,
+        94,
+        68,
+        147,
+        146
+      ],
+      "id": 67,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/area.js"
+    },
+    "68": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/line.js",
+      "dependencies": [
+        143,
+        146,
+        144,
+        94,
+        147
+      ],
+      "id": 68,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/line.js"
+    },
+    "69": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/pie.js",
+      "dependencies": [
+        146,
+        144,
+        145,
+        149,
+        148
+      ],
+      "id": 69,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/pie.js"
+    },
+    "70": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/areaRadial.js",
+      "dependencies": [
+        67,
+        71,
+        150
+      ],
+      "id": 70,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/areaRadial.js"
+    },
+    "71": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/lineRadial.js",
+      "dependencies": [
+        150,
+        68
+      ],
+      "id": 71,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/lineRadial.js"
+    },
+    "72": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/pointRadial.js",
+      "dependencies": [],
+      "id": 72,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/pointRadial.js"
+    },
+    "73": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/link/index.js",
+      "dependencies": [
+        143,
+        146,
+        144,
+        147,
+        72
+      ],
+      "id": 73,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/link/index.js"
+    },
+    "74": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/symbol.js",
+      "dependencies": [
+        143,
+        75,
+        76,
+        77,
+        79,
+        78,
+        80,
+        81,
+        144
+      ],
+      "id": 74,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol.js"
+    },
+    "75": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/symbol/circle.js",
+      "dependencies": [
+        145
+      ],
+      "id": 75,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/circle.js"
+    },
+    "76": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/symbol/cross.js",
+      "dependencies": [],
+      "id": 76,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/cross.js"
+    },
+    "77": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/symbol/diamond.js",
+      "dependencies": [],
+      "id": 77,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/diamond.js"
+    },
+    "78": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/symbol/square.js",
+      "dependencies": [],
+      "id": 78,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/square.js"
+    },
+    "79": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/symbol/star.js",
+      "dependencies": [
+        145
+      ],
+      "id": 79,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/star.js"
+    },
+    "80": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/symbol/triangle.js",
+      "dependencies": [],
+      "id": 80,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/triangle.js"
+    },
+    "81": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/symbol/wye.js",
+      "dependencies": [],
+      "id": 81,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/wye.js"
+    },
+    "82": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/basisClosed.js",
+      "dependencies": [
+        84,
+        151
+      ],
+      "id": 82,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/basisClosed.js"
+    },
+    "83": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/basisOpen.js",
+      "dependencies": [
+        84
+      ],
+      "id": 83,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/basisOpen.js"
+    },
+    "84": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/basis.js",
+      "dependencies": [],
+      "id": 84,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/basis.js"
+    },
+    "85": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/bump.js",
+      "dependencies": [],
+      "id": 85,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/bump.js"
+    },
+    "86": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/bundle.js",
+      "dependencies": [
+        84
+      ],
+      "id": 86,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/bundle.js"
+    },
+    "87": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/cardinalClosed.js",
+      "dependencies": [
+        151,
+        89
+      ],
+      "id": 87,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/cardinalClosed.js"
+    },
+    "88": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/cardinalOpen.js",
+      "dependencies": [
+        89
+      ],
+      "id": 88,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/cardinalOpen.js"
+    },
+    "89": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/cardinal.js",
+      "dependencies": [],
+      "id": 89,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/cardinal.js"
+    },
+    "90": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/catmullRomClosed.js",
+      "dependencies": [
+        87,
+        151,
+        92
+      ],
+      "id": 90,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/catmullRomClosed.js"
+    },
+    "91": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/catmullRomOpen.js",
+      "dependencies": [
+        88,
+        92
+      ],
+      "id": 91,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/catmullRomOpen.js"
+    },
+    "92": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/catmullRom.js",
+      "dependencies": [
+        145,
+        89
+      ],
+      "id": 92,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/catmullRom.js"
+    },
+    "93": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/linearClosed.js",
+      "dependencies": [
+        151
+      ],
+      "id": 93,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/linearClosed.js"
+    },
+    "94": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/linear.js",
+      "dependencies": [],
+      "id": 94,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/linear.js"
+    },
+    "95": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/monotone.js",
+      "dependencies": [],
+      "id": 95,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/monotone.js"
+    },
+    "96": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/natural.js",
+      "dependencies": [],
+      "id": 96,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/natural.js"
+    },
+    "97": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/step.js",
+      "dependencies": [],
+      "id": 97,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/step.js"
+    },
+    "98": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/stack.js",
+      "dependencies": [
+        146,
+        144,
+        101,
+        108
+      ],
+      "id": 98,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/stack.js"
+    },
+    "99": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/offset/expand.js",
+      "dependencies": [
+        101
+      ],
+      "id": 99,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/offset/expand.js"
+    },
+    "100": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/offset/diverging.js",
+      "dependencies": [],
+      "id": 100,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/offset/diverging.js"
+    },
+    "101": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/offset/none.js",
+      "dependencies": [],
+      "id": 101,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/offset/none.js"
+    },
+    "102": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/offset/silhouette.js",
+      "dependencies": [
+        101
+      ],
+      "id": 102,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/offset/silhouette.js"
+    },
+    "103": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/offset/wiggle.js",
+      "dependencies": [
+        101
+      ],
+      "id": 103,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/offset/wiggle.js"
+    },
+    "104": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/order/appearance.js",
+      "dependencies": [
+        108
+      ],
+      "id": 104,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/order/appearance.js"
+    },
+    "105": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/order/ascending.js",
+      "dependencies": [
+        108
+      ],
+      "id": 105,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/order/ascending.js"
+    },
+    "106": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/order/descending.js",
+      "dependencies": [
+        105
+      ],
+      "id": 106,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/order/descending.js"
+    },
+    "107": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/order/insideOut.js",
+      "dependencies": [
+        104,
+        105
+      ],
+      "id": 107,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/order/insideOut.js"
+    },
+    "108": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/order/none.js",
+      "dependencies": [],
+      "id": 108,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/order/none.js"
+    },
+    "109": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/order/reverse.js",
+      "dependencies": [
+        108
+      ],
+      "id": 109,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/order/reverse.js"
+    },
+    "110": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/create.js",
+      "dependencies": [
+        111,
+        118
+      ],
+      "id": 110,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/create.js"
+    },
+    "111": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/creator.js",
+      "dependencies": [
+        114,
+        115
+      ],
+      "id": 111,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/creator.js"
+    },
+    "112": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/local.js",
+      "dependencies": [],
+      "id": 112,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/local.js"
+    },
+    "113": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/matcher.js",
+      "dependencies": [],
+      "id": 113,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/matcher.js"
+    },
+    "114": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/namespace.js",
+      "dependencies": [
+        115
+      ],
+      "id": 114,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/namespace.js"
+    },
+    "115": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/namespaces.js",
+      "dependencies": [],
+      "id": 115,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/namespaces.js"
+    },
+    "116": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/pointer.js",
+      "dependencies": [
+        152
+      ],
+      "id": 116,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/pointer.js"
+    },
+    "117": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/pointers.js",
+      "dependencies": [
+        116,
+        152
+      ],
+      "id": 117,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/pointers.js"
+    },
+    "118": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/select.js",
+      "dependencies": [
+        120
+      ],
+      "id": 118,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/select.js"
+    },
+    "119": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selectAll.js",
+      "dependencies": [
+        120,
+        186
+      ],
+      "id": 119,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selectAll.js"
+    },
+    "120": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/index.js",
+      "dependencies": [
+        123,
+        153,
+        154,
+        157,
+        155,
+        156,
+        159,
+        162,
+        161,
+        164,
+        165,
+        163,
+        167,
+        168,
+        166,
+        169,
+        170,
+        172,
+        171,
+        173,
+        176,
+        174,
+        175,
+        177,
+        178,
+        180,
+        181,
+        179,
+        182,
+        184,
+        183,
+        185,
+        160,
+        158
+      ],
+      "id": 120,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/index.js"
+    },
+    "121": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selector.js",
+      "dependencies": [],
+      "id": 121,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selector.js"
+    },
+    "122": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selectorAll.js",
+      "dependencies": [],
+      "id": 122,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selectorAll.js"
+    },
+    "123": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/style.js",
+      "dependencies": [
+        124
+      ],
+      "id": 123,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/style.js"
+    },
+    "124": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/window.js",
+      "dependencies": [],
+      "id": 124,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/window.js"
+    },
+    "125": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/process/index.js",
+      "dependencies": [],
+      "id": 125,
+      "mtime": 499162500000,
+      "packageId": "process@1.0.0",
+      "publicPath": "node_modules/fuse-box/modules/process/index.js"
+    },
+    "126": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/accessors.js",
+      "dependencies": [],
+      "id": 126,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/accessors.js"
+    },
+    "127": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/constant.js",
+      "dependencies": [],
+      "id": 127,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/constant.js"
+    },
+    "128": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/count.js",
+      "dependencies": [],
+      "id": 128,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/count.js"
+    },
+    "129": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/each.js",
+      "dependencies": [],
+      "id": 129,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/each.js"
+    },
+    "130": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/eachBefore.js",
+      "dependencies": [],
+      "id": 130,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/eachBefore.js"
+    },
+    "131": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/eachAfter.js",
+      "dependencies": [],
+      "id": 131,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/eachAfter.js"
+    },
+    "132": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/find.js",
+      "dependencies": [],
+      "id": 132,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/find.js"
+    },
+    "133": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/sum.js",
+      "dependencies": [],
+      "id": 133,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/sum.js"
+    },
+    "134": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/sort.js",
+      "dependencies": [],
+      "id": 134,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/sort.js"
+    },
+    "135": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/path.js",
+      "dependencies": [],
+      "id": 135,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/path.js"
+    },
+    "136": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/ancestors.js",
+      "dependencies": [],
+      "id": 136,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/ancestors.js"
+    },
+    "137": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/descendants.js",
+      "dependencies": [],
+      "id": 137,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/descendants.js"
+    },
+    "138": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/leaves.js",
+      "dependencies": [],
+      "id": 138,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/leaves.js"
+    },
+    "139": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/links.js",
+      "dependencies": [],
+      "id": 139,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/links.js"
+    },
+    "140": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/hierarchy/iterator.js",
+      "dependencies": [],
+      "id": 140,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/iterator.js"
+    },
+    "141": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/array.js",
+      "dependencies": [],
+      "id": 141,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/array.js"
+    },
+    "142": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/treemap/round.js",
+      "dependencies": [],
+      "id": 142,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/round.js"
+    },
+    "143": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-path/src/index.js",
+      "dependencies": [
+        187
+      ],
+      "id": 143,
+      "mtime": 1594409047000,
+      "packageId": "d3-path@2.0.0",
+      "publicPath": "node_modules/d3-path/src/index.js"
+    },
+    "144": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/constant.js",
+      "dependencies": [],
+      "id": 144,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/constant.js"
+    },
+    "145": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/math.js",
+      "dependencies": [],
+      "id": 145,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/math.js"
+    },
+    "146": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/array.js",
+      "dependencies": [],
+      "id": 146,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/array.js"
+    },
+    "147": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/point.js",
+      "dependencies": [],
+      "id": 147,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/point.js"
+    },
+    "148": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/descending.js",
+      "dependencies": [],
+      "id": 148,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/descending.js"
+    },
+    "149": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/identity.js",
+      "dependencies": [],
+      "id": 149,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/identity.js"
+    },
+    "150": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/curve/radial.js",
+      "dependencies": [
+        94
+      ],
+      "id": 150,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/radial.js"
+    },
+    "151": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/noop.js",
+      "dependencies": [],
+      "id": 151,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/noop.js"
+    },
+    "152": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/sourceEvent.js",
+      "dependencies": [],
+      "id": 152,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/sourceEvent.js"
+    },
+    "153": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/select.js",
+      "dependencies": [
+        120,
+        121
+      ],
+      "id": 153,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/select.js"
+    },
+    "154": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/selectAll.js",
+      "dependencies": [
+        120,
+        186,
+        122
+      ],
+      "id": 154,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/selectAll.js"
+    },
+    "155": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/selectChild.js",
+      "dependencies": [
+        113
+      ],
+      "id": 155,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/selectChild.js"
+    },
+    "156": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/selectChildren.js",
+      "dependencies": [
+        113
+      ],
+      "id": 156,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/selectChildren.js"
+    },
+    "157": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/filter.js",
+      "dependencies": [
+        120,
+        113
+      ],
+      "id": 157,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/filter.js"
+    },
+    "158": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/data.js",
+      "dependencies": [
+        120,
+        159,
+        186,
+        188
+      ],
+      "id": 158,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/data.js"
+    },
+    "159": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/enter.js",
+      "dependencies": [
+        189,
+        120
+      ],
+      "id": 159,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/enter.js"
+    },
+    "160": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/exit.js",
+      "dependencies": [
+        120,
+        189
+      ],
+      "id": 160,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/exit.js"
+    },
+    "161": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/join.js",
+      "dependencies": [],
+      "id": 161,
+      "mtime": 1596108260000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/join.js"
+    },
+    "162": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/merge.js",
+      "dependencies": [
+        120
+      ],
+      "id": 162,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/merge.js"
+    },
+    "163": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/order.js",
+      "dependencies": [],
+      "id": 163,
+      "mtime": 1593424736000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/order.js"
+    },
+    "164": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/sort.js",
+      "dependencies": [
+        120
+      ],
+      "id": 164,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/sort.js"
+    },
+    "165": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/call.js",
+      "dependencies": [],
+      "id": 165,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/call.js"
+    },
+    "166": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/nodes.js",
+      "dependencies": [],
+      "id": 166,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/nodes.js"
+    },
+    "167": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/node.js",
+      "dependencies": [],
+      "id": 167,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/node.js"
+    },
+    "168": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/size.js",
+      "dependencies": [],
+      "id": 168,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/size.js"
+    },
+    "169": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/empty.js",
+      "dependencies": [],
+      "id": 169,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/empty.js"
+    },
+    "170": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/each.js",
+      "dependencies": [],
+      "id": 170,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/each.js"
+    },
+    "171": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/attr.js",
+      "dependencies": [
+        114
+      ],
+      "id": 171,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/attr.js"
+    },
+    "172": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/property.js",
+      "dependencies": [],
+      "id": 172,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/property.js"
+    },
+    "173": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/classed.js",
+      "dependencies": [],
+      "id": 173,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/classed.js"
+    },
+    "174": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/text.js",
+      "dependencies": [],
+      "id": 174,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/text.js"
+    },
+    "175": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/html.js",
+      "dependencies": [],
+      "id": 175,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/html.js"
+    },
+    "176": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/raise.js",
+      "dependencies": [],
+      "id": 176,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/raise.js"
+    },
+    "177": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/lower.js",
+      "dependencies": [],
+      "id": 177,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/lower.js"
+    },
+    "178": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/append.js",
+      "dependencies": [
+        111
+      ],
+      "id": 178,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/append.js"
+    },
+    "179": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/insert.js",
+      "dependencies": [
+        111,
+        121
+      ],
+      "id": 179,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/insert.js"
+    },
+    "180": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/remove.js",
+      "dependencies": [],
+      "id": 180,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/remove.js"
+    },
+    "181": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/clone.js",
+      "dependencies": [],
+      "id": 181,
+      "mtime": 1596108292000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/clone.js"
+    },
+    "182": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/datum.js",
+      "dependencies": [],
+      "id": 182,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/datum.js"
+    },
+    "183": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/on.js",
+      "dependencies": [],
+      "id": 183,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/on.js"
+    },
+    "184": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/dispatch.js",
+      "dependencies": [
+        124
+      ],
+      "id": 184,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/dispatch.js"
+    },
+    "185": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/iterator.js",
+      "dependencies": [],
+      "id": 185,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/iterator.js"
+    },
+    "186": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/array.js",
+      "dependencies": [],
+      "id": 186,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/array.js"
+    },
+    "187": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-path/src/path.js",
+      "dependencies": [],
+      "id": 187,
+      "mtime": 1597838326000,
+      "packageId": "d3-path@2.0.0",
+      "publicPath": "node_modules/d3-path/src/path.js"
+    },
+    "188": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/constant.js",
+      "dependencies": [],
+      "id": 188,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/constant.js"
+    },
+    "189": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/selection/sparse.js",
+      "dependencies": [],
+      "id": 189,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/sparse.js"
+    }
+  },
+  "packages": {
+    "default": {
+      "type": 0,
+      "publicName": "default",
+      "isUserPackage": true,
+      "isExternalPackage": false
+    },
+    "fuse-box-hot-reload@1.0.0": {
+      "type": 1,
+      "meta": {
+        "fusebox": {
+          "dev": true
+        },
+        "name": "fuse-box-hot-reload",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/fuse-box-hot-reload/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/fuse-box-hot-reload",
+        "version": "1.0.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/fuse-box-hot-reload/clientHotReload.ts",
+        "entryFuseBoxPath": "clientHotReload.js"
+      },
+      "publicName": "fuse-box-hot-reload@1.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        2
+      ],
+      "mtime": 499162500000
+    },
+    "@codemirror/basic-setup@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/basic-setup",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/basic-setup/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/basic-setup",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/basic-setup/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/basic-setup@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        3
+      ],
+      "mtime": 1615938329827
+    },
+    "@codemirror/lint@0.18.1": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/lint",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/lint/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/lint",
+        "version": "0.18.1",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/lint/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/lint@0.18.1",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        4
+      ],
+      "mtime": 1615938329828
+    },
+    "@codemirror/stream-parser@0.18.1": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/stream-parser",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/stream-parser/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/stream-parser",
+        "version": "0.18.1",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/stream-parser/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/stream-parser@0.18.1",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        6
+      ],
+      "mtime": 1615938329826
+    },
+    "fuse-box-css@1.0.0": {
+      "type": 1,
+      "meta": {
+        "fusebox": {
+          "system": true
+        },
+        "name": "fuse-box-css",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/fuse-box-css/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/fuse-box-css",
+        "version": "1.0.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/fuse-box-css/index.js",
+        "entryFuseBoxPath": "index.js"
+      },
+      "publicName": "fuse-box-css@1.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        10
+      ],
+      "mtime": 499162500000
+    },
+    "fuse-box-websocket@1.0.0": {
+      "type": 1,
+      "meta": {
+        "fusebox": {
+          "dev": true
+        },
+        "name": "fuse-box-websocket",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/fuse-box-websocket/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/fuse-box-websocket",
+        "version": "1.0.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/fuse-box-websocket/index.js",
+        "entryFuseBoxPath": "index.js"
+      },
+      "publicName": "fuse-box-websocket@1.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        12
+      ],
+      "mtime": 499162500000
+    },
+    "@codemirror/state@0.18.2": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/state",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/state/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/state",
+        "version": "0.18.2",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/state/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/state@0.18.2",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        16
+      ],
+      "mtime": 1615938329396
+    },
+    "@codemirror/view@0.18.1": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/view",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/view/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/view",
+        "version": "0.18.1",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/view/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/view@0.18.1",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        18
+      ],
+      "mtime": 1615938329827
+    },
+    "@codemirror/history@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/history",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/history/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/history",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/history/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/history@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        19
+      ],
+      "mtime": 1615938329828
+    },
+    "@codemirror/fold@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/fold",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/fold/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/fold",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/fold/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/fold@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        20
+      ],
+      "mtime": 1615938329828
+    },
+    "@codemirror/language@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/language",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/language/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/language",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/language/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/language@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        21
+      ],
+      "mtime": 1615938329827
+    },
+    "@codemirror/gutter@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/gutter",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/gutter/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/gutter",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/gutter/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/gutter@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        22
+      ],
+      "mtime": 1615938329828
+    },
+    "@codemirror/commands@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/commands",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/commands/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/commands",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/commands/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/commands@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        23
+      ],
+      "mtime": 1615938329828
+    },
+    "@codemirror/matchbrackets@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/matchbrackets",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/matchbrackets/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/matchbrackets",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/matchbrackets/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/matchbrackets@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        24
+      ],
+      "mtime": 1615938329827
+    },
+    "@codemirror/closebrackets@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/closebrackets",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/closebrackets/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/closebrackets",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/closebrackets/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/closebrackets@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        25
+      ],
+      "mtime": 1615938329827
+    },
+    "@codemirror/search@0.18.1": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/search",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/search/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/search",
+        "version": "0.18.1",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/search/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/search@0.18.1",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        26
+      ],
+      "mtime": 1615938329827
+    },
+    "@codemirror/autocomplete@0.18.3": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/autocomplete",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/autocomplete/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/autocomplete",
+        "version": "0.18.3",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/autocomplete/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/autocomplete@0.18.3",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        27
+      ],
+      "mtime": 1615938329828
+    },
+    "@codemirror/comment@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/comment",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/comment/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/comment",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/comment/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/comment@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        28
+      ],
+      "mtime": 1615938329827
+    },
+    "@codemirror/rectangular-selection@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/rectangular-selection",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/rectangular-selection/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/rectangular-selection",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/rectangular-selection/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/rectangular-selection@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        29
+      ],
+      "mtime": 1615938329827
+    },
+    "@codemirror/highlight@0.18.3": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/highlight",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/highlight/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/highlight",
+        "version": "0.18.3",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/highlight/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/highlight@0.18.3",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        30
+      ],
+      "mtime": 1615938329827
+    },
+    "@codemirror/tooltip@0.18.4": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/tooltip",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/tooltip/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/tooltip",
+        "version": "0.18.4",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/tooltip/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/tooltip@0.18.4",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        31
+      ],
+      "mtime": 1615938329826
+    },
+    "@codemirror/panel@0.18.1": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/panel",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/panel/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/panel",
+        "version": "0.18.1",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/panel/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/panel@0.18.1",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        32
+      ],
+      "mtime": 1615938329827
+    },
+    "crelt@1.0.5": {
+      "type": 1,
+      "meta": {
+        "name": "crelt",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/crelt/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/crelt",
+        "version": "1.0.5",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/crelt/index.es.js",
+        "entryFuseBoxPath": "index.es.js"
+      },
+      "publicName": "crelt@1.0.5",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        33
+      ],
+      "mtime": 1615938330324
+    },
+    "lezer-tree@0.13.2": {
+      "type": 1,
+      "meta": {
+        "name": "lezer-tree",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/lezer-tree/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/lezer-tree",
+        "version": "0.13.2",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/lezer-tree/dist/tree.es.js",
+        "entryFuseBoxPath": "dist/tree.es.js"
+      },
+      "publicName": "lezer-tree@0.13.2",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        34
+      ],
+      "mtime": 1615938330100
+    },
+    "@codemirror/text@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/text",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/text/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/text",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/text/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/text@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        35
+      ],
+      "mtime": 1615938329398
+    },
+    "@codemirror/lang-json@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/lang-json",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/lang-json/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/lang-json",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/lang-json/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/lang-json@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        36
+      ],
+      "mtime": 1615938329827
+    },
+    "events@1.0.0": {
+      "type": 1,
+      "meta": {
+        "fusebox": {
+          "polyfill": true
+        },
+        "name": "events",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/events/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/events",
+        "version": "1.0.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/events/index.js",
+        "entryFuseBoxPath": "index.js"
+      },
+      "publicName": "events@1.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        38
+      ],
+      "mtime": 499162500000
+    },
+    "@codemirror/rangeset@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/rangeset",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/rangeset/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/rangeset",
+        "version": "0.18.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/rangeset/dist/index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/rangeset@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        39
+      ],
+      "mtime": 1615938329396
+    },
+    "style-mod@4.0.0": {
+      "type": 1,
+      "meta": {
+        "name": "style-mod",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/style-mod/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/style-mod",
+        "version": "4.0.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/style-mod/src/style-mod.js",
+        "entryFuseBoxPath": "src/style-mod.js"
+      },
+      "publicName": "style-mod@4.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        40
+      ],
+      "mtime": 1615938329828
+    },
+    "w3c-keyname@2.2.4": {
+      "type": 1,
+      "meta": {
+        "name": "w3c-keyname",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/w3c-keyname/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/w3c-keyname",
+        "version": "2.2.4",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/w3c-keyname/index.es.js",
+        "entryFuseBoxPath": "index.es.js"
+      },
+      "publicName": "w3c-keyname@2.2.4",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        41
+      ],
+      "mtime": 1615938329825
+    },
+    "lezer-json@0.13.1": {
+      "type": 1,
+      "meta": {
+        "name": "lezer-json",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/lezer-json/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/lezer-json",
+        "version": "0.13.1",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/lezer-json/dist/index.es.js",
+        "entryFuseBoxPath": "dist/index.es.js"
+      },
+      "publicName": "lezer-json@0.13.1",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        43
+      ],
+      "mtime": 1615938330097
+    },
+    "d3-hierarchy@2.0.0": {
+      "type": 1,
+      "meta": {
+        "name": "d3-hierarchy",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy",
+        "version": "2.0.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-hierarchy/src/index.js",
+        "entryFuseBoxPath": "src/index.js"
+      },
+      "publicName": "d3-hierarchy@2.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        44,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142
+      ],
+      "mtime": 1615938330285
+    },
+    "d3-selection@2.0.0": {
+      "type": 1,
+      "meta": {
+        "name": "d3-selection",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection",
+        "version": "2.0.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-selection/src/index.js",
+        "entryFuseBoxPath": "src/index.js"
+      },
+      "publicName": "d3-selection@2.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        45,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        188,
+        189
+      ],
+      "mtime": 1615938330278
+    },
+    "d3-shape@2.1.0": {
+      "type": 1,
+      "meta": {
+        "name": "d3-shape",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape",
+        "version": "2.1.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-shape/src/index.js",
+        "entryFuseBoxPath": "src/index.js"
+      },
+      "publicName": "d3-shape@2.1.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        46,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151
+      ],
+      "mtime": 1615938330278
+    },
+    "lezer@0.13.4": {
+      "type": 1,
+      "meta": {
+        "name": "lezer",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/lezer/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/lezer",
+        "version": "0.13.4",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/lezer/dist/index.es.js",
+        "entryFuseBoxPath": "dist/index.es.js"
+      },
+      "publicName": "lezer@0.13.4",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        50
+      ],
+      "mtime": 1615938330097
+    },
+    "process@1.0.0": {
+      "type": 1,
+      "meta": {
+        "fusebox": {
+          "polyfill": true
+        },
+        "name": "process",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/process/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/process",
+        "version": "1.0.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/fuse-box/modules/process/index.js",
+        "entryFuseBoxPath": "index.js"
+      },
+      "publicName": "process@1.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        125
+      ],
+      "mtime": 499162500000
+    },
+    "d3-path@2.0.0": {
+      "type": 1,
+      "meta": {
+        "name": "d3-path",
+        "packageJSONLocation": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-path/package.json",
+        "packageRoot": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-path",
+        "version": "2.0.0",
+        "entryAbsPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/d3-path/src/index.js",
+        "entryFuseBoxPath": "src/index.js"
+      },
+      "publicName": "d3-path@2.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        143,
+        187
+      ],
+      "mtime": 1615938330282
+    }
+  },
+  "ctx": {
+    "linkedReferences": {},
+    "systemDependencies": {},
+    "tsConfigAtPaths": []
+  }
+}

@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nfunction __DefaultExport__() {\n  let size = 0;\n  for (const node of this) ++size;\n  return size;\n}\nexports.default = __DefaultExport__;\n"}
