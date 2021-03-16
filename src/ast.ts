@@ -12,7 +12,8 @@ export type NodeType =
   | 'Identifier'
   | 'Function'
   | 'Pair'
-  | 'CalculatorReference';
+  | 'CalculatorReference'
+  | 'Program';
 
 export type NumberNode = {
   nodeType: 'Number';
@@ -77,6 +78,11 @@ export type IdentifierNode = {
   nodeId: string;
 }
 
+export type ProgramNode = {
+  nodeType: 'Program';
+  children: Node[];
+}
+
 export type Node = 
   | BooleanNode 
   | NumberNode 
@@ -85,6 +91,7 @@ export type Node =
   | ChooseNode 
   | VariableAssignmentNode 
   | IdentifierNode
+  | ProgramNode
   | undefined;
 
 // on to the proof of concept stuff

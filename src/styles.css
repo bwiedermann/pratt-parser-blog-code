@@ -1,0 +1,43 @@
+main h1 {
+  color: darkslategray;
+}
+
+#miniCL {
+  margin-top: 50px;
+  margin-bottom: 50px;
+}
+
+#analysis {
+  margin-top: 50px;
+  padding: 50px;
+}
+
+#icons {
+  display: none;
+}
+
+/** Bootstrap overrides **/
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  background-color: #bbb;
+}
+
+/** From Desmos's styles **/
+
+.instructions {
+  color: #bbb;
+}
+
+.title {
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-weight: 300;
+  font-size: 20.8px;
+  text-transform: uppercase;
+}
+
+.instructions .pillow-icon-sparkline {
+  font-size: 150%;
+  position: relative;
+  top: 3px;
+  margin: 0 2px;
+}
+

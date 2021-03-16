@@ -1,28 +1,24 @@
 {
-  "name": "pratt-parser-blog-code",
+  "name": "test",
   "version": "1.0.0",
-  "description": "The code to illustrate the pratt parser blog post for the desmos engineering blog.",
+  "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npx ts-node src/index.ts"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/desmosinc/pratt-parser-blog-code.git"
-  },
+  "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/desmosinc/pratt-parser-blog-code/issues"
-  },
-  "homepage": "https://github.com/desmosinc/pratt-parser-blog-code#readme",
   "devDependencies": {
-    "@types/codemirror": "0.0.70",
-    "fuse-box": "^3.7.1",
-    "ts-node": "^7.0.1",
-    "typescript": "^3.9.7"
+    "fuse-box": "^4.0.0"
   },
   "dependencies": {
-    "codemirror": "^5.58.2"
+    "@codemirror/basic-setup": "^0.18.0",
+    "@codemirror/fold": "^0.18.0",
+    "@codemirror/lang-javascript": "^0.18.0",
+    "@codemirror/lang-json": "^0.18.0",
+    "@codemirror/stream-parser": "^0.18.0",
+    "@types/d3": "^6.3.0",
+    "d3": "^6.5.0"
   }
 }
