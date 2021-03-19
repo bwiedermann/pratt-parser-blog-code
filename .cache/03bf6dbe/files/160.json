@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nfunction __DefaultExport__() {\n  var callback = arguments[0];\n  arguments[0] = this;\n  callback.apply(null, arguments);\n  return this;\n}\nexports.default = __DefaultExport__;\n"}

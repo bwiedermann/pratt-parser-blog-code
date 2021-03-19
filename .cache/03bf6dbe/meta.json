@@ -1,0 +1,2838 @@
+{
+  "currentId": 190,
+  "modules": {
+    "1": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\index.ts",
+      "dependencies": [
+        9,
+        11,
+        4,
+        6,
+        2,
+        7,
+        3,
+        5,
+        8
+      ],
+      "id": 1,
+      "mtime": 1616104372939,
+      "packageId": "default",
+      "publicPath": "src/index.ts"
+    },
+    "2": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\fuse-box-hot-reload\\clientHotReload.ts",
+      "dependencies": [
+        12
+      ],
+      "id": 2,
+      "mtime": 499162500000,
+      "packageId": "fuse-box-hot-reload@1.0.0",
+      "publicPath": "node_modules/fuse-box/modules/fuse-box-hot-reload/clientHotReload.ts"
+    },
+    "3": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\basic-setup\\dist\\index.js",
+      "dependencies": [
+        13,
+        14,
+        4,
+        15,
+        18,
+        17,
+        20,
+        21,
+        19,
+        23,
+        22,
+        24,
+        25,
+        26,
+        16
+      ],
+      "id": 3,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/basic-setup@0.18.0",
+      "publicPath": "node_modules/@codemirror/basic-setup/dist/index.js"
+    },
+    "4": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\lint\\dist\\index.js",
+      "dependencies": [
+        13,
+        14,
+        28,
+        27,
+        29
+      ],
+      "id": 4,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/lint@0.18.1",
+      "publicPath": "node_modules/@codemirror/lint/dist/index.js"
+    },
+    "5": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\miniCL.ts",
+      "dependencies": [
+        32,
+        33,
+        34,
+        190,
+        7
+      ],
+      "id": 5,
+      "mtime": 1616105412875,
+      "packageId": "default",
+      "publicPath": "src/miniCL.ts"
+    },
+    "6": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\stream-parser\\dist\\index.js",
+      "dependencies": [
+        26,
+        17,
+        30,
+        31
+      ],
+      "id": 6,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/stream-parser@0.18.1",
+      "publicPath": "node_modules/@codemirror/stream-parser/dist/index.js"
+    },
+    "7": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\parseResults.ts",
+      "dependencies": [
+        14,
+        35
+      ],
+      "id": 7,
+      "mtime": 1616104372941,
+      "packageId": "default",
+      "publicPath": "src/parseResults.ts"
+    },
+    "8": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\devTools.ts",
+      "dependencies": [
+        16,
+        3,
+        4,
+        7,
+        36,
+        37
+      ],
+      "id": 8,
+      "mtime": 1616104372938,
+      "packageId": "default",
+      "publicPath": "src/devTools.ts"
+    },
+    "9": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\styles.css",
+      "dependencies": [
+        10
+      ],
+      "id": 9,
+      "mtime": 1616104372942,
+      "packageId": "default",
+      "publicPath": "src/styles.css"
+    },
+    "10": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\fuse-box-css\\index.js",
+      "dependencies": [],
+      "id": 10,
+      "mtime": 499162500000,
+      "packageId": "fuse-box-css@1.0.0",
+      "publicPath": "node_modules/fuse-box/modules/fuse-box-css/index.js"
+    },
+    "11": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\desmos_icons.css",
+      "dependencies": [
+        10
+      ],
+      "id": 11,
+      "mtime": 1616104372937,
+      "packageId": "default",
+      "publicPath": "src/desmos_icons.css"
+    },
+    "12": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\fuse-box-websocket\\index.js",
+      "dependencies": [
+        38
+      ],
+      "id": 12,
+      "mtime": 499162500000,
+      "packageId": "fuse-box-websocket@1.0.0",
+      "publicPath": "node_modules/fuse-box/modules/fuse-box-websocket/index.js"
+    },
+    "13": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\view\\dist\\index.js",
+      "dependencies": [
+        39,
+        14,
+        31,
+        41,
+        40
+      ],
+      "id": 13,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/view@0.18.1",
+      "publicPath": "node_modules/@codemirror/view/dist/index.js"
+    },
+    "14": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\state\\dist\\index.js",
+      "dependencies": [
+        31
+      ],
+      "id": 14,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/state@0.18.2",
+      "publicPath": "node_modules/@codemirror/state/dist/index.js"
+    },
+    "15": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\history\\dist\\index.js",
+      "dependencies": [
+        14,
+        13
+      ],
+      "id": 15,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/history@0.18.0",
+      "publicPath": "node_modules/@codemirror/history/dist/index.js"
+    },
+    "16": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\fold\\dist\\index.js",
+      "dependencies": [
+        14,
+        13,
+        17,
+        18,
+        39
+      ],
+      "id": 16,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/fold@0.18.0",
+      "publicPath": "node_modules/@codemirror/fold/dist/index.js"
+    },
+    "17": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\language\\dist\\index.js",
+      "dependencies": [
+        30,
+        31,
+        14,
+        13
+      ],
+      "id": 17,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/language@0.18.0",
+      "publicPath": "node_modules/@codemirror/language/dist/index.js"
+    },
+    "18": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\gutter\\dist\\index.js",
+      "dependencies": [
+        13,
+        39,
+        14
+      ],
+      "id": 18,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/gutter@0.18.0",
+      "publicPath": "node_modules/@codemirror/gutter/dist/index.js"
+    },
+    "19": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\commands\\dist\\index.js",
+      "dependencies": [
+        14,
+        31,
+        13,
+        20,
+        17,
+        30
+      ],
+      "id": 19,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/commands@0.18.0",
+      "publicPath": "node_modules/@codemirror/commands/dist/index.js"
+    },
+    "20": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\matchbrackets\\dist\\index.js",
+      "dependencies": [
+        14,
+        17,
+        13,
+        30
+      ],
+      "id": 20,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/matchbrackets@0.18.0",
+      "publicPath": "node_modules/@codemirror/matchbrackets/dist/index.js"
+    },
+    "21": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\closebrackets\\dist\\index.js",
+      "dependencies": [
+        13,
+        14,
+        39,
+        31,
+        17
+      ],
+      "id": 21,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/closebrackets@0.18.0",
+      "publicPath": "node_modules/@codemirror/closebrackets/dist/index.js"
+    },
+    "22": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\search\\dist\\index.js",
+      "dependencies": [
+        13,
+        14,
+        28,
+        39,
+        29,
+        31
+      ],
+      "id": 22,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/search@0.18.1",
+      "publicPath": "node_modules/@codemirror/search/dist/index.js"
+    },
+    "23": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\autocomplete\\dist\\index.js",
+      "dependencies": [
+        14,
+        13,
+        27,
+        17,
+        31
+      ],
+      "id": 23,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/autocomplete@0.18.3",
+      "publicPath": "node_modules/@codemirror/autocomplete/dist/index.js"
+    },
+    "24": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\comment\\dist\\index.js",
+      "dependencies": [
+        14
+      ],
+      "id": 24,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/comment@0.18.0",
+      "publicPath": "node_modules/@codemirror/comment/dist/index.js"
+    },
+    "25": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\rectangular-selection\\dist\\index.js",
+      "dependencies": [
+        14,
+        13,
+        31
+      ],
+      "id": 25,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/rectangular-selection@0.18.0",
+      "publicPath": "node_modules/@codemirror/rectangular-selection/dist/index.js"
+    },
+    "26": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\highlight\\dist\\index.js",
+      "dependencies": [
+        30,
+        40,
+        13,
+        14,
+        17,
+        39
+      ],
+      "id": 26,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/highlight@0.18.3",
+      "publicPath": "node_modules/@codemirror/highlight/dist/index.js"
+    },
+    "27": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\tooltip\\dist\\index.js",
+      "dependencies": [
+        13,
+        14
+      ],
+      "id": 27,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/tooltip@0.18.4",
+      "publicPath": "node_modules/@codemirror/tooltip/dist/index.js"
+    },
+    "28": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\panel\\dist\\index.js",
+      "dependencies": [
+        13,
+        14
+      ],
+      "id": 28,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/panel@0.18.1",
+      "publicPath": "node_modules/@codemirror/panel/dist/index.js"
+    },
+    "29": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\crelt\\index.es.js",
+      "dependencies": [],
+      "id": 29,
+      "mtime": 499162500000,
+      "packageId": "crelt@1.0.5",
+      "publicPath": "node_modules/crelt/index.es.js"
+    },
+    "30": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\lezer-tree\\dist\\tree.es.js",
+      "dependencies": [],
+      "id": 30,
+      "mtime": 499162500000,
+      "packageId": "lezer-tree@0.13.2",
+      "publicPath": "node_modules/lezer-tree/dist/tree.es.js"
+    },
+    "31": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\text\\dist\\index.js",
+      "dependencies": [],
+      "id": 31,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/text@0.18.0",
+      "publicPath": "node_modules/@codemirror/text/dist/index.js"
+    },
+    "32": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\lexer.ts",
+      "dependencies": [
+        6
+      ],
+      "id": 32,
+      "mtime": 1616104372940,
+      "packageId": "default",
+      "publicPath": "src/lexer.ts"
+    },
+    "33": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\typechecker.ts",
+      "dependencies": [],
+      "id": 33,
+      "mtime": 1616104226021,
+      "packageId": "default",
+      "publicPath": "src/typechecker.ts"
+    },
+    "34": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\mudChecker.ts",
+      "dependencies": [
+        49
+      ],
+      "id": 34,
+      "mtime": 1616106605134,
+      "packageId": "default",
+      "publicPath": "src/mudChecker.ts"
+    },
+    "35": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\parser.ts",
+      "dependencies": [
+        44,
+        42,
+        43
+      ],
+      "id": 35,
+      "mtime": 1616104226020,
+      "packageId": "default",
+      "publicPath": "src/parser.ts"
+    },
+    "36": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\lang-json\\dist\\index.js",
+      "dependencies": [
+        17,
+        26,
+        48
+      ],
+      "id": 36,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/lang-json@0.18.0",
+      "publicPath": "node_modules/@codemirror/lang-json/dist/index.js"
+    },
+    "37": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\visualization.ts",
+      "dependencies": [
+        45,
+        47,
+        46
+      ],
+      "id": 37,
+      "mtime": 1616104372942,
+      "packageId": "default",
+      "publicPath": "src/visualization.ts"
+    },
+    "38": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\events\\index.js",
+      "dependencies": [],
+      "id": 38,
+      "mtime": 499162500000,
+      "packageId": "events@1.0.0",
+      "publicPath": "node_modules/fuse-box/modules/events/index.js"
+    },
+    "39": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\rangeset\\dist\\index.js",
+      "dependencies": [
+        14
+      ],
+      "id": 39,
+      "mtime": 499162500000,
+      "packageId": "@codemirror/rangeset@0.18.0",
+      "publicPath": "node_modules/@codemirror/rangeset/dist/index.js"
+    },
+    "40": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\style-mod\\src\\style-mod.js",
+      "dependencies": [],
+      "id": 40,
+      "mtime": 499162500000,
+      "packageId": "style-mod@4.0.0",
+      "publicPath": "node_modules/style-mod/src/style-mod.js"
+    },
+    "41": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\w3c-keyname\\index.es.js",
+      "dependencies": [],
+      "id": 41,
+      "mtime": 499162500000,
+      "packageId": "w3c-keyname@2.2.4",
+      "publicPath": "node_modules/w3c-keyname/index.es.js"
+    },
+    "42": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\parselet.ts",
+      "dependencies": [
+        44,
+        49
+      ],
+      "id": 42,
+      "mtime": 1616104226020,
+      "packageId": "default",
+      "publicPath": "src/parselet.ts"
+    },
+    "43": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\tokenstream.ts",
+      "dependencies": [
+        32,
+        44
+      ],
+      "id": 43,
+      "mtime": 1616104226021,
+      "packageId": "default",
+      "publicPath": "src/tokenstream.ts"
+    },
+    "44": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\position.ts",
+      "dependencies": [],
+      "id": 44,
+      "mtime": 1616104226020,
+      "packageId": "default",
+      "publicPath": "src/position.ts"
+    },
+    "45": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\index.js",
+      "dependencies": [
+        50,
+        54,
+        56,
+        57,
+        58,
+        60,
+        59,
+        62,
+        61,
+        64,
+        63,
+        52,
+        53,
+        55,
+        51
+      ],
+      "id": 45,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/index.js"
+    },
+    "46": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\index.js",
+      "dependencies": [
+        66,
+        68,
+        69,
+        70,
+        67,
+        71,
+        74,
+        72,
+        77,
+        78,
+        79,
+        80,
+        73,
+        75,
+        76
+      ],
+      "id": 46,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/index.js"
+    },
+    "47": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\index.js",
+      "dependencies": [
+        83,
+        85,
+        87,
+        88,
+        90,
+        89,
+        91,
+        93,
+        92,
+        95,
+        94,
+        96,
+        98,
+        100,
+        102,
+        99,
+        103,
+        101,
+        104,
+        105,
+        106,
+        108,
+        109,
+        107,
+        110,
+        111,
+        112,
+        114,
+        113,
+        115,
+        117,
+        121,
+        118,
+        120,
+        122,
+        116,
+        124,
+        123,
+        119,
+        82,
+        84,
+        86,
+        97,
+        81
+      ],
+      "id": 47,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/index.js"
+    },
+    "48": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\lezer-json\\dist\\index.es.js",
+      "dependencies": [
+        65
+      ],
+      "id": 48,
+      "mtime": 499162500000,
+      "packageId": "lezer-json@0.13.1",
+      "publicPath": "node_modules/lezer-json/dist/index.es.js"
+    },
+    "49": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\findBase.ts",
+      "dependencies": [],
+      "id": 49,
+      "mtime": 1616104226017,
+      "packageId": "default",
+      "publicPath": "src/findBase.ts"
+    },
+    "50": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\cluster.js",
+      "dependencies": [],
+      "id": 50,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/cluster.js"
+    },
+    "51": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\index.js",
+      "dependencies": [
+        128,
+        129,
+        130,
+        132,
+        134,
+        133,
+        135,
+        136,
+        139,
+        137,
+        138,
+        131,
+        140
+      ],
+      "id": 51,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/index.js"
+    },
+    "52": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\pack\\index.js",
+      "dependencies": [
+        53,
+        125,
+        126
+      ],
+      "id": 52,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/pack/index.js"
+    },
+    "53": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\pack\\siblings.js",
+      "dependencies": [
+        54,
+        127
+      ],
+      "id": 53,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/pack/siblings.js"
+    },
+    "54": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\pack\\enclose.js",
+      "dependencies": [
+        127
+      ],
+      "id": 54,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/pack/enclose.js"
+    },
+    "55": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\partition.js",
+      "dependencies": [
+        60,
+        141
+      ],
+      "id": 55,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/partition.js"
+    },
+    "56": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\stratify.js",
+      "dependencies": [
+        125,
+        51
+      ],
+      "id": 56,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/stratify.js"
+    },
+    "57": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\tree.js",
+      "dependencies": [
+        51
+      ],
+      "id": 57,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/tree.js"
+    },
+    "58": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\treemap\\index.js",
+      "dependencies": [
+        141,
+        63,
+        125,
+        126
+      ],
+      "id": 58,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/index.js"
+    },
+    "59": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\treemap\\binary.js",
+      "dependencies": [],
+      "id": 59,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/binary.js"
+    },
+    "60": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\treemap\\dice.js",
+      "dependencies": [],
+      "id": 60,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/dice.js"
+    },
+    "61": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\treemap\\slice.js",
+      "dependencies": [],
+      "id": 61,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/slice.js"
+    },
+    "62": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\treemap\\sliceDice.js",
+      "dependencies": [
+        60,
+        61
+      ],
+      "id": 62,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/sliceDice.js"
+    },
+    "63": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\treemap\\squarify.js",
+      "dependencies": [
+        60,
+        61
+      ],
+      "id": 63,
+      "mtime": 1577986094000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/squarify.js"
+    },
+    "64": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\treemap\\resquarify.js",
+      "dependencies": [
+        60,
+        61,
+        63
+      ],
+      "id": 64,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/resquarify.js"
+    },
+    "65": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\lezer\\dist\\index.es.js",
+      "dependencies": [
+        30,
+        142
+      ],
+      "id": 65,
+      "mtime": 499162500000,
+      "packageId": "lezer@0.13.4",
+      "publicPath": "node_modules/lezer/dist/index.es.js"
+    },
+    "66": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\create.js",
+      "dependencies": [
+        67,
+        74
+      ],
+      "id": 66,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/create.js"
+    },
+    "67": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\creator.js",
+      "dependencies": [
+        70,
+        71
+      ],
+      "id": 67,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/creator.js"
+    },
+    "68": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\local.js",
+      "dependencies": [],
+      "id": 68,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/local.js"
+    },
+    "69": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\matcher.js",
+      "dependencies": [],
+      "id": 69,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/matcher.js"
+    },
+    "70": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\namespace.js",
+      "dependencies": [
+        71
+      ],
+      "id": 70,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/namespace.js"
+    },
+    "71": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\namespaces.js",
+      "dependencies": [],
+      "id": 71,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/namespaces.js"
+    },
+    "72": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\pointer.js",
+      "dependencies": [
+        143
+      ],
+      "id": 72,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/pointer.js"
+    },
+    "73": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\pointers.js",
+      "dependencies": [
+        72,
+        143
+      ],
+      "id": 73,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/pointers.js"
+    },
+    "74": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\select.js",
+      "dependencies": [
+        76
+      ],
+      "id": 74,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/select.js"
+    },
+    "75": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selectAll.js",
+      "dependencies": [
+        76,
+        144
+      ],
+      "id": 75,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selectAll.js"
+    },
+    "76": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\index.js",
+      "dependencies": [
+        79,
+        152,
+        148,
+        150,
+        149,
+        151,
+        156,
+        155,
+        157,
+        160,
+        158,
+        159,
+        162,
+        161,
+        163,
+        164,
+        165,
+        167,
+        169,
+        166,
+        168,
+        171,
+        170,
+        172,
+        174,
+        175,
+        173,
+        176,
+        177,
+        180,
+        179,
+        178,
+        153,
+        154
+      ],
+      "id": 76,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/index.js"
+    },
+    "77": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selector.js",
+      "dependencies": [],
+      "id": 77,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selector.js"
+    },
+    "78": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selectorAll.js",
+      "dependencies": [],
+      "id": 78,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selectorAll.js"
+    },
+    "79": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\style.js",
+      "dependencies": [
+        80
+      ],
+      "id": 79,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/style.js"
+    },
+    "80": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\window.js",
+      "dependencies": [],
+      "id": 80,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/window.js"
+    },
+    "81": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\arc.js",
+      "dependencies": [
+        146,
+        147,
+        145
+      ],
+      "id": 81,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/arc.js"
+    },
+    "82": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\area.js",
+      "dependencies": [
+        145,
+        146,
+        109,
+        83,
+        181,
+        182
+      ],
+      "id": 82,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/area.js"
+    },
+    "83": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\line.js",
+      "dependencies": [
+        145,
+        181,
+        146,
+        109,
+        182
+      ],
+      "id": 83,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/line.js"
+    },
+    "84": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\pie.js",
+      "dependencies": [
+        181,
+        146,
+        147,
+        183,
+        184
+      ],
+      "id": 84,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/pie.js"
+    },
+    "85": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\areaRadial.js",
+      "dependencies": [
+        185,
+        82,
+        86
+      ],
+      "id": 85,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/areaRadial.js"
+    },
+    "86": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\lineRadial.js",
+      "dependencies": [
+        83,
+        185
+      ],
+      "id": 86,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/lineRadial.js"
+    },
+    "87": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\pointRadial.js",
+      "dependencies": [],
+      "id": 87,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/pointRadial.js"
+    },
+    "88": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\link\\index.js",
+      "dependencies": [
+        145,
+        181,
+        146,
+        182,
+        87
+      ],
+      "id": 88,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/link/index.js"
+    },
+    "89": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\symbol.js",
+      "dependencies": [
+        145,
+        90,
+        91,
+        92,
+        94,
+        93,
+        95,
+        96,
+        146
+      ],
+      "id": 89,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol.js"
+    },
+    "90": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\symbol\\circle.js",
+      "dependencies": [
+        147
+      ],
+      "id": 90,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/circle.js"
+    },
+    "91": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\symbol\\cross.js",
+      "dependencies": [],
+      "id": 91,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/cross.js"
+    },
+    "92": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\symbol\\diamond.js",
+      "dependencies": [],
+      "id": 92,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/diamond.js"
+    },
+    "93": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\symbol\\square.js",
+      "dependencies": [],
+      "id": 93,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/square.js"
+    },
+    "94": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\symbol\\star.js",
+      "dependencies": [
+        147
+      ],
+      "id": 94,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/star.js"
+    },
+    "95": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\symbol\\triangle.js",
+      "dependencies": [],
+      "id": 95,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/triangle.js"
+    },
+    "96": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\symbol\\wye.js",
+      "dependencies": [],
+      "id": 96,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/symbol/wye.js"
+    },
+    "97": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\basisClosed.js",
+      "dependencies": [
+        99,
+        186
+      ],
+      "id": 97,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/basisClosed.js"
+    },
+    "98": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\basisOpen.js",
+      "dependencies": [
+        99
+      ],
+      "id": 98,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/basisOpen.js"
+    },
+    "99": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\basis.js",
+      "dependencies": [],
+      "id": 99,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/basis.js"
+    },
+    "100": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\bump.js",
+      "dependencies": [],
+      "id": 100,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/bump.js"
+    },
+    "101": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\bundle.js",
+      "dependencies": [
+        99
+      ],
+      "id": 101,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/bundle.js"
+    },
+    "102": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\cardinalClosed.js",
+      "dependencies": [
+        186,
+        104
+      ],
+      "id": 102,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/cardinalClosed.js"
+    },
+    "103": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\cardinalOpen.js",
+      "dependencies": [
+        104
+      ],
+      "id": 103,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/cardinalOpen.js"
+    },
+    "104": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\cardinal.js",
+      "dependencies": [],
+      "id": 104,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/cardinal.js"
+    },
+    "105": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\catmullRomClosed.js",
+      "dependencies": [
+        102,
+        186,
+        107
+      ],
+      "id": 105,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/catmullRomClosed.js"
+    },
+    "106": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\catmullRomOpen.js",
+      "dependencies": [
+        103,
+        107
+      ],
+      "id": 106,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/catmullRomOpen.js"
+    },
+    "107": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\catmullRom.js",
+      "dependencies": [
+        147,
+        104
+      ],
+      "id": 107,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/catmullRom.js"
+    },
+    "108": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\linearClosed.js",
+      "dependencies": [
+        186
+      ],
+      "id": 108,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/linearClosed.js"
+    },
+    "109": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\linear.js",
+      "dependencies": [],
+      "id": 109,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/linear.js"
+    },
+    "110": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\monotone.js",
+      "dependencies": [],
+      "id": 110,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/monotone.js"
+    },
+    "111": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\natural.js",
+      "dependencies": [],
+      "id": 111,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/natural.js"
+    },
+    "112": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\step.js",
+      "dependencies": [],
+      "id": 112,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/step.js"
+    },
+    "113": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\stack.js",
+      "dependencies": [
+        181,
+        146,
+        116,
+        123
+      ],
+      "id": 113,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/stack.js"
+    },
+    "114": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\offset\\expand.js",
+      "dependencies": [
+        116
+      ],
+      "id": 114,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/offset/expand.js"
+    },
+    "115": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\offset\\diverging.js",
+      "dependencies": [],
+      "id": 115,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/offset/diverging.js"
+    },
+    "116": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\offset\\none.js",
+      "dependencies": [],
+      "id": 116,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/offset/none.js"
+    },
+    "117": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\offset\\silhouette.js",
+      "dependencies": [
+        116
+      ],
+      "id": 117,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/offset/silhouette.js"
+    },
+    "118": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\offset\\wiggle.js",
+      "dependencies": [
+        116
+      ],
+      "id": 118,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/offset/wiggle.js"
+    },
+    "119": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\order\\appearance.js",
+      "dependencies": [
+        123
+      ],
+      "id": 119,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/order/appearance.js"
+    },
+    "120": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\order\\ascending.js",
+      "dependencies": [
+        123
+      ],
+      "id": 120,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/order/ascending.js"
+    },
+    "121": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\order\\descending.js",
+      "dependencies": [
+        120
+      ],
+      "id": 121,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/order/descending.js"
+    },
+    "122": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\order\\insideOut.js",
+      "dependencies": [
+        119,
+        120
+      ],
+      "id": 122,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/order/insideOut.js"
+    },
+    "123": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\order\\none.js",
+      "dependencies": [],
+      "id": 123,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/order/none.js"
+    },
+    "124": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\order\\reverse.js",
+      "dependencies": [
+        123
+      ],
+      "id": 124,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/order/reverse.js"
+    },
+    "125": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\accessors.js",
+      "dependencies": [],
+      "id": 125,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/accessors.js"
+    },
+    "126": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\constant.js",
+      "dependencies": [],
+      "id": 126,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/constant.js"
+    },
+    "127": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\array.js",
+      "dependencies": [],
+      "id": 127,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/array.js"
+    },
+    "128": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\count.js",
+      "dependencies": [],
+      "id": 128,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/count.js"
+    },
+    "129": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\each.js",
+      "dependencies": [],
+      "id": 129,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/each.js"
+    },
+    "130": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\eachBefore.js",
+      "dependencies": [],
+      "id": 130,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/eachBefore.js"
+    },
+    "131": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\eachAfter.js",
+      "dependencies": [],
+      "id": 131,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/eachAfter.js"
+    },
+    "132": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\find.js",
+      "dependencies": [],
+      "id": 132,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/find.js"
+    },
+    "133": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\sum.js",
+      "dependencies": [],
+      "id": 133,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/sum.js"
+    },
+    "134": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\sort.js",
+      "dependencies": [],
+      "id": 134,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/sort.js"
+    },
+    "135": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\path.js",
+      "dependencies": [],
+      "id": 135,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/path.js"
+    },
+    "136": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\ancestors.js",
+      "dependencies": [],
+      "id": 136,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/ancestors.js"
+    },
+    "137": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\descendants.js",
+      "dependencies": [],
+      "id": 137,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/descendants.js"
+    },
+    "138": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\leaves.js",
+      "dependencies": [],
+      "id": 138,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/leaves.js"
+    },
+    "139": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\links.js",
+      "dependencies": [],
+      "id": 139,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/links.js"
+    },
+    "140": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\hierarchy\\iterator.js",
+      "dependencies": [],
+      "id": 140,
+      "mtime": 1598219865000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/hierarchy/iterator.js"
+    },
+    "141": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\treemap\\round.js",
+      "dependencies": [],
+      "id": 141,
+      "mtime": 1553678410000,
+      "packageId": "d3-hierarchy@2.0.0",
+      "publicPath": "node_modules/d3-hierarchy/src/treemap/round.js"
+    },
+    "142": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\process\\index.js",
+      "dependencies": [],
+      "id": 142,
+      "mtime": 499162500000,
+      "packageId": "process@1.0.0",
+      "publicPath": "node_modules/fuse-box/modules/process/index.js"
+    },
+    "143": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\sourceEvent.js",
+      "dependencies": [],
+      "id": 143,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/sourceEvent.js"
+    },
+    "144": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\array.js",
+      "dependencies": [],
+      "id": 144,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/array.js"
+    },
+    "145": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-path\\src\\index.js",
+      "dependencies": [
+        187
+      ],
+      "id": 145,
+      "mtime": 1594409047000,
+      "packageId": "d3-path@2.0.0",
+      "publicPath": "node_modules/d3-path/src/index.js"
+    },
+    "146": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\constant.js",
+      "dependencies": [],
+      "id": 146,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/constant.js"
+    },
+    "147": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\math.js",
+      "dependencies": [],
+      "id": 147,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/math.js"
+    },
+    "148": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\select.js",
+      "dependencies": [
+        76,
+        77
+      ],
+      "id": 148,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/select.js"
+    },
+    "149": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\selectAll.js",
+      "dependencies": [
+        76,
+        144,
+        78
+      ],
+      "id": 149,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/selectAll.js"
+    },
+    "150": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\selectChild.js",
+      "dependencies": [
+        69
+      ],
+      "id": 150,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/selectChild.js"
+    },
+    "151": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\selectChildren.js",
+      "dependencies": [
+        69
+      ],
+      "id": 151,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/selectChildren.js"
+    },
+    "152": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\filter.js",
+      "dependencies": [
+        76,
+        69
+      ],
+      "id": 152,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/filter.js"
+    },
+    "153": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\data.js",
+      "dependencies": [
+        76,
+        154,
+        144,
+        188
+      ],
+      "id": 153,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/data.js"
+    },
+    "154": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\enter.js",
+      "dependencies": [
+        76,
+        189
+      ],
+      "id": 154,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/enter.js"
+    },
+    "155": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\exit.js",
+      "dependencies": [
+        189,
+        76
+      ],
+      "id": 155,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/exit.js"
+    },
+    "156": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\join.js",
+      "dependencies": [],
+      "id": 156,
+      "mtime": 1596108260000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/join.js"
+    },
+    "157": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\merge.js",
+      "dependencies": [
+        76
+      ],
+      "id": 157,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/merge.js"
+    },
+    "158": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\order.js",
+      "dependencies": [],
+      "id": 158,
+      "mtime": 1593424736000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/order.js"
+    },
+    "159": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\sort.js",
+      "dependencies": [
+        76
+      ],
+      "id": 159,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/sort.js"
+    },
+    "160": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\call.js",
+      "dependencies": [],
+      "id": 160,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/call.js"
+    },
+    "161": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\nodes.js",
+      "dependencies": [],
+      "id": 161,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/nodes.js"
+    },
+    "162": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\node.js",
+      "dependencies": [],
+      "id": 162,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/node.js"
+    },
+    "163": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\size.js",
+      "dependencies": [],
+      "id": 163,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/size.js"
+    },
+    "164": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\empty.js",
+      "dependencies": [],
+      "id": 164,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/empty.js"
+    },
+    "165": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\each.js",
+      "dependencies": [],
+      "id": 165,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/each.js"
+    },
+    "166": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\attr.js",
+      "dependencies": [
+        70
+      ],
+      "id": 166,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/attr.js"
+    },
+    "167": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\property.js",
+      "dependencies": [],
+      "id": 167,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/property.js"
+    },
+    "168": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\classed.js",
+      "dependencies": [],
+      "id": 168,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/classed.js"
+    },
+    "169": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\text.js",
+      "dependencies": [],
+      "id": 169,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/text.js"
+    },
+    "170": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\html.js",
+      "dependencies": [],
+      "id": 170,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/html.js"
+    },
+    "171": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\raise.js",
+      "dependencies": [],
+      "id": 171,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/raise.js"
+    },
+    "172": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\lower.js",
+      "dependencies": [],
+      "id": 172,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/lower.js"
+    },
+    "173": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\append.js",
+      "dependencies": [
+        67
+      ],
+      "id": 173,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/append.js"
+    },
+    "174": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\insert.js",
+      "dependencies": [
+        67,
+        77
+      ],
+      "id": 174,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/insert.js"
+    },
+    "175": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\remove.js",
+      "dependencies": [],
+      "id": 175,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/remove.js"
+    },
+    "176": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\clone.js",
+      "dependencies": [],
+      "id": 176,
+      "mtime": 1596108292000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/clone.js"
+    },
+    "177": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\datum.js",
+      "dependencies": [],
+      "id": 177,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/datum.js"
+    },
+    "178": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\on.js",
+      "dependencies": [],
+      "id": 178,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/on.js"
+    },
+    "179": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\dispatch.js",
+      "dependencies": [
+        80
+      ],
+      "id": 179,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/dispatch.js"
+    },
+    "180": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\iterator.js",
+      "dependencies": [],
+      "id": 180,
+      "mtime": 1598201443000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/iterator.js"
+    },
+    "181": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\array.js",
+      "dependencies": [],
+      "id": 181,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/array.js"
+    },
+    "182": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\point.js",
+      "dependencies": [],
+      "id": 182,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/point.js"
+    },
+    "183": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\descending.js",
+      "dependencies": [],
+      "id": 183,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/descending.js"
+    },
+    "184": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\identity.js",
+      "dependencies": [],
+      "id": 184,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/identity.js"
+    },
+    "185": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\curve\\radial.js",
+      "dependencies": [
+        109
+      ],
+      "id": 185,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/curve/radial.js"
+    },
+    "186": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\noop.js",
+      "dependencies": [],
+      "id": 186,
+      "mtime": 499162500000,
+      "packageId": "d3-shape@2.1.0",
+      "publicPath": "node_modules/d3-shape/src/noop.js"
+    },
+    "187": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-path\\src\\path.js",
+      "dependencies": [],
+      "id": 187,
+      "mtime": 1597838326000,
+      "packageId": "d3-path@2.0.0",
+      "publicPath": "node_modules/d3-path/src/path.js"
+    },
+    "188": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\constant.js",
+      "dependencies": [],
+      "id": 188,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/constant.js"
+    },
+    "189": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\selection\\sparse.js",
+      "dependencies": [],
+      "id": 189,
+      "mtime": 1471771140000,
+      "packageId": "d3-selection@2.0.0",
+      "publicPath": "node_modules/d3-selection/src/selection/sparse.js"
+    },
+    "190": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\darChecker.ts",
+      "dependencies": [],
+      "id": 190,
+      "mtime": 1616106788395,
+      "packageId": "default",
+      "publicPath": "src/darChecker.ts"
+    }
+  },
+  "packages": {
+    "default": {
+      "type": 0,
+      "publicName": "default",
+      "isUserPackage": true,
+      "isExternalPackage": false
+    },
+    "fuse-box-hot-reload@1.0.0": {
+      "type": 1,
+      "meta": {
+        "fusebox": {
+          "dev": true
+        },
+        "name": "fuse-box-hot-reload",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\fuse-box-hot-reload\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\fuse-box-hot-reload",
+        "version": "1.0.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\fuse-box-hot-reload\\clientHotReload.ts",
+        "entryFuseBoxPath": "clientHotReload.js"
+      },
+      "publicName": "fuse-box-hot-reload@1.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        2
+      ],
+      "mtime": 499162500000
+    },
+    "@codemirror/basic-setup@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/basic-setup",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\basic-setup\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\basic-setup",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\basic-setup\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/basic-setup@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        3
+      ],
+      "mtime": 1616104402611
+    },
+    "@codemirror/lint@0.18.1": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/lint",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\lint\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\lint",
+        "version": "0.18.1",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\lint\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/lint@0.18.1",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        4
+      ],
+      "mtime": 1616104402614
+    },
+    "@codemirror/stream-parser@0.18.1": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/stream-parser",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\stream-parser\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\stream-parser",
+        "version": "0.18.1",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\stream-parser\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/stream-parser@0.18.1",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        6
+      ],
+      "mtime": 1616104402610
+    },
+    "fuse-box-css@1.0.0": {
+      "type": 1,
+      "meta": {
+        "fusebox": {
+          "system": true
+        },
+        "name": "fuse-box-css",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\fuse-box-css\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\fuse-box-css",
+        "version": "1.0.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\fuse-box-css\\index.js",
+        "entryFuseBoxPath": "index.js"
+      },
+      "publicName": "fuse-box-css@1.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        10
+      ],
+      "mtime": 499162500000
+    },
+    "fuse-box-websocket@1.0.0": {
+      "type": 1,
+      "meta": {
+        "fusebox": {
+          "dev": true
+        },
+        "name": "fuse-box-websocket",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\fuse-box-websocket\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\fuse-box-websocket",
+        "version": "1.0.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\fuse-box-websocket\\index.js",
+        "entryFuseBoxPath": "index.js"
+      },
+      "publicName": "fuse-box-websocket@1.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        12
+      ],
+      "mtime": 499162500000
+    },
+    "@codemirror/view@0.18.1": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/view",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\view\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\view",
+        "version": "0.18.1",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\view\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/view@0.18.1",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        13
+      ],
+      "mtime": 1616104402614
+    },
+    "@codemirror/state@0.18.2": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/state",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\state\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\state",
+        "version": "0.18.2",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\state\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/state@0.18.2",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        14
+      ],
+      "mtime": 1616104402460
+    },
+    "@codemirror/history@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/history",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\history\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\history",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\history\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/history@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        15
+      ],
+      "mtime": 1616104402614
+    },
+    "@codemirror/fold@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/fold",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\fold\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\fold",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\fold\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/fold@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        16
+      ],
+      "mtime": 1616104402614
+    },
+    "@codemirror/language@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/language",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\language\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\language",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\language\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/language@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        17
+      ],
+      "mtime": 1616104402614
+    },
+    "@codemirror/gutter@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/gutter",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\gutter\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\gutter",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\gutter\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/gutter@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        18
+      ],
+      "mtime": 1616104402615
+    },
+    "@codemirror/commands@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/commands",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\commands\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\commands",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\commands\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/commands@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        19
+      ],
+      "mtime": 1616104402614
+    },
+    "@codemirror/matchbrackets@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/matchbrackets",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\matchbrackets\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\matchbrackets",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\matchbrackets\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/matchbrackets@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        20
+      ],
+      "mtime": 1616104402614
+    },
+    "@codemirror/closebrackets@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/closebrackets",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\closebrackets\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\closebrackets",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\closebrackets\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/closebrackets@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        21
+      ],
+      "mtime": 1616104402614
+    },
+    "@codemirror/search@0.18.1": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/search",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\search\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\search",
+        "version": "0.18.1",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\search\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/search@0.18.1",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        22
+      ],
+      "mtime": 1616104402614
+    },
+    "@codemirror/autocomplete@0.18.3": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/autocomplete",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\autocomplete\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\autocomplete",
+        "version": "0.18.3",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\autocomplete\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/autocomplete@0.18.3",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        23
+      ],
+      "mtime": 1616104402614
+    },
+    "@codemirror/comment@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/comment",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\comment\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\comment",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\comment\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/comment@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        24
+      ],
+      "mtime": 1616104402615
+    },
+    "@codemirror/rectangular-selection@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/rectangular-selection",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\rectangular-selection\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\rectangular-selection",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\rectangular-selection\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/rectangular-selection@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        25
+      ],
+      "mtime": 1616104402614
+    },
+    "@codemirror/highlight@0.18.3": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/highlight",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\highlight\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\highlight",
+        "version": "0.18.3",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\highlight\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/highlight@0.18.3",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        26
+      ],
+      "mtime": 1616104402614
+    },
+    "@codemirror/tooltip@0.18.4": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/tooltip",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\tooltip\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\tooltip",
+        "version": "0.18.4",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\tooltip\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/tooltip@0.18.4",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        27
+      ],
+      "mtime": 1616104402613
+    },
+    "@codemirror/panel@0.18.1": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/panel",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\panel\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\panel",
+        "version": "0.18.1",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\panel\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/panel@0.18.1",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        28
+      ],
+      "mtime": 1616104402614
+    },
+    "crelt@1.0.5": {
+      "type": 1,
+      "meta": {
+        "name": "crelt",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\crelt\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\crelt",
+        "version": "1.0.5",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\crelt\\index.es.js",
+        "entryFuseBoxPath": "index.es.js"
+      },
+      "publicName": "crelt@1.0.5",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        29
+      ],
+      "mtime": 1616104403117
+    },
+    "lezer-tree@0.13.2": {
+      "type": 1,
+      "meta": {
+        "name": "lezer-tree",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\lezer-tree\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\lezer-tree",
+        "version": "0.13.2",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\lezer-tree\\dist\\tree.es.js",
+        "entryFuseBoxPath": "dist/tree.es.js"
+      },
+      "publicName": "lezer-tree@0.13.2",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        30
+      ],
+      "mtime": 1616104402922
+    },
+    "@codemirror/text@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/text",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\text\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\text",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\text\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/text@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        31
+      ],
+      "mtime": 1616104402460
+    },
+    "@codemirror/lang-json@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/lang-json",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\lang-json\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\lang-json",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\lang-json\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/lang-json@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        36
+      ],
+      "mtime": 1616104402610
+    },
+    "events@1.0.0": {
+      "type": 1,
+      "meta": {
+        "fusebox": {
+          "polyfill": true
+        },
+        "name": "events",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\events\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\events",
+        "version": "1.0.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\events\\index.js",
+        "entryFuseBoxPath": "index.js"
+      },
+      "publicName": "events@1.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        38
+      ],
+      "mtime": 499162500000
+    },
+    "@codemirror/rangeset@0.18.0": {
+      "type": 1,
+      "meta": {
+        "name": "@codemirror/rangeset",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\rangeset\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\rangeset",
+        "version": "0.18.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\@codemirror\\rangeset\\dist\\index.js",
+        "entryFuseBoxPath": "dist/index.js"
+      },
+      "publicName": "@codemirror/rangeset@0.18.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        39
+      ],
+      "mtime": 1616104402460
+    },
+    "style-mod@4.0.0": {
+      "type": 1,
+      "meta": {
+        "name": "style-mod",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\style-mod\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\style-mod",
+        "version": "4.0.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\style-mod\\src\\style-mod.js",
+        "entryFuseBoxPath": "src/style-mod.js"
+      },
+      "publicName": "style-mod@4.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        40
+      ],
+      "mtime": 1616104402749
+    },
+    "w3c-keyname@2.2.4": {
+      "type": 1,
+      "meta": {
+        "name": "w3c-keyname",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\w3c-keyname\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\w3c-keyname",
+        "version": "2.2.4",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\w3c-keyname\\index.es.js",
+        "entryFuseBoxPath": "index.es.js"
+      },
+      "publicName": "w3c-keyname@2.2.4",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        41
+      ],
+      "mtime": 1616104402610
+    },
+    "d3-hierarchy@2.0.0": {
+      "type": 1,
+      "meta": {
+        "name": "d3-hierarchy",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy",
+        "version": "2.0.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\index.js",
+        "entryFuseBoxPath": "src/index.js"
+      },
+      "publicName": "d3-hierarchy@2.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        45,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141
+      ],
+      "mtime": 1616104403107
+    },
+    "d3-selection@2.0.0": {
+      "type": 1,
+      "meta": {
+        "name": "d3-selection",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection",
+        "version": "2.0.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-selection\\src\\index.js",
+        "entryFuseBoxPath": "src/index.js"
+      },
+      "publicName": "d3-selection@2.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        46,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        143,
+        144,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        188,
+        189
+      ],
+      "mtime": 1616104403107
+    },
+    "d3-shape@2.1.0": {
+      "type": 1,
+      "meta": {
+        "name": "d3-shape",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape",
+        "version": "2.1.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\index.js",
+        "entryFuseBoxPath": "src/index.js"
+      },
+      "publicName": "d3-shape@2.1.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        47,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        146,
+        147,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186
+      ],
+      "mtime": 1616104403107
+    },
+    "lezer-json@0.13.1": {
+      "type": 1,
+      "meta": {
+        "name": "lezer-json",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\lezer-json\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\lezer-json",
+        "version": "0.13.1",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\lezer-json\\dist\\index.es.js",
+        "entryFuseBoxPath": "dist/index.es.js"
+      },
+      "publicName": "lezer-json@0.13.1",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        48
+      ],
+      "mtime": 1616104402912
+    },
+    "lezer@0.13.4": {
+      "type": 1,
+      "meta": {
+        "name": "lezer",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\lezer\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\lezer",
+        "version": "0.13.4",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\lezer\\dist\\index.es.js",
+        "entryFuseBoxPath": "dist/index.es.js"
+      },
+      "publicName": "lezer@0.13.4",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        65
+      ],
+      "mtime": 1616104402922
+    },
+    "process@1.0.0": {
+      "type": 1,
+      "meta": {
+        "fusebox": {
+          "polyfill": true
+        },
+        "name": "process",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\process\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\process",
+        "version": "1.0.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\fuse-box\\modules\\process\\index.js",
+        "entryFuseBoxPath": "index.js"
+      },
+      "publicName": "process@1.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        142
+      ],
+      "mtime": 499162500000
+    },
+    "d3-path@2.0.0": {
+      "type": 1,
+      "meta": {
+        "name": "d3-path",
+        "packageJSONLocation": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-path\\package.json",
+        "packageRoot": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-path",
+        "version": "2.0.0",
+        "entryAbsPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\node_modules\\d3-path\\src\\index.js",
+        "entryFuseBoxPath": "src/index.js"
+      },
+      "publicName": "d3-path@2.0.0",
+      "isUserPackage": false,
+      "isExternalPackage": true,
+      "deps": [
+        145,
+        187
+      ],
+      "mtime": 1616104403107
+    }
+  },
+  "ctx": {
+    "linkedReferences": {},
+    "systemDependencies": {},
+    "tsConfigAtPaths": []
+  }
+}

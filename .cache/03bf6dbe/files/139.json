@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nfunction __DefaultExport__() {\n  var root = this, links = [];\n  root.each(function (node) {\n    if (node !== root) {\n      links.push({\n        source: node.parent,\n        target: node\n      });\n    }\n  });\n  return links;\n}\nexports.default = __DefaultExport__;\n"}

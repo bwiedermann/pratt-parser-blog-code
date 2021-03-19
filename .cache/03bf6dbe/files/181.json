@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nexports.slice = Array.prototype.slice;\nfunction __DefaultExport__(x) {\n  return typeof x === \"object\" && (\"length\" in x) ? x : Array.from(x);\n}\nexports.default = __DefaultExport__;\n"}

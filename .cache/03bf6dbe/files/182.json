@@ -1,0 +1,1 @@
+{"contents":"function x(p) {\n  return p[0];\n}\nexports.x = x;\nfunction y(p) {\n  return p[1];\n}\nexports.y = y;\n"}

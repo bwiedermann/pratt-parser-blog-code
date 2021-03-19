@@ -5,6 +5,7 @@ import {State, getDefaultToken} from './lexer'
 import {ParseError} from './position'
 import {typecheck} from './typechecker';
 import {mudCheck} from './mudChecker';
+import {darCheck} from './darChecker';
 import {parseResults} from './parseResults';
 
 /**
@@ -32,13 +33,15 @@ export const miniCL: StreamParser<State> = {
   let assertMap: string[] = [];
   const mudErrors = mudCheck(results.nodes, results.registeredNodes, results.dependsMap, assertMap);
   const typeErrors = typecheck(results.nodes, results.registeredNodes);
+  const darErrors = darCheck(results.nodes, results.registeredNodes);
 
   // Create a diagnostic for each kind of error
   const parseDiagnostics = results.parseErrors.map(makeDiagnostic(view));
   const typeDiagnostics = typeErrors.map(makeDiagnostic(view));
   const mudDiagnostics = mudErrors.map(makeDiagnostic(view, 'warning'));
+  const darDiagnostics = darErrors.map(makeDiagnostic(view, 'warning'));
 
-  return parseDiagnostics.concat(typeDiagnostics).concat(mudDiagnostics);
+  return parseDiagnostics.concat(typeDiagnostics).concat(darDiagnostics);
 }
 
 /**

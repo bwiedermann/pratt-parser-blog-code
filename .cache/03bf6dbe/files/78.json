@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nfunction empty() {\n  return [];\n}\nfunction __DefaultExport__(selector) {\n  return selector == null ? empty : function () {\n    return this.querySelectorAll(selector);\n  };\n}\nexports.default = __DefaultExport__;\n"}

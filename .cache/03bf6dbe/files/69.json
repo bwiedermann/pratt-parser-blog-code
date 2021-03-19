@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nfunction __DefaultExport__(selector) {\n  return function () {\n    return this.matches(selector);\n  };\n}\nexports.default = __DefaultExport__;\nfunction childMatcher(selector) {\n  return function (node) {\n    return node.matches(selector);\n  };\n}\nexports.childMatcher = childMatcher;\n"}

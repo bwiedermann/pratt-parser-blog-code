@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nfunction __DefaultExport__(x) {\n  return function () {\n    return x;\n  };\n}\nexports.default = __DefaultExport__;\n"}
