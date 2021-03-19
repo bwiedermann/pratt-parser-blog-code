@@ -61,6 +61,26 @@ class MudCheckBinary implements MudChecker {
                             valueType: node.left?.outputType?.valueType };
         }
 
+        if (node.operator == '|') {
+          let intersection = [];
+          let leftAsserts = node.left.outputType.asserts;
+          let rightAsserts = node.right.outputType.asserts;
+          for (let i = 0; i < leftAsserts.length; i++) {
+            if (rightAsserts.find(e => e == leftAsserts[i])) {
+              intersection.push(leftAsserts[i]);
+            }
+          }
+          node.outputType.asserts = intersection;
+        }
+        else {
+          // if it's an and, we take all of the asserts
+          let leftAsserts = node.left.outputType.asserts;
+          let rightAsserts = node.right.outputType.asserts;
+          let allAsserts = leftAsserts.concat(rightAsserts);
+
+          node.outputType.asserts = allAsserts;
+        }
+
         return errors;
     }
 }
@@ -73,6 +93,11 @@ class MudCheckFunction implements MudChecker {
             assertMap: string[]): TypeError[] {
         let errors: TypeError[] = [];
 
+        if (node.name == 'IsDefined') {
+          let bases = findBases(node, dependsMap);
+          node.outputType.asserts = node.outputType.asserts.concat(bases);
+        }
+
         if (node.name == 'Sink') {
           assertMap = [];
         }
@@ -84,6 +109,8 @@ class MudCheckFunction implements MudChecker {
         const arg2Errors = mudCheckNode(node.args[1], nodes, registeredNodes, dependsMap, assertMap);
         errors = errors.concat(arg2Errors);
         }
+
+       
 
         const functionName = node.name
         const argType = builtins[functionName].inputType;
@@ -117,6 +144,8 @@ class MudCheckFunction implements MudChecker {
         } else {
             node.outputType.status = 'Definitely';
         }
+
+       
 
         node.outputType.valueType = returnType;
 
@@ -166,8 +195,10 @@ class MudCheckChoose implements MudChecker {
           //        both binary op
 
           // no need for bool, bool
+          
+          consDef = handleCheck(consequent, dependsMap, predicate.outputType.asserts);
 
-          consDef = doBinOp(predicate, consequent, dependsMap, assertMap);
+          // consDef = doBinOp(predicate, consequent, dependsMap, assertMap);
 
         }
 
@@ -286,6 +317,8 @@ function handleCheck(consequent: AST.Node,
 
     return contained;
 }
+
+/*
 
 function resolveBF(predicate: AST.Node,
                   consequent: AST.Node,
@@ -590,3 +623,4 @@ function doBinOp(predicate: AST.Node,
 
   return consDef;
 }
+*/

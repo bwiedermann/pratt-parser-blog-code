@@ -28,7 +28,8 @@ export class NumberParselet implements InitialParselet {
       nodeType: 'Number' as 'Number',
       value: parseFloat(token.text),
       outputType: { status: 'Definitely' as 'Definitely',
-                    valueType: 'number' as 'number' },
+                    valueType: 'number' as 'number',
+                    asserts: [] },
       pos: position,
       nodeId: id
     };
@@ -50,7 +51,8 @@ export class BooleanParselet implements InitialParselet {
       nodeType: 'Boolean' as 'Boolean',
       value: this.value,
       outputType: { status: 'Definitely' as 'Definitely',
-                    valueType: 'boolean' as 'boolean' },
+                    valueType: 'boolean' as 'boolean',
+                    asserts: [] },
       pos: position,
       nodeId: id
     };
@@ -159,7 +161,8 @@ export class FunctionParselet implements InitialParselet {
       name: token.text,
       args: args,
       outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
-                    valueType: undefined },
+                    valueType: undefined,
+                    asserts: [] },
       pos: position,
       nodeId: id
     };
@@ -188,7 +191,8 @@ export class ChooseParselet implements InitialParselet {
       case: { predicate: predicate, consequent: consequent },
       otherwise: otherwise,
       outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
-                    valueType: undefined },
+                    valueType: undefined,
+                    asserts: [] },
       pos: position,
       nodeId: id
     };
@@ -219,7 +223,8 @@ export class VariableAssignmentParselet implements InitialParselet {
       name: token.text,
       assignment: assignment,
       outputType: { status: "Maybe-Undefined" as "Maybe-Undefined",
-                    valueType: assignment?.outputType?.valueType },
+                    valueType: assignment?.outputType?.valueType,
+                    asserts: [] },
       pos: position,
       nodeId: id
     };
@@ -254,7 +259,8 @@ export class IdentifierParselet implements InitialParselet {
         name: token.text,
         assignmentId: assignmentId,
         outputType: { status: "Maybe-Undefined" as "Maybe-Undefined",
-                      valueType: undefined },
+                      valueType: undefined,
+                      asserts: [] },
         pos: position,
         nodeId: id
       };

@@ -81,6 +81,7 @@ export type IdentifierNode = {
 export type ProgramNode = {
   nodeType: 'Program';
   children: Node[];
+  nodeId: string;
 }
 
 export type Node = 
@@ -99,11 +100,13 @@ export type Node =
 export type Definitely<ValueType> = {
   status: 'Definitely'; // do we need a status anymore?
   valueType: ValueType; // does this ensure if Definitely<boolean> than value is of type boolean?
+  asserts: string[];
 }
 
 export type Maybe<ValueType> = {
   status: 'Maybe-Undefined'; // maybe only status here? This way we can "change" status to definitely?
   valueType: ValueType;
+  asserts: string[];
 }
 
 export type ValueType = 'number' | 'boolean' | 'pair' | 'any' | undefined;
