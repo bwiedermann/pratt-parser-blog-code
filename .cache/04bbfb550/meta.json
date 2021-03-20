@@ -70,13 +70,13 @@
     "5": {
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/miniCL.ts",
       "dependencies": [
-        7,
         13,
         14,
-        15
+        15,
+        7
       ],
       "id": 5,
-      "mtime": 1615938130812,
+      "mtime": 1616197659400,
       "packageId": "default",
       "publicPath": "src/miniCL.ts"
     },
@@ -171,7 +171,7 @@
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/typechecker.ts",
       "dependencies": [],
       "id": 14,
-      "mtime": 1614905334188,
+      "mtime": 1616199931521,
       "packageId": "default",
       "publicPath": "src/typechecker.ts"
     },
@@ -181,7 +181,7 @@
         42
       ],
       "id": 15,
-      "mtime": 1616115366844,
+      "mtime": 1616200028805,
       "packageId": "default",
       "publicPath": "src/mudChecker.ts"
     },

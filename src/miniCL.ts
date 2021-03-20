@@ -29,8 +29,7 @@ export const miniCL: StreamParser<State> = {
   const results = view.state.field(parseResults);
 
   // Error checking
-  let assertMap: string[] = [];
-  const mudErrors = mudCheck(results.nodes, results.registeredNodes, results.dependsMap, assertMap);
+  const mudErrors = mudCheck(results.nodes, results.registeredNodes, results.dependsMap);
   const typeErrors = typecheck(results.nodes, results.registeredNodes);
 
   // Create a diagnostic for each kind of error

@@ -5,18 +5,16 @@ import {findBases} from './findBase';
 
 export function mudCheck(nodes: AST.Node[], 
                         registeredNodes: {[key: string]: AST.Node},
-                        dependsMap: {[key: string]: string[]},
-                        assertMap: string[]): TypeError[] {
-  const errors = nodes.map(n => mudCheckNode(n, nodes, registeredNodes, dependsMap, assertMap));
+                        dependsMap: {[key: string]: string[]}): TypeError[] {
+  const errors = nodes.map(n => mudCheckNode(n, nodes, registeredNodes, dependsMap));
   return ([] as TypeError[]).concat(...errors);
 }
 
 function mudCheckNode(node: AST.Node, 
                     nodes: AST.Node[], 
                     registeredNodes: {[key: string]: AST.Node},
-                    dependsMap: {[key: string]: string[]},
-                    assertMap: string[]): TypeError[] {
-  return mudCheckerMap[node.nodeType].mudCheck(node, nodes, registeredNodes, dependsMap, assertMap);
+                    dependsMap: {[key: string]: string[]}): TypeError[] {
+  return mudCheckerMap[node.nodeType].mudCheck(node, nodes, registeredNodes, dependsMap);
 }
 
 export class TypeError {
@@ -27,8 +25,7 @@ export interface MudChecker {
   mudCheck(node: AST.Node, 
           nodes: AST.Node[], 
           registeredNodes: {[key: string]: AST.Node},
-          dependsMap: {[key: string]: string[]},
-          assertMap: string[]): TypeError[];
+          dependsMap: {[key: string]: string[]}): TypeError[];
 }
 
 class MudCheckNumber implements MudChecker {
@@ -47,10 +44,9 @@ class MudCheckBinary implements MudChecker {
     mudCheck(node: AST.BinaryOperationNode, 
             nodes: AST.Node[], 
             registeredNodes: {[key: string]: AST.Node},
-            dependsMap: {[key: string]: string[]},
-            assertMap: string[]): TypeError[] {
-        const errors: TypeError[] = mudCheckNode(node.left, nodes, registeredNodes, dependsMap, assertMap)
-        .concat(mudCheckNode(node.right, nodes, registeredNodes, dependsMap, assertMap));
+            dependsMap: {[key: string]: string[]}): TypeError[] {
+        const errors: TypeError[] = mudCheckNode(node.left, nodes, registeredNodes, dependsMap)
+        .concat(mudCheckNode(node.right, nodes, registeredNodes, dependsMap));
 
         // If no type errors, update the output type of this node, based on the outputType of its inputs
         if (node.right?.outputType?.status == 'Maybe-Undefined' || node.left?.outputType?.status == 'Maybe-Undefined') {
@@ -89,62 +85,42 @@ class MudCheckFunction implements MudChecker {
     mudCheck(node: AST.FunctionNode, 
             nodes: AST.Node[], 
             registeredNodes: {[key: string]: AST.Node},
-            dependsMap: {[key: string]: string[]},
-            assertMap: string[]): TypeError[] {
+            dependsMap: {[key: string]: string[]}): TypeError[] {
         let errors: TypeError[] = [];
 
         if (node.name == 'IsDefined') {
           let bases = findBases(node, dependsMap);
           node.outputType.asserts = node.outputType.asserts.concat(bases);
         }
-
-        if (node.name == 'Sink') {
-          assertMap = [];
-        }
         
         // First typecheck the argument
-        const arg1Errors = mudCheckNode(node.args[0], nodes, registeredNodes, dependsMap, assertMap);
+        const arg1Errors = mudCheckNode(node.args[0], nodes, registeredNodes, dependsMap);
         errors = errors.concat(arg1Errors);
         if (node.args.length > 1) {
-        const arg2Errors = mudCheckNode(node.args[1], nodes, registeredNodes, dependsMap, assertMap);
+        const arg2Errors = mudCheckNode(node.args[1], nodes, registeredNodes, dependsMap);
         errors = errors.concat(arg2Errors);
         }
 
        
 
         const functionName = node.name
-        const argType = builtins[functionName].inputType;
         const returnType = builtins[functionName].resultType;
 
         // only show error if in sink "node"
         if (functionName == 'Sink') {
-        // if sink "node" takes in possibly undefined values, warn the author
-        // a sink has one argument
-        if (node.args[0]?.outputType?.status == 'Maybe-Undefined') {
-            errors.push(new TypeError("User facing content could be undefined.", node.args[0].pos));
+          // if sink "node" takes in possibly undefined values, warn the author
+          // a sink has one argument
+          if (node.args[0]?.outputType?.status == 'Maybe-Undefined') {
+              errors.push(new TypeError("User facing content could be undefined.", node.args[0].pos));
+          }
         }
+        
+        if (builtins[functionName].status == "Variable") {
+          node.outputType.status = node.args[0]?.outputType?.status;
         }
-
-        // If no type errors, update the output type of this node, based on the outputType of its argument
-        if (node.args[0]?.outputType?.status == 'Maybe-Undefined' || functionName == 'Input') {
-            // IsDefined should always output a definitely regardless of argument status
-            if (functionName != 'IsDefined') {
-            node.outputType.status = 'Maybe-Undefined';
-            }
-            else {
-            node.outputType.status = 'Definitely';
-            }
-        } else if (node.args.length > 1) {
-            if (node.args[1].outputType.status == 'Maybe-Undefined') {
-            // Note: IsDefined only has one argument, so we don't need to check for that here
-            node.outputType.status = 'Maybe-Undefined';
-            } else {
-            node.outputType.status = 'Definitely';
-            }
-        } else {
-            node.outputType.status = 'Definitely';
+        else {
+          node.outputType.status = builtins[functionName].status;
         }
-
        
 
         node.outputType.valueType = returnType;
@@ -157,8 +133,7 @@ class MudCheckChoose implements MudChecker {
     mudCheck(node: AST.ChooseNode, 
             nodes: AST.Node[], 
             registeredNodes: {[key: string]: AST.Node},
-            dependsMap: {[key: string]: string[]},
-            assertMap: string[]): TypeError[] {
+            dependsMap: {[key: string]: string[]}): TypeError[] {
         let errors: TypeError[] = [];
 
         const predicate = node.case.predicate;
@@ -168,9 +143,9 @@ class MudCheckChoose implements MudChecker {
         // add stuff to the assertMap
 
         // First typecheck the inner nodes
-        const predErrors = mudCheckNode(predicate, nodes, registeredNodes, dependsMap, assertMap);
-        const consErrors = mudCheckNode(consequent, nodes, registeredNodes, dependsMap, assertMap);
-        const otherErrors = mudCheckNode(otherwise, nodes, registeredNodes, dependsMap, assertMap);
+        const predErrors = mudCheckNode(predicate, nodes, registeredNodes, dependsMap);
+        const consErrors = mudCheckNode(consequent, nodes, registeredNodes, dependsMap);
+        const otherErrors = mudCheckNode(otherwise, nodes, registeredNodes, dependsMap);
         errors = errors.concat(predErrors).concat(consErrors).concat(otherErrors);
 
         node.outputType.valueType = consequent.outputType.valueType;
@@ -187,18 +162,8 @@ class MudCheckChoose implements MudChecker {
 
         // consequent in MU and we have a binary predicate
         if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'BinaryOperation') {
-          // Cases: both bool *******************************
-          //        bool, function (and vice versa) *********
-          //        bool, binary op (and vice versa) IN PROGRESS
-          //        function, binary op (and vice versa)
-          //        both function ***************************
-          //        both binary op
-
-          // no need for bool, bool
           
           consDef = handleCheck(consequent, dependsMap, predicate.outputType.asserts);
-
-          // consDef = doBinOp(predicate, consequent, dependsMap, assertMap);
 
         }
 
@@ -209,8 +174,7 @@ class MudCheckChoose implements MudChecker {
           // we can only errorr check with IsDefined function
           // IsDefined has only one argument
           if (predicate.name == 'IsDefined') {
-            handleAsserts(predicate, dependsMap, assertMap);
-            consDef = handleCheck(consequent, dependsMap, assertMap);
+            consDef = handleCheck(consequent, dependsMap, predicate.outputType.asserts);
           }
         }
 
@@ -230,11 +194,10 @@ class MudCheckVariable implements MudChecker {
     mudCheck(node: AST.VariableAssignmentNode, 
             nodes: AST.Node[], 
             registeredNodes: {[key: string]: AST.Node},
-            dependsMap: {[key: string]: string[]},
-            assertMap: string[]): TypeError[] {
+            dependsMap: {[key: string]: string[]}): TypeError[] {
     let errors: TypeError[] = [];
     // First typecheck the assignment node
-    const assignmentErrors = mudCheckNode(node.assignment, nodes, registeredNodes, dependsMap, assertMap);
+    const assignmentErrors = mudCheckNode(node.assignment, nodes, registeredNodes, dependsMap);
     errors = errors.concat(assignmentErrors);
 
     // Set variable assignment node output type to the same as it's assignment
@@ -269,14 +232,16 @@ class MudCheckIdentifier implements MudChecker {
 }
 
 // Dictionary of builtin functions that maps a function name to the type of its argument
-const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType} } = {
-  "IsDefined": {inputType: 'any', resultType: 'boolean'},
-  "Inverse": {inputType: 'number', resultType: 'number'},
-  "Input": {inputType: 'number', resultType: 'number'},
-  "Sink": {inputType: 'any', resultType: 'any'},
-  "ParseOrderedPair": {inputType: 'number', resultType: 'pair'},
-  "X": {inputType: 'pair', resultType: 'number'},
-  "Y": {inputType: 'pair', resultType: 'number'}
+const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType, status: string} } = {
+  "IsDefined": {inputType: 'any', resultType: 'boolean', status: "Definitely"},
+  "Inverse": {inputType: 'number', resultType: 'number', status: "Variable"},
+  "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined"},
+  "Sink": {inputType: 'any', resultType: 'any', status: "Variable"},
+  "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Maybe-Undefined"},
+  "X": {inputType: 'pair', resultType: 'number', status: "Variable"},
+  "Y": {inputType: 'pair', resultType: 'number', status: "Variable"},
+  "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely"},
+  "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined"}
 }
 
 const mudCheckerMap: Partial<{[K in AST.NodeType]: MudChecker}> = {
@@ -289,338 +254,18 @@ const mudCheckerMap: Partial<{[K in AST.NodeType]: MudChecker}> = {
   'Identifier': new MudCheckIdentifier()
 }
 
-function handleAsserts(predicate: AST.Node,
-                      dependsMap: {[key: string]: string[]},
-                      assertMap: string[]): void {
-
-    // look up the bases of the predicate
-    let predBases = findBases(predicate, dependsMap);
-    // set outputType to Definitely if consBases are contained in predBases
-    // add to assertMap
-    for (let k = 0; k < predBases.length; k++) {
-      assertMap.push(predBases[k]);
-    }
-}
-
 function handleCheck(consequent: AST.Node,
                     dependsMap: {[key: string]: string[]},
-                    assertMap: string[]): boolean {
+                    asserts: string[]): boolean {
 
   let consBases = findBases(consequent, dependsMap);
 
   let contained = true;
     for (let i = 0; i < consBases.length; i++) {
-      if (!assertMap.find(e => e == consBases[i])) {
+      if (!asserts.find(e => e == consBases[i])) {
         contained = false;
       }
     }
 
     return contained;
 }
-
-/*
-
-function resolveBF(predicate: AST.Node,
-                  consequent: AST.Node,
-                  dependsMap: {[key: string]: string[]},
-                  assertMap: string[]): boolean {
-
-  // boolean, function
-  if (predicate.right.name == 'IsDefined') {
-    handleAsserts(predicate.right, dependsMap, assertMap);
-    return handleCheck(consequent, dependsMap, assertMap);
-  }
-  else {
-    return false;
-  }
-
-}
-
-function resolveFB(predicate: AST.Node,
-                  consequent: AST.Node,
-                  dependsMap: {[key: string]: string[]},
-                  assertMap: string[]): boolean {
-  // function, boolean
-  if (predicate.left.name == 'IsDefined') {
-    handleAsserts(predicate.left, dependsMap, assertMap);
-    return handleCheck(consequent, dependsMap, assertMap);
-  }
-  else {
-    return false;
-  }
-}
-
-function resolveFF(predicate: AST.Node,
-                  consequent: AST.Node,
-                  dependsMap: {[key: string]: string[]},
-                  assertMap: string[]): boolean {
-  // function, function
-  let consDefLeft = false;
-  let consDefRight = false;
-  let consDefBoth = false;
-  let localAsserts: string[] = [];
-
-  if (predicate.left.name == 'IsDefined') {
-    handleAsserts(predicate.left, dependsMap, localAsserts);
-    consDefLeft = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefLeft) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-
-  if (predicate.right.name == 'IsDefined') {
-    handleAsserts(predicate.right, dependsMap, localAsserts);
-    consDefRight = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefRight) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-
-  if (predicate.left.name == 'IsDefined' && predicate.right.name == 'IsDefined' && predicate.operator == '&') {
-    handleAsserts(predicate.left, dependsMap, localAsserts);
-    handleAsserts(predicate.right, dependsMap, localAsserts);
-    consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefBoth) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-
-  if (predicate.operator == '&') {
-    return consDefLeft || consDefRight || consDefBoth;
-  }
-  else if (predicate.operator == '|') {
-    return consDefLeft && consDefRight;
-  }
-  else {
-    return false;
-  }
-}
-
-function resolveBBO(predicate: AST.Node,
-  consequent: AST.Node,
-  dependsMap: {[key: string]: string[]},
-  assertMap: string[]): boolean {
-  // boolean, binary operation
-  // recurse on the right
-  let consDefRight = doBinOp(predicate.right, consequent, dependsMap, assertMap);
-  if (predicate.left.value == false && predicate.operator == '|') {
-    return consDefRight;
-  }
-  if (predicate.left.value == true && predicate.operator == '&') {
-    return consDefRight;
-  }
-  else {
-    // this may change to true
-    return false;
-  }
-
-}
-
-function resolveBOB(predicate: AST.Node,
-  consequent: AST.Node,
-  dependsMap: {[key: string]: string[]},
-  assertMap: string[]): boolean {
-  // binary operation, boolean
-  let consDefLeft = doBinOp(predicate.left, consequent, dependsMap, assertMap);
-  if (predicate.right.value == false && predicate.operator == '|') {
-    return consDefLeft;
-  }
-  if (predicate.right.value == true && predicate.operator == '&') {
-    return consDefLeft;
-  }
-  else {
-    // this may change to true
-    return false;
-  }
-}
-
-function resolveBOF(predicate: AST.Node,
-  consequent: AST.Node,
-  dependsMap: {[key: string]: string[]},
-  assertMap: string[]): boolean {
-  // binary operation, function
-  // recurse on the left with local asserts
-  let consDefLeft = false;
-  let consDefRight = false;
-  let consDefBoth = false;
-  let localAsserts: string[] = [];
-
-  consDefLeft = doBinOp(predicate.left, consequent, dependsMap, localAsserts);
-  if (consDefLeft) {
-    assertMap = assertMap.concat(localAsserts);
-  }
-  localAsserts = [];
-
-  if (predicate.right.name == 'IsDefined') {
-    handleAsserts(predicate.right, dependsMap, localAsserts);
-    consDefRight = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefRight) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-
-  if (predicate.right.name == 'IsDefined' && predicate.operator == '&') {
-    let temp = doBinOp(predicate.left, consequent, dependsMap, localAsserts);
-    handleAsserts(predicate.right, dependsMap, localAsserts);
-    consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefBoth) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-
-  if (predicate.operator == '&') {
-    return consDefLeft || consDefRight || consDefBoth;
-  }
-  else if (predicate.operator == '|') {
-    return consDefLeft && consDefRight;
-  }
-  else {
-    return false;
-  }
-  
-}
-
-function resolveFBO(predicate: AST.Node,
-  consequent: AST.Node,
-  dependsMap: {[key: string]: string[]},
-  assertMap: string[]): boolean {
-  // function, binary operation
-  // recurse on the left with local asserts
-  let consDefLeft = false;
-  let consDefRight = false;
-  let consDefBoth = false;
-  let localAsserts: string[] = [];
-
-  consDefRight = doBinOp(predicate.right, consequent, dependsMap, localAsserts);
-  if (consDefRight) {
-    assertMap = assertMap.concat(localAsserts);
-  }
-  localAsserts = [];
-
-  if (predicate.left.name == 'IsDefined') {
-    handleAsserts(predicate.left, dependsMap, localAsserts);
-    consDefLeft = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefLeft) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-
-  if (predicate.left.name == 'IsDefined' && predicate.operator == '&') {
-    let temp = doBinOp(predicate.right, consequent, dependsMap, localAsserts);
-    handleAsserts(predicate.left, dependsMap, localAsserts);
-    consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefBoth) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-
-  if (predicate.operator == '&') {
-    return consDefLeft || consDefRight || consDefBoth;
-  }
-  else if (predicate.operator == '|') {
-    return consDefLeft && consDefRight;
-  }
-  else {
-    return false;
-  }
-}
-
-function resolveBOBO(predicate: AST.Node,
-  consequent: AST.Node,
-  dependsMap: {[key: string]: string[]},
-  assertMap: string[]): boolean {
-  // binary operation, binary operation
-  let consDefLeft = false;
-  let consDefRight = false;
-  let consDefBoth = false;
-  let localAsserts: string[] = [];
-
-  consDefRight = doBinOp(predicate.right, consequent, dependsMap, localAsserts);
-  if (consDefRight) {
-    assertMap = assertMap.concat(localAsserts);
-  }
-  localAsserts = [];
-
-  consDefLeft = doBinOp(predicate.left, consequent, dependsMap, localAsserts);
-  if (consDefLeft) {
-    assertMap = assertMap.concat(localAsserts);
-  }
-  localAsserts = [];
-
-  if (predicate.operator == '&') {
-    let temp = doBinOp(predicate.right, consequent, dependsMap, localAsserts);
-    let temp2 = doBinOp(predicate.left, consequent, dependsMap, localAsserts);
-    consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefBoth) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-
-  if (predicate.operator == '&') {
-    return consDefLeft || consDefRight || consDefBoth;
-  }
-  else if (predicate.operator == '|') {
-    return consDefLeft && consDefRight;
-  }
-  else {
-    return false;
-  }
-}
-
-function doBinOp(predicate: AST.Node,
-  consequent: AST.Node,
-  dependsMap: {[key: string]: string[]},
-  assertMap: string[]): boolean {
-  let consDef = false;
-  // function, boolean
-  if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'Boolean') {
-    consDef = resolveFB(predicate, consequent, dependsMap, assertMap);
-  }
-
-  // boolean, function
-  if (predicate.left.nodeType == 'Boolean' && predicate.right.nodeType == 'Function') {
-    consDef = resolveBF(predicate, consequent, dependsMap, assertMap);
-  }
-
-  // function, function
-  if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'Function') {
-    consDef = resolveFF(predicate, consequent, dependsMap, assertMap);
-
-  }
-
-  // bool, binary op
-  if (predicate.left.nodeType == 'Boolean' && predicate.right.nodeType == 'BinaryOperation') {
-    consDef = resolveBBO(predicate, consequent, dependsMap, assertMap);
-  }
-
-  // binary op, bool
-  if (predicate.left.nodeType == 'BinaryOperation' && predicate.right.nodeType == 'Boolean') {
-    consDef = resolveBOB(predicate, consequent, dependsMap, assertMap);
-  }
-
-  // function, binary op
-  if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'BinaryOperation') {
-    consDef = resolveFBO(predicate, consequent, dependsMap, assertMap);
-  }
-
-  // binary op, function
-  if (predicate.left.nodeType == 'BinaryOperation' && predicate.right.nodeType == 'Function') {
-    consDef = resolveBOF(predicate, consequent, dependsMap, assertMap);
-  }
-
-  // binary op, binary op
-  if (predicate.left.nodeType == 'BinaryOperation' && predicate.right.nodeType == 'BinaryOperation') {
-    consDef = resolveBOBO(predicate, consequent, dependsMap, assertMap);
-  }
-
-  return consDef;
-}
-*/

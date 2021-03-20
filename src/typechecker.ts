@@ -155,14 +155,16 @@ class CheckIdentifier implements TypeChecker {
 }
 
 // Dictionary of builtin functions that maps a function name to the type of its argument
-const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType} } = {
-  "IsDefined": {inputType: 'any', resultType: 'boolean'},
-  "Inverse": {inputType: 'number', resultType: 'number'},
-  "Input": {inputType: 'number', resultType: 'number'},
-  "Sink": {inputType: 'any', resultType: 'any'},
-  "ParseOrderedPair": {inputType: 'number', resultType: 'pair'},
-  "X": {inputType: 'pair', resultType: 'number'},
-  "Y": {inputType: 'pair', resultType: 'number'}
+const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType, status: string} } = {
+  "IsDefined": {inputType: 'any', resultType: 'boolean', status: "Definitely"},
+  "Inverse": {inputType: 'number', resultType: 'number', status: "Variable"},
+  "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined"},
+  "Sink": {inputType: 'any', resultType: 'any', status: "Variable"},
+  "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Maybe-Undefined"},
+  "X": {inputType: 'pair', resultType: 'number', status: "Variable"},
+  "Y": {inputType: 'pair', resultType: 'number', status: "Variable"},
+  "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely"},
+  "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined"}
 }
 
 const checkerMap: Partial<{[K in AST.NodeType]: TypeChecker}> = {
