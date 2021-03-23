@@ -163,6 +163,7 @@ class NumberParselet {
       pos: position,
       nodeId: id
     };
+    console.log("The number parslet is running now!");
     registeredNodes[id] = newNode;
     return newNode;
   }
@@ -220,7 +221,10 @@ class BinaryOperatorParselet extends ConsequentParselet {
       operator: this.tokenType,
       left,
       right,
-      outputType: undefined,
+      outputType: {
+        status: 'Maybe-Undefined',
+        valueType: undefined
+      },
       pos: position,
       nodeId: id
     };
@@ -769,6 +773,14 @@ const builtins = {
     inputType: 'any',
     resultType: 'any'
   },
+  "RandomChoice": {
+    inputType: 'number',
+    resultType: 'number'
+  },
+  "TestConstant": {
+    inputType: 'any',
+    resultType: 'any'
+  },
   "ParseOrderedPair": {
     inputType: 'number',
     resultType: 'pair'
@@ -794,24 +806,28 @@ const checkerMap = {
 
 },
 
-// src/mudChecker.ts @34
-34: function(__fusereq, exports, module){
-var _1_, _2_;
-var _3_, _4_;
-var _5_, _6_;
-var _7_, _8_;
-var _9_, _10_;
-var _11_, _12_;
-var _13_;
-exports.__esModule = true;
-var findBase_1 = __fusereq(49);
-function mudCheck(nodes, registeredNodes, dependsMap, assertMap) {
-  const errors = nodes.map(n => mudCheckNode(n, nodes, registeredNodes, dependsMap, assertMap));
+// src/darChecker.ts @190
+190: function(__fusereq, exports, module){
+var _1_, _2_, _3_;
+var _4_, _5_;
+var _6_, _7_;
+var _8_, _9_;
+var _10_;
+var _11_;
+var _12_, _13_;
+var _14_, _15_;
+let duChain = new Map();
+function darCheck(nodes, registeredNodes) {
+  const errors = nodes.map(n => darCheckNode(n, nodes, registeredNodes));
   return [].concat(...errors);
 }
-exports.mudCheck = mudCheck;
-function mudCheckNode(node, nodes, registeredNodes, dependsMap, assertMap) {
-  return mudCheckerMap[node.nodeType].mudCheck(node, nodes, registeredNodes, dependsMap, assertMap);
+exports.darCheck = darCheck;
+function darCheckNode(node, nodes, registeredNodes) {
+  if (darCheckerMap != undefined && node.nodeType != undefined && darCheckerMap[node.nodeType] == undefined) {
+    return [];
+  } else {
+    return darCheckerMap[node.nodeType].darCheck(node, nodes, registeredNodes);
+  }
 }
 class TypeError {
   constructor(message, position) {
@@ -820,396 +836,82 @@ class TypeError {
   }
 }
 exports.TypeError = TypeError;
-class MudCheckNumber {
-  mudCheck(node) {
+class DarCheckNumber {
+  darCheck(node) {
+    node.outputType.value = node.value;
     return [];
   }
 }
-class MudCheckBoolean {
-  mudCheck(node) {
+class DarCheckFunction {
+  darCheck(node, nodes, registeredNodes) {
+    const errors = [];
+    if (node.name == "TestConstant") {
+      darCheckNode(node.args[0], nodes, registeredNodes);
+      if (((_3_ = (_2_ = (_1_ = node) === null || _1_ === void 0 ? void 0 : _1_.args[0]) === null || _2_ === void 0 ? void 0 : _2_.outputType) === null || _3_ === void 0 ? void 0 : _3_.value) == undefined) {
+        errors.push(new TypeError("Input to TestConstant() is not constant", node.pos));
+      }
+    }
+    return errors;
+  }
+}
+class DarCheckBinary {
+  evaluateOperation(left, right, operator) {
+    if (typeof left == 'number' && typeof right == 'number') {
+      if (operator == "+") {
+        return left + right;
+      } else if (operator == "-") {
+        return left - right;
+      } else if (operator == "*") {
+        return left * right;
+      } else if (operator == "/") {
+        return left / right;
+      } else {
+        return 999999;
+      }
+    } else {
+      return undefined;
+    }
+  }
+  darCheck(node, nodes, registeredNodes) {
+    const errors = darCheckNode(node.left, nodes, registeredNodes).concat(darCheckNode(node.right, nodes, registeredNodes));
+    if (((_5_ = (_4_ = node.left) === null || _4_ === void 0 ? void 0 : _4_.outputType) === null || _5_ === void 0 ? void 0 : _5_.value) != undefined && ((_7_ = (_6_ = node.right) === null || _6_ === void 0 ? void 0 : _6_.outputType) === null || _7_ === void 0 ? void 0 : _7_.value) != undefined) {
+      node.outputType = {
+        status: node.outputType.status,
+        valueType: (_9_ = (_8_ = node.left) === null || _8_ === void 0 ? void 0 : _8_.outputType) === null || _9_ === void 0 ? void 0 : _9_.valueType,
+        value: this.evaluateOperation((_10_ = node.left) === null || _10_ === void 0 ? void 0 : _10_.outputType.value, (_11_ = node.right) === null || _11_ === void 0 ? void 0 : _11_.outputType.value, node.operator)
+      };
+    } else {
+      console.log("One or both sides has no 'value'");
+    }
+    return errors;
+  }
+}
+class DarCheckVariable {
+  darCheck(node, nodes, registeredNodes) {
+    darCheckNode(node.assignment, nodes, registeredNodes);
+    if (((_13_ = (_12_ = node.assignment) === null || _12_ === void 0 ? void 0 : _12_.outputType) === null || _13_ === void 0 ? void 0 : _13_.value) != undefined) {
+      node.outputType.value = node.assignment.outputType.value;
+    }
     return [];
   }
 }
-class MudCheckBinary {
-  mudCheck(node, nodes, registeredNodes, dependsMap, assertMap) {
-    const errors = mudCheckNode(node.left, nodes, registeredNodes, dependsMap, assertMap).concat(mudCheckNode(node.right, nodes, registeredNodes, dependsMap, assertMap));
-    if (((_2_ = (_1_ = node.right) === null || _1_ === void 0 ? void 0 : _1_.outputType) === null || _2_ === void 0 ? void 0 : _2_.status) == 'Maybe-Undefined' || ((_4_ = (_3_ = node.left) === null || _3_ === void 0 ? void 0 : _3_.outputType) === null || _4_ === void 0 ? void 0 : _4_.status) == 'Maybe-Undefined') {
-      node.outputType = {
-        status: 'Maybe-Undefined',
-        valueType: (_6_ = (_5_ = node.left) === null || _5_ === void 0 ? void 0 : _5_.outputType) === null || _6_ === void 0 ? void 0 : _6_.valueType
-      };
-    } else {
-      node.outputType = {
-        status: 'Definitely',
-        valueType: (_8_ = (_7_ = node.left) === null || _7_ === void 0 ? void 0 : _7_.outputType) === null || _8_ === void 0 ? void 0 : _8_.valueType
-      };
+class DarCheckIdentifier {
+  darCheck(node, nodes, registeredNodes) {
+    const assignmentNode = registeredNodes[node.assignmentId];
+    if (((_15_ = (_14_ = assignmentNode) === null || _14_ === void 0 ? void 0 : _14_.outputType) === null || _15_ === void 0 ? void 0 : _15_.value) != undefined) {
+      node.outputType.value = assignmentNode.outputType.value;
     }
-    return errors;
+    return [];
   }
 }
-class MudCheckFunction {
-  mudCheck(node, nodes, registeredNodes, dependsMap, assertMap) {
-    let errors = [];
-    if (node.name == 'Sink') {
-      assertMap = [];
-    }
-    const arg1Errors = mudCheckNode(node.args[0], nodes, registeredNodes, dependsMap, assertMap);
-    errors = errors.concat(arg1Errors);
-    if (node.args.length > 1) {
-      const arg2Errors = mudCheckNode(node.args[1], nodes, registeredNodes, dependsMap, assertMap);
-      errors = errors.concat(arg2Errors);
-    }
-    const functionName = node.name;
-    const argType = builtins[functionName].inputType;
-    const returnType = builtins[functionName].resultType;
-    if (functionName == 'Sink') {
-      if (((_10_ = (_9_ = node.args[0]) === null || _9_ === void 0 ? void 0 : _9_.outputType) === null || _10_ === void 0 ? void 0 : _10_.status) == 'Maybe-Undefined') {
-        errors.push(new TypeError("User facing content could be undefined.", node.args[0].pos));
-      }
-    }
-    if (((_12_ = (_11_ = node.args[0]) === null || _11_ === void 0 ? void 0 : _11_.outputType) === null || _12_ === void 0 ? void 0 : _12_.status) == 'Maybe-Undefined' || functionName == 'Input') {
-      if (functionName != 'IsDefined') {
-        node.outputType.status = 'Maybe-Undefined';
-      } else {
-        node.outputType.status = 'Definitely';
-      }
-    } else if (node.args.length > 1) {
-      if (node.args[1].outputType.status == 'Maybe-Undefined') {
-        node.outputType.status = 'Maybe-Undefined';
-      } else {
-        node.outputType.status = 'Definitely';
-      }
-    } else {
-      node.outputType.status = 'Definitely';
-    }
-    node.outputType.valueType = returnType;
-    return errors;
-  }
-}
-class MudCheckChoose {
-  mudCheck(node, nodes, registeredNodes, dependsMap, assertMap) {
-    let errors = [];
-    const predicate = node.case.predicate;
-    const consequent = node.case.consequent;
-    const otherwise = node.otherwise;
-    const predErrors = mudCheckNode(predicate, nodes, registeredNodes, dependsMap, assertMap);
-    const consErrors = mudCheckNode(consequent, nodes, registeredNodes, dependsMap, assertMap);
-    const otherErrors = mudCheckNode(otherwise, nodes, registeredNodes, dependsMap, assertMap);
-    errors = errors.concat(predErrors).concat(consErrors).concat(otherErrors);
-    node.outputType.valueType = consequent.outputType.valueType;
-    let consDef = false;
-    let otherDef = false;
-    let localAsserts = [];
-    if (otherwise.outputType.status == 'Definitely') {
-      otherDef = true;
-    }
-    if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'BinaryOperation') {
-      consDef = doBinOp(predicate, consequent, dependsMap, assertMap);
-    }
-    if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'Function') {
-      if (predicate.name == 'IsDefined') {
-        handleAsserts(predicate, dependsMap, assertMap);
-        consDef = handleCheck(consequent, dependsMap, assertMap);
-      }
-    }
-    if (((_13_ = consequent) === null || _13_ === void 0 ? void 0 : _13_.outputType.status) == 'Definitely') {
-      consDef = true;
-    }
-    if (consDef && otherDef) {
-      node.outputType.status = 'Definitely';
-    }
-    return errors;
-  }
-}
-class MudCheckVariable {
-  mudCheck(node, nodes, registeredNodes, dependsMap, assertMap) {
-    let errors = [];
-    const assignmentErrors = mudCheckNode(node.assignment, nodes, registeredNodes, dependsMap, assertMap);
-    errors = errors.concat(assignmentErrors);
-    node.outputType.status = node.assignment.outputType.status;
-    node.outputType.valueType = node.assignment.outputType.valueType;
-    return errors;
-  }
-}
-class MudCheckIdentifier {
-  mudCheck(node, nodes, registeredNodes, dependsMap) {
-    let errors = [];
-    let valueNode = registeredNodes[node.assignmentId].assignment;
-    if (valueNode == undefined) {
-      errors.push(new TypeError("This variable doesn't have a value", node.pos));
-    } else {
-      node.outputType.status = valueNode.outputType.status;
-      node.outputType.valueType = valueNode.outputType.valueType;
-    }
-    return errors;
-  }
-}
-const builtins = {
-  "IsDefined": {
-    inputType: 'any',
-    resultType: 'boolean'
-  },
-  "Inverse": {
-    inputType: 'number',
-    resultType: 'number'
-  },
-  "Input": {
-    inputType: 'number',
-    resultType: 'number'
-  },
-  "Sink": {
-    inputType: 'any',
-    resultType: 'any'
-  },
-  "ParseOrderedPair": {
-    inputType: 'number',
-    resultType: 'pair'
-  },
-  "X": {
-    inputType: 'pair',
-    resultType: 'number'
-  },
-  "Y": {
-    inputType: 'pair',
-    resultType: 'number'
-  }
+const darCheckerMap = {
+  'Number': new DarCheckNumber(),
+  'BinaryOperation': new DarCheckBinary(),
+  'Function': new DarCheckFunction(),
+  'VariableAssignment': new DarCheckVariable(),
+  'Identifier': new DarCheckIdentifier()
 };
-const mudCheckerMap = {
-  'Number': new MudCheckNumber(),
-  'Boolean': new MudCheckBoolean(),
-  'BinaryOperation': new MudCheckBinary(),
-  'Function': new MudCheckFunction(),
-  'Choose': new MudCheckChoose(),
-  'VariableAssignment': new MudCheckVariable(),
-  'Identifier': new MudCheckIdentifier()
-};
-function handleAsserts(predicate, dependsMap, assertMap) {
-  let predBases = findBase_1.findBases(predicate, dependsMap);
-  for (let k = 0; k < predBases.length; k++) {
-    assertMap.push(predBases[k]);
-  }
-}
-function handleCheck(consequent, dependsMap, assertMap) {
-  let consBases = findBase_1.findBases(consequent, dependsMap);
-  let contained = true;
-  for (let i = 0; i < consBases.length; i++) {
-    if (!assertMap.find(e => e == consBases[i])) {
-      contained = false;
-    }
-  }
-  return contained;
-}
-function resolveBF(predicate, consequent, dependsMap, assertMap) {
-  if (predicate.right.name == 'IsDefined') {
-    handleAsserts(predicate.right, dependsMap, assertMap);
-    return handleCheck(consequent, dependsMap, assertMap);
-  } else {
-    return false;
-  }
-}
-function resolveFB(predicate, consequent, dependsMap, assertMap) {
-  if (predicate.left.name == 'IsDefined') {
-    handleAsserts(predicate.left, dependsMap, assertMap);
-    return handleCheck(consequent, dependsMap, assertMap);
-  } else {
-    return false;
-  }
-}
-function resolveFF(predicate, consequent, dependsMap, assertMap) {
-  let consDefLeft = false;
-  let consDefRight = false;
-  let consDefBoth = false;
-  let localAsserts = [];
-  if (predicate.left.name == 'IsDefined') {
-    handleAsserts(predicate.left, dependsMap, localAsserts);
-    consDefLeft = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefLeft) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-  if (predicate.right.name == 'IsDefined') {
-    handleAsserts(predicate.right, dependsMap, localAsserts);
-    consDefRight = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefRight) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-  if (predicate.left.name == 'IsDefined' && predicate.right.name == 'IsDefined' && predicate.operator == '&') {
-    handleAsserts(predicate.left, dependsMap, localAsserts);
-    handleAsserts(predicate.right, dependsMap, localAsserts);
-    consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefBoth) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-  if (predicate.operator == '&') {
-    return consDefLeft || consDefRight || consDefBoth;
-  } else if (predicate.operator == '|') {
-    return consDefLeft && consDefRight;
-  } else {
-    return false;
-  }
-}
-function resolveBBO(predicate, consequent, dependsMap, assertMap) {
-  let consDefRight = doBinOp(predicate.right, consequent, dependsMap, assertMap);
-  if (predicate.left.value == false && predicate.operator == '|') {
-    return consDefRight;
-  }
-  if (predicate.left.value == true && predicate.operator == '&') {
-    return consDefRight;
-  } else {
-    return false;
-  }
-}
-function resolveBOB(predicate, consequent, dependsMap, assertMap) {
-  let consDefLeft = doBinOp(predicate.left, consequent, dependsMap, assertMap);
-  if (predicate.right.value == false && predicate.operator == '|') {
-    return consDefLeft;
-  }
-  if (predicate.right.value == true && predicate.operator == '&') {
-    return consDefLeft;
-  } else {
-    return false;
-  }
-}
-function resolveBOF(predicate, consequent, dependsMap, assertMap) {
-  let consDefLeft = false;
-  let consDefRight = false;
-  let consDefBoth = false;
-  let localAsserts = [];
-  consDefLeft = doBinOp(predicate.left, consequent, dependsMap, localAsserts);
-  if (consDefLeft) {
-    assertMap = assertMap.concat(localAsserts);
-  }
-  localAsserts = [];
-  if (predicate.right.name == 'IsDefined') {
-    handleAsserts(predicate.right, dependsMap, localAsserts);
-    consDefRight = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefRight) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-  if (predicate.right.name == 'IsDefined' && predicate.operator == '&') {
-    let temp = doBinOp(predicate.left, consequent, dependsMap, localAsserts);
-    handleAsserts(predicate.right, dependsMap, localAsserts);
-    consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefBoth) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-  if (predicate.operator == '&') {
-    return consDefLeft || consDefRight || consDefBoth;
-  } else if (predicate.operator == '|') {
-    return consDefLeft && consDefRight;
-  } else {
-    return false;
-  }
-}
-function resolveFBO(predicate, consequent, dependsMap, assertMap) {
-  let consDefLeft = false;
-  let consDefRight = false;
-  let consDefBoth = false;
-  let localAsserts = [];
-  consDefRight = doBinOp(predicate.right, consequent, dependsMap, localAsserts);
-  if (consDefRight) {
-    assertMap = assertMap.concat(localAsserts);
-  }
-  localAsserts = [];
-  if (predicate.left.name == 'IsDefined') {
-    handleAsserts(predicate.left, dependsMap, localAsserts);
-    consDefLeft = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefLeft) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-  if (predicate.left.name == 'IsDefined' && predicate.operator == '&') {
-    let temp = doBinOp(predicate.right, consequent, dependsMap, localAsserts);
-    handleAsserts(predicate.left, dependsMap, localAsserts);
-    consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefBoth) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-  if (predicate.operator == '&') {
-    return consDefLeft || consDefRight || consDefBoth;
-  } else if (predicate.operator == '|') {
-    return consDefLeft && consDefRight;
-  } else {
-    return false;
-  }
-}
-function resolveBOBO(predicate, consequent, dependsMap, assertMap) {
-  let consDefLeft = false;
-  let consDefRight = false;
-  let consDefBoth = false;
-  let localAsserts = [];
-  consDefRight = doBinOp(predicate.right, consequent, dependsMap, localAsserts);
-  if (consDefRight) {
-    assertMap = assertMap.concat(localAsserts);
-  }
-  localAsserts = [];
-  consDefLeft = doBinOp(predicate.left, consequent, dependsMap, localAsserts);
-  if (consDefLeft) {
-    assertMap = assertMap.concat(localAsserts);
-  }
-  localAsserts = [];
-  if (predicate.operator == '&') {
-    let temp = doBinOp(predicate.right, consequent, dependsMap, localAsserts);
-    let temp2 = doBinOp(predicate.left, consequent, dependsMap, localAsserts);
-    consDefBoth = handleCheck(consequent, dependsMap, localAsserts);
-    if (consDefBoth) {
-      assertMap = assertMap.concat(localAsserts);
-    }
-    localAsserts = [];
-  }
-  if (predicate.operator == '&') {
-    return consDefLeft || consDefRight || consDefBoth;
-  } else if (predicate.operator == '|') {
-    return consDefLeft && consDefRight;
-  } else {
-    return false;
-  }
-}
-function doBinOp(predicate, consequent, dependsMap, assertMap) {
-  let consDef = false;
-  if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'Boolean') {
-    consDef = resolveFB(predicate, consequent, dependsMap, assertMap);
-  }
-  if (predicate.left.nodeType == 'Boolean' && predicate.right.nodeType == 'Function') {
-    consDef = resolveBF(predicate, consequent, dependsMap, assertMap);
-  }
-  if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'Function') {
-    consDef = resolveFF(predicate, consequent, dependsMap, assertMap);
-  }
-  if (predicate.left.nodeType == 'Boolean' && predicate.right.nodeType == 'BinaryOperation') {
-    consDef = resolveBBO(predicate, consequent, dependsMap, assertMap);
-  }
-  if (predicate.left.nodeType == 'BinaryOperation' && predicate.right.nodeType == 'Boolean') {
-    consDef = resolveBOB(predicate, consequent, dependsMap, assertMap);
-  }
-  if (predicate.left.nodeType == 'Function' && predicate.right.nodeType == 'BinaryOperation') {
-    consDef = resolveFBO(predicate, consequent, dependsMap, assertMap);
-  }
-  if (predicate.left.nodeType == 'BinaryOperation' && predicate.right.nodeType == 'Function') {
-    consDef = resolveBOF(predicate, consequent, dependsMap, assertMap);
-  }
-  if (predicate.left.nodeType == 'BinaryOperation' && predicate.right.nodeType == 'BinaryOperation') {
-    consDef = resolveBOBO(predicate, consequent, dependsMap, assertMap);
-  }
-  return consDef;
-}
 
-},
-
-// src/darChecker.ts @190
-190: function(__fusereq, exports, module){
 },
 
 // src/miniCL.ts @5
@@ -1217,7 +919,6 @@ function doBinOp(predicate, consequent, dependsMap, assertMap) {
 exports.__esModule = true;
 var lexer_1 = __fusereq(32);
 var typechecker_1 = __fusereq(33);
-var mudChecker_1 = __fusereq(34);
 var darChecker_1 = __fusereq(190);
 var parseResults_1 = __fusereq(7);
 exports.miniCL = {
@@ -1235,12 +936,10 @@ exports.miniCL = {
 exports.miniCLLinter = () => view => {
   const results = view.state.field(parseResults_1.parseResults);
   let assertMap = [];
-  const mudErrors = mudChecker_1.mudCheck(results.nodes, results.registeredNodes, results.dependsMap, assertMap);
-  const typeErrors = typechecker_1.typecheck(results.nodes, results.registeredNodes);
   const darErrors = darChecker_1.darCheck(results.nodes, results.registeredNodes);
+  const typeErrors = typechecker_1.typecheck(results.nodes, results.registeredNodes);
   const parseDiagnostics = results.parseErrors.map(makeDiagnostic(view));
   const typeDiagnostics = typeErrors.map(makeDiagnostic(view));
-  const mudDiagnostics = mudErrors.map(makeDiagnostic(view, 'warning'));
   const darDiagnostics = darErrors.map(makeDiagnostic(view, 'warning'));
   return parseDiagnostics.concat(typeDiagnostics).concat(darDiagnostics);
 };

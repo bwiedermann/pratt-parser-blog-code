@@ -14,7 +14,11 @@ export function darCheck(nodes: AST.Node[],  registeredNodes: {[key: string]: AS
 }
 
 function darCheckNode(node: AST.Node, nodes: AST.Node[], registeredNodes: {[key: string]: AST.Node}): TypeError[] {
-    return darCheckerMap[node.nodeType].darCheck(node, nodes, registeredNodes);
+    if (darCheckerMap != undefined && node.nodeType != undefined && darCheckerMap[node.nodeType] == undefined){
+        return [];
+    }else{
+        return darCheckerMap[node.nodeType].darCheck(node, nodes, registeredNodes);
+    }
 }
 
 export class TypeError {
@@ -30,6 +34,9 @@ export interface DarChecker {
 
 class DarCheckNumber implements DarChecker {
     darCheck(node: AST.NumberNode): TypeError[] {
+
+        //set the value in the outputType
+        node.outputType.value = node.value;
         return [];
     }
   }
@@ -37,55 +44,67 @@ class DarCheckNumber implements DarChecker {
 
   class DarCheckFunction implements DarChecker{
       darCheck(node: AST.FunctionNode, nodes: AST.Node[], registeredNodes: {[key: string]: AST.Node}) : TypeError[]{
-          
+        const errors: TypeError[] = [];
         
-        if (node.name == "RandomChoice"){
-            throw('This is Random Choice')
-        } 
-        else if (node.name == "Input"){
-            console.log(node.outputType);
+        if (node.name == "TestConstant"){
+            //do our test constant demo
 
-            node.outputType = {
-                valueType = 'number',
-                status = 
+            //pre-check the arg (to assign value)
+            darCheckNode(node.args[0], nodes, registeredNodes)
+
+            //check if the argument has a value
+            if (node?.args[0]?.outputType?.value == undefined){
+                errors.push(new TypeError("Input to TestConstant() is not constant", node.pos));
             }
-            node.outputType.isConstant = false; //set isConstant to false, because inputs are not constant
+
         }
-        
-        return []
+        return errors;
       }
   }
 
 class DarCheckBinary implements DarChecker {
-    isConstantOperation(topNode : AST.Node) : boolean {
-        if (topNode == undefined ){
-            return false;
-        }
 
-        if (topNode.nodeType == 'Number'){
-            return false;
-        }
-        else if (topNode.nodeType == 'BinaryOperation'){
-            return this.isConstantOperation(topNode.left) && this.isConstantOperation(topNode.right);
-        }
-        else if (topNode.nodeType == 'Function'){
-            //TODO: false always here is temp, function result not always non-constant
-            return false;
-        }
-        else {
-            //throw('Incompatable Node type');
+
+    evaluateOperation(left : number, right : number, operator : string): number | undefined {
+
+        //check to make sure left & right are numbers
+        if (typeof(left) == 'number' && typeof(right) == 'number' ){
+            if (operator == "+"){
+                return left + right
+            } else if (operator == "-"){
+                return left - right
+            } else if (operator == "*"){
+                return left * right
+            } else if (operator =="/"){
+                return left / right
+            } else {
+                return 999999
+            }
+        } else {
+            //one or both sides is a non-number. We only care about numbers
+            return undefined
         }
     }
+
     darCheck(node: AST.BinaryOperationNode, nodes: AST.Node[], registeredNodes: {[key: string]: AST.Node}): TypeError[] {
         const errors: TypeError[] = darCheckNode(node.left, nodes, registeredNodes).concat(darCheckNode(node.right, nodes, registeredNodes));
         
-
-        if (this.isConstantOperation(node)){
-        //errors.push(new TypeError("Is Constant Operation!", node.pos));
-        } else {
-        //errors.push(new TypeError("Non constant operation", node.pos));
+        //check if outputType of both left and right is constant
+        if (node.left?.outputType?.value != undefined && node.right?.outputType?.value != undefined){
+            
+            //evaluate the operation and set the value
+            node.outputType = {
+                status : node.outputType!.status,
+                valueType: node.left?.outputType?.valueType,
+                value: this.evaluateOperation(node.left?.outputType.value, node.right?.outputType.value, node.operator) 
+            }
+            
+   
+        } else{
+            //One or both of the left + right does NOT have a value
+            console.log("One or both sides has no 'value'");
         }
-        
+   
         return errors;
     }
 }
@@ -94,44 +113,29 @@ class DarCheckVariable implements DarChecker {
     darCheck(node: AST.VariableAssignmentNode, nodes: AST.Node[], registeredNodes: {[key: string]: AST.Node}): TypeError[] {
 
 
-
-        //new assignment, update def-use chain to hold new def
-        duChain.set(node.nodeId, []);
-
-        //make sure the identifier is resolved as a use
+        //check the assignment (and propagate value, if applicable)
         darCheckNode(node.assignment, nodes, registeredNodes);
 
+        //does the assignment node have a value
+        if (node.assignment?.outputType?.value != undefined){
+            //set value of this node to the value of the assignment
+            node.outputType.value = node.assignment.outputType.value;
+        }
 
         return [];
     }
 }
 
 class DarCheckIdentifier implements DarChecker {
-    getOutputType(node: AST.Node, registeredNodes: {[key: string]: AST.Node}) : AST.Possible<AST.ValueType> | undefined{
-
-        if (node?.outputType != undefined && node.outputType.valueType != undefined){
-            return node.outputType;
-        } else if (node?.nodeType == "Identifier"){
-            return this.getOutputType(registeredNodes[node!.assignmentId], registeredNodes);
-        } else if (node?.nodeType == "VariableAssignment"){
-
-            return this.getOutputType(node.assignment, registeredNodes);
-        }
-        else {
-            console.log("No output type for node ", node?.nodeType);
-            return undefined;
-        }
-    }
     darCheck(node: AST.IdentifierNode, nodes: AST.Node[], registeredNodes: {[key: string]: AST.Node}): TypeError[] {
 
-        //new use, update def-use chain to hold new use
-        let oldChain = duChain.get(node.assignmentId); //assignmentId corresponds to the node id of the identifiers VariableAssignment
-        if (oldChain == undefined){
-            oldChain = [];
+        //grab the assignment node that this ident refrences
+        const assignmentNode = registeredNodes[node.assignmentId];
+
+        if (assignmentNode?.outputType?.value != undefined){
+            //set value of this node to the value of the assignment
+            node.outputType.value = assignmentNode.outputType.value;
         }
-        duChain.set(node.assignmentId, oldChain.concat([node.nodeId]) );
-        
-        console.log("Output Type:", this.getOutputType(node, registeredNodes));
 
         return [];
     }

@@ -1,5 +1,5 @@
 {
-  "currentId": 190,
+  "currentId": 191,
   "modules": {
     "1": {
       "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\index.ts",
@@ -72,12 +72,11 @@
       "dependencies": [
         32,
         33,
-        34,
         190,
         7
       ],
       "id": 5,
-      "mtime": 1616105412875,
+      "mtime": 1616387792016,
       "packageId": "default",
       "publicPath": "src/miniCL.ts"
     },
@@ -400,7 +399,7 @@
       "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\typechecker.ts",
       "dependencies": [],
       "id": 33,
-      "mtime": 1616104226021,
+      "mtime": 1616538628258,
       "packageId": "default",
       "publicPath": "src/typechecker.ts"
     },
@@ -491,7 +490,7 @@
         49
       ],
       "id": 42,
-      "mtime": 1616104226020,
+      "mtime": 1616535952474,
       "packageId": "default",
       "publicPath": "src/parselet.ts"
     },
@@ -1999,9 +1998,17 @@
       "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\darChecker.ts",
       "dependencies": [],
       "id": 190,
-      "mtime": 1616106788395,
+      "mtime": 1616539302978,
       "packageId": "default",
       "publicPath": "src/darChecker.ts"
+    },
+    "191": {
+      "absPath": "C:\\Users\\Leo\\Desktop\\Clinic\\pratt-parser-blog-code\\src\\ast.ts",
+      "dependencies": [],
+      "id": 191,
+      "mtime": 1616385813536,
+      "packageId": "default",
+      "publicPath": "src/ast.ts"
     }
   },
   "packages": {

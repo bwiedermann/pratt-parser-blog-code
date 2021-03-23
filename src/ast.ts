@@ -80,6 +80,7 @@ export type IdentifierNode = {
 
 export type ProgramNode = {
   nodeType: 'Program';
+  outputType: Possible<ValueType>;
   children: Node[];
 }
 
@@ -98,15 +99,18 @@ export type Node =
 
 export type Definitely<ValueType> = {
   status: 'Definitely'; // do we need a status anymore?
-  isConstant: boolean;
   valueType: ValueType; // does this ensure if Definitely<boolean> than value is of type boolean?
+  value: number | undefined;
 }
 
 export type Maybe<ValueType> = {
   status: 'Maybe-Undefined'; // maybe only status here? This way we can "change" status to definitely?
-  isConstant: boolean;
   valueType: ValueType;
+  value: number | undefined;
 }
+
+export type OutputType<ValueType> =  Definitely<ValueType> | Maybe<ValueType>;
+
 
 export type ValueType = 'number' | 'boolean' | 'pair' | 'any' | undefined;
 

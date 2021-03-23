@@ -1,4 +1,4 @@
-import {Position} from './position';
+ouimport {Position} from './position';
 import * as AST from './ast';
 import {equals} from './equals';
 import {findBases} from './findBase';

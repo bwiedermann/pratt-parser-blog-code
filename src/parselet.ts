@@ -32,6 +32,7 @@ export class NumberParselet implements InitialParselet {
       pos: position,
       nodeId: id
     };
+    console.log("The number parslet is running now!")
     registeredNodes[id] = newNode;
     return newNode;
   }
@@ -123,7 +124,8 @@ export class BinaryOperatorParselet extends ConsequentParselet {
       operator: this.tokenType,
       left,
       right,
-      outputType: undefined,
+      outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
+                    valueType: undefined },
       pos: position,
       nodeId: id
     };

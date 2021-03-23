@@ -49,7 +49,7 @@ class CheckBinary implements TypeChecker {
       errors.push(new TypeError("incompatible operation for number operands", node.pos));
     }
 
-    node.outputType.valueType = node.left?.outputType?.valueType;
+    node.outputType!.valueType = node.left?.outputType?.valueType;
 
     return errors;
   }
@@ -160,6 +160,8 @@ const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.Val
   "Inverse": {inputType: 'number', resultType: 'number'},
   "Input": {inputType: 'number', resultType: 'number'},
   "Sink": {inputType: 'any', resultType: 'any'},
+  "RandomChoice": {inputType: 'number', resultType: 'number'},
+  "TestConstant": {inputType: 'any', resultType: 'any'},
   "ParseOrderedPair": {inputType: 'number', resultType: 'pair'},
   "X": {inputType: 'pair', resultType: 'number'},
   "Y": {inputType: 'pair', resultType: 'number'}
