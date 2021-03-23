@@ -125,7 +125,9 @@ export class BinaryOperatorParselet extends ConsequentParselet {
       operator: this.tokenType,
       left,
       right,
-      outputType: undefined,
+      outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
+                    valueType: undefined,
+                    asserts: [] },
       pos: position,
       nodeId: id
     };

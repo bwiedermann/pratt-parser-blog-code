@@ -50,11 +50,9 @@ class MudCheckBinary implements MudChecker {
 
         // If no type errors, update the output type of this node, based on the outputType of its inputs
         if (node.right?.outputType?.status == 'Maybe-Undefined' || node.left?.outputType?.status == 'Maybe-Undefined') {
-            node.outputType = {status: 'Maybe-Undefined',
-                              valueType: node.left?.outputType?.valueType };
+            node.outputType.status = 'Maybe-Undefined';
         } else {
-            node.outputType = {status: 'Definitely',
-                            valueType: node.left?.outputType?.valueType };
+            node.outputType.status = 'Definitely'
         }
 
         if (node.operator == '|') {
@@ -121,9 +119,6 @@ class MudCheckFunction implements MudChecker {
         else {
           node.outputType.status = builtins[functionName].status;
         }
-       
-
-        node.outputType.valueType = returnType;
 
         return errors;
     }
@@ -147,8 +142,6 @@ class MudCheckChoose implements MudChecker {
         const consErrors = mudCheckNode(consequent, nodes, registeredNodes, dependsMap);
         const otherErrors = mudCheckNode(otherwise, nodes, registeredNodes, dependsMap);
         errors = errors.concat(predErrors).concat(consErrors).concat(otherErrors);
-
-        node.outputType.valueType = consequent.outputType.valueType;
 
         // DEFUALT status = maybe-undefined
 
@@ -202,7 +195,6 @@ class MudCheckVariable implements MudChecker {
 
     // Set variable assignment node output type to the same as it's assignment
     node.outputType.status = node.assignment.outputType.status;
-    node.outputType.valueType = node.assignment.outputType.valueType;
 
     return errors;
   }
@@ -224,7 +216,6 @@ class MudCheckIdentifier implements MudChecker {
     } else {
       // If we found the assignment node, set the output type of the identifier
       node.outputType.status = valueNode.outputType.status;
-      node.outputType.valueType = valueNode.outputType.valueType;
     }
 
     return errors;

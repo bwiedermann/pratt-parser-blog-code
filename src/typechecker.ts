@@ -72,6 +72,7 @@ class CheckFunction implements TypeChecker {
 
     const functionName = node.name
     const argType = builtins[functionName].inputType;
+    node.outputType.valueType = builtins[functionName].resultType;
 
     // we found a builtin function
     if (argType) {
@@ -81,6 +82,7 @@ class CheckFunction implements TypeChecker {
       if (argType != 'any' && node.args[0]?.outputType?.valueType != argType) {
         errors.push(new TypeError("incompatible argument type for " + functionName, node.pos));
       }
+      
     }
   
     // this is not a known, builtin function

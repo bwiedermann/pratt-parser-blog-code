@@ -268,7 +268,11 @@ class BinaryOperatorParselet extends ConsequentParselet {
       operator: this.tokenType,
       left,
       right,
-      outputType: undefined,
+      outputType: {
+        status: 'Maybe-Undefined',
+        valueType: undefined,
+        asserts: []
+      },
       pos: position,
       nodeId: id
     };
@@ -753,6 +757,7 @@ class CheckFunction {
     }
     const functionName = node.name;
     const argType = builtins[functionName].inputType;
+    node.outputType.valueType = builtins[functionName].resultType;
     if (argType) {
       if (argType != 'any' && ((_16_ = (_15_ = node.args[0]) === null || _15_ === void 0 ? void 0 : _15_.outputType) === null || _16_ === void 0 ? void 0 : _16_.valueType) != argType) {
         errors.push(new TypeError("incompatible argument type for " + functionName, node.pos));
@@ -869,9 +874,7 @@ var _1_, _2_;
 var _3_, _4_;
 var _5_, _6_;
 var _7_, _8_;
-var _9_, _10_;
-var _11_, _12_;
-var _13_;
+var _9_;
 exports.__esModule = true;
 var findBase_1 = __fusereq(45);
 function mudCheck(nodes, registeredNodes, dependsMap) {
@@ -903,15 +906,9 @@ class MudCheckBinary {
   mudCheck(node, nodes, registeredNodes, dependsMap) {
     const errors = mudCheckNode(node.left, nodes, registeredNodes, dependsMap).concat(mudCheckNode(node.right, nodes, registeredNodes, dependsMap));
     if (((_2_ = (_1_ = node.right) === null || _1_ === void 0 ? void 0 : _1_.outputType) === null || _2_ === void 0 ? void 0 : _2_.status) == 'Maybe-Undefined' || ((_4_ = (_3_ = node.left) === null || _3_ === void 0 ? void 0 : _3_.outputType) === null || _4_ === void 0 ? void 0 : _4_.status) == 'Maybe-Undefined') {
-      node.outputType = {
-        status: 'Maybe-Undefined',
-        valueType: (_6_ = (_5_ = node.left) === null || _5_ === void 0 ? void 0 : _5_.outputType) === null || _6_ === void 0 ? void 0 : _6_.valueType
-      };
+      node.outputType.status = 'Maybe-Undefined';
     } else {
-      node.outputType = {
-        status: 'Definitely',
-        valueType: (_8_ = (_7_ = node.left) === null || _7_ === void 0 ? void 0 : _7_.outputType) === null || _8_ === void 0 ? void 0 : _8_.valueType
-      };
+      node.outputType.status = 'Definitely';
     }
     if (node.operator == '|') {
       let intersection = [];
@@ -948,16 +945,15 @@ class MudCheckFunction {
     const functionName = node.name;
     const returnType = builtins[functionName].resultType;
     if (functionName == 'Sink') {
-      if (((_10_ = (_9_ = node.args[0]) === null || _9_ === void 0 ? void 0 : _9_.outputType) === null || _10_ === void 0 ? void 0 : _10_.status) == 'Maybe-Undefined') {
+      if (((_6_ = (_5_ = node.args[0]) === null || _5_ === void 0 ? void 0 : _5_.outputType) === null || _6_ === void 0 ? void 0 : _6_.status) == 'Maybe-Undefined') {
         errors.push(new TypeError("User facing content could be undefined.", node.args[0].pos));
       }
     }
     if (builtins[functionName].status == "Variable") {
-      node.outputType.status = (_12_ = (_11_ = node.args[0]) === null || _11_ === void 0 ? void 0 : _11_.outputType) === null || _12_ === void 0 ? void 0 : _12_.status;
+      node.outputType.status = (_8_ = (_7_ = node.args[0]) === null || _7_ === void 0 ? void 0 : _7_.outputType) === null || _8_ === void 0 ? void 0 : _8_.status;
     } else {
       node.outputType.status = builtins[functionName].status;
     }
-    node.outputType.valueType = returnType;
     return errors;
   }
 }
@@ -971,7 +967,6 @@ class MudCheckChoose {
     const consErrors = mudCheckNode(consequent, nodes, registeredNodes, dependsMap);
     const otherErrors = mudCheckNode(otherwise, nodes, registeredNodes, dependsMap);
     errors = errors.concat(predErrors).concat(consErrors).concat(otherErrors);
-    node.outputType.valueType = consequent.outputType.valueType;
     let consDef = false;
     let otherDef = false;
     let localAsserts = [];
@@ -986,7 +981,7 @@ class MudCheckChoose {
         consDef = handleCheck(consequent, dependsMap, predicate.outputType.asserts);
       }
     }
-    if (((_13_ = consequent) === null || _13_ === void 0 ? void 0 : _13_.outputType.status) == 'Definitely') {
+    if (((_9_ = consequent) === null || _9_ === void 0 ? void 0 : _9_.outputType.status) == 'Definitely') {
       consDef = true;
     }
     if (consDef && otherDef) {
@@ -1001,7 +996,6 @@ class MudCheckVariable {
     const assignmentErrors = mudCheckNode(node.assignment, nodes, registeredNodes, dependsMap);
     errors = errors.concat(assignmentErrors);
     node.outputType.status = node.assignment.outputType.status;
-    node.outputType.valueType = node.assignment.outputType.valueType;
     return errors;
   }
 }
@@ -1013,7 +1007,6 @@ class MudCheckIdentifier {
       errors.push(new TypeError("This variable doesn't have a value", node.pos));
     } else {
       node.outputType.status = valueNode.outputType.status;
-      node.outputType.valueType = valueNode.outputType.valueType;
     }
     return errors;
   }
