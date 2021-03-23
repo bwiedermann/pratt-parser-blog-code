@@ -89,7 +89,7 @@ class MudCheckFunction implements MudChecker {
         let errors: TypeError[] = [];
 
         if (node.name == 'IsDefined') {
-          let bases = findBases(node, dependsMap);
+          let bases = findBases(node.args[0], dependsMap);
           node.outputType.asserts = node.outputType.asserts.concat(bases);
         }
         

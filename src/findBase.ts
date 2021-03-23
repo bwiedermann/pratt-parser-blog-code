@@ -36,18 +36,20 @@ class BaseBinary implements BaseFinder {
 // need dependsMap for the third example
 class BaseFunction implements BaseFinder {
     findBase(node: AST.FunctionNode, dependsMap: {[key: string]: string[]}): string[] {
-        console.log("in base function");
         let baseList: string[] = [];
-        if (node.name == "Input") {
-            // this is a base
-            baseList.push(node.nodeId);
-        }
-        else {
+        
+        // If the builtin status IS a variable, then it does depend on its arguments
+        // Unlike for Definitely and Maybe-Undefined functions, which status is the same always
+        if (builtins[node.name].status == 'Variable') {
             // recursively call findBases on argument(s)
             for (let i = 0; i < node.args.length; i++) {
                 baseList = baseList.concat(findBases(node.args[i], dependsMap));
             }
+        } else if (builtins[node.name].status == 'Maybe-Undefined') {
+            // If Maybe-Undefined funtion, it IS a base (the root of a maybe-undefined status)
+            baseList.push(node.nodeId);
         }
+
         return baseList;
     }
 }
@@ -88,4 +90,16 @@ const baseMap: Partial<{[K in AST.NodeType]: BaseFinder}> = {
   'Choose': new BaseChoose(),
   'VariableAssignment': new BaseVariableAssignment(),
   'Identifier': new BaseIdentifier()
+}
+
+const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType, status: string} } = {
+    "IsDefined": {inputType: 'any', resultType: 'boolean', status: "Definitely"},
+    "Inverse": {inputType: 'number', resultType: 'number', status: "Variable"},
+    "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined"},
+    "Sink": {inputType: 'any', resultType: 'any', status: "Variable"},
+    "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Maybe-Undefined"},
+    "X": {inputType: 'pair', resultType: 'number', status: "Variable"},
+    "Y": {inputType: 'pair', resultType: 'number', status: "Variable"},
+    "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely"},
+    "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined"}
 }
