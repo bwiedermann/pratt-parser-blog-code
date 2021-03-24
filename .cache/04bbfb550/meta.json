@@ -171,7 +171,7 @@
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/typechecker.ts",
       "dependencies": [],
       "id": 14,
-      "mtime": 1616199931521,
+      "mtime": 1616544163780,
       "packageId": "default",
       "publicPath": "src/typechecker.ts"
     },
@@ -181,7 +181,7 @@
         42
       ],
       "id": 15,
-      "mtime": 1616200028805,
+      "mtime": 1616546284582,
       "packageId": "default",
       "publicPath": "src/mudChecker.ts"
     },
@@ -487,7 +487,7 @@
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/findBase.ts",
       "dependencies": [],
       "id": 42,
-      "mtime": 1614905962371,
+      "mtime": 1616546312773,
       "packageId": "default",
       "publicPath": "src/findBase.ts"
     },
@@ -609,7 +609,7 @@
         42
       ],
       "id": 47,
-      "mtime": 1616112274326,
+      "mtime": 1616546214169,
       "packageId": "default",
       "publicPath": "src/parselet.ts"
     },

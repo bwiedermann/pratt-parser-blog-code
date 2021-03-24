@@ -86,6 +86,10 @@ class MudCheckFunction implements MudChecker {
             dependsMap: {[key: string]: string[]}): TypeError[] {
         let errors: TypeError[] = [];
 
+
+        // 
+
+
         if (node.name == 'IsDefined') {
           let bases = findBases(node.args[0], dependsMap);
           node.outputType.asserts = node.outputType.asserts.concat(bases);
@@ -114,6 +118,9 @@ class MudCheckFunction implements MudChecker {
         }
         
         if (builtins[functionName].status == "Variable") {
+          // this is essentially doing what a constant type would do
+          // if the argument is maybe-undefined, then the node is maybe-undefined
+          // otherwise, the node is definitely
           node.outputType.status = node.args[0]?.outputType?.status;
         }
         else {
@@ -228,7 +235,8 @@ const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.Val
   "Inverse": {inputType: 'number', resultType: 'number', status: "Variable"},
   "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined"},
   "Sink": {inputType: 'any', resultType: 'any', status: "Variable"},
-  "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Maybe-Undefined"},
+  // change ParseOrderedPair to be Variable to show constant type stuff
+  "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Variable"},
   "X": {inputType: 'pair', resultType: 'number', status: "Variable"},
   "Y": {inputType: 'pair', resultType: 'number', status: "Variable"},
   "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely"},

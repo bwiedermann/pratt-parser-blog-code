@@ -29,7 +29,7 @@ export class NumberParselet implements InitialParselet {
       value: parseFloat(token.text),
       outputType: { status: 'Definitely' as 'Definitely',
                     valueType: 'number' as 'number',
-                    asserts: [] },
+                    asserts: []},
       pos: position,
       nodeId: id
     };
@@ -52,7 +52,7 @@ export class BooleanParselet implements InitialParselet {
       value: this.value,
       outputType: { status: 'Definitely' as 'Definitely',
                     valueType: 'boolean' as 'boolean',
-                    asserts: [] },
+                    asserts: []},
       pos: position,
       nodeId: id
     };
@@ -127,7 +127,7 @@ export class BinaryOperatorParselet extends ConsequentParselet {
       right,
       outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
                     valueType: undefined,
-                    asserts: [] },
+                    asserts: []},
       pos: position,
       nodeId: id
     };
@@ -138,7 +138,6 @@ export class BinaryOperatorParselet extends ConsequentParselet {
 }
 
 // Parse function calls
-// Limitation: Functions are allowed to take exactly one argument
 export class FunctionParselet implements InitialParselet {
   
   parse(parser: AbstractParser,
@@ -164,7 +163,7 @@ export class FunctionParselet implements InitialParselet {
       args: args,
       outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
                     valueType: undefined,
-                    asserts: [] },
+                    asserts: []},
       pos: position,
       nodeId: id
     };
@@ -194,7 +193,7 @@ export class ChooseParselet implements InitialParselet {
       otherwise: otherwise,
       outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
                     valueType: undefined,
-                    asserts: [] },
+                    asserts: []},
       pos: position,
       nodeId: id
     };
@@ -226,7 +225,7 @@ export class VariableAssignmentParselet implements InitialParselet {
       assignment: assignment,
       outputType: { status: "Maybe-Undefined" as "Maybe-Undefined",
                     valueType: assignment?.outputType?.valueType,
-                    asserts: [] },
+                    asserts: []},
       pos: position,
       nodeId: id
     };
@@ -262,7 +261,7 @@ export class IdentifierParselet implements InitialParselet {
         assignmentId: assignmentId,
         outputType: { status: "Maybe-Undefined" as "Maybe-Undefined",
                       valueType: undefined,
-                      asserts: [] },
+                      asserts: []},
         pos: position,
         nodeId: id
       };

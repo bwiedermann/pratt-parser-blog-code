@@ -98,19 +98,20 @@ export type Node =
 // on to the proof of concept stuff
 
 export type Definitely<ValueType> = {
-  status: 'Definitely'; // do we need a status anymore?
-  valueType: ValueType; // does this ensure if Definitely<boolean> than value is of type boolean?
+  status: 'Definitely';
+  valueType: ValueType;
   asserts: string[];
+  // variability: ConstantType;
 }
 
 export type Maybe<ValueType> = {
-  status: 'Maybe-Undefined'; // maybe only status here? This way we can "change" status to definitely?
+  status: 'Maybe-Undefined';
   valueType: ValueType;
   asserts: string[];
+  // variability: ConstantType;
 }
 
 export type ValueType = 'number' | 'boolean' | 'pair' | 'any' | undefined;
+// export type ConstantType = 'Constant' | 'Variable' | undefined;
 
 export type Possible<ValueType> = Definitely<ValueType> | Maybe<ValueType>;
-
-

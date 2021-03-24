@@ -40,6 +40,7 @@ class BaseFunction implements BaseFinder {
         
         // If the builtin status IS a variable, then it does depend on its arguments
         // Unlike for Definitely and Maybe-Undefined functions, which status is the same always
+
         if (builtins[node.name].status == 'Variable') {
             // recursively call findBases on argument(s)
             for (let i = 0; i < node.args.length; i++) {
@@ -97,7 +98,7 @@ const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.Val
     "Inverse": {inputType: 'number', resultType: 'number', status: "Variable"},
     "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined"},
     "Sink": {inputType: 'any', resultType: 'any', status: "Variable"},
-    "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Maybe-Undefined"},
+    "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Variable"},
     "X": {inputType: 'pair', resultType: 'number', status: "Variable"},
     "Y": {inputType: 'pair', resultType: 'number', status: "Variable"},
     "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely"},
