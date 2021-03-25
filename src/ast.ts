@@ -13,6 +13,7 @@ export type NodeType =
   | 'Function'
   | 'Pair'
   | 'CalculatorReference'
+  | 'Iterator'
   | 'Program';
 
 export type NumberNode = {
@@ -84,6 +85,19 @@ export type ProgramNode = {
   children: Node[];
 }
 
+export type IteratorNode = {
+  nodeType: 'Iterator';
+  outputType: undefined;
+  pos: Position;
+  nodeId: string;
+  index: number;
+  values: number[];
+  start: Node;
+  end: Node;
+  step: Node;
+
+}
+
 export type Node = 
   | BooleanNode 
   | NumberNode 
@@ -93,6 +107,7 @@ export type Node =
   | VariableAssignmentNode 
   | IdentifierNode
   | ProgramNode
+  | IteratorNode
   | undefined;
 
 // on to the proof of concept stuff
@@ -112,7 +127,9 @@ export type Maybe<ValueType> = {
 export type OutputType<ValueType> =  Definitely<ValueType> | Maybe<ValueType>;
 
 
-export type ValueType = 'number' | 'boolean' | 'pair' | 'any' | undefined;
+
+
+export type ValueType = 'number' | 'boolean' | 'pair' | 'any' | 'range' |undefined;
 
 export type Possible<ValueType> = Definitely<ValueType> | Maybe<ValueType>;
 

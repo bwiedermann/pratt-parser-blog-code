@@ -75,6 +75,44 @@ export class ParenParselet implements InitialParselet {
   }
 }
 
+export class BracketParselet implements InitialParselet {
+  parse(parser: AbstractParser,
+    tokens: TokenStream, token: Token,
+    varMap: {[key: string]: string},
+    registeredNodes: {[key: string]: AST.Node},
+    dependsMap: {[key: string]: string[]}) {
+
+    const arg1 = parser.parse(tokens, 0, varMap, registeredNodes, dependsMap);  // allow for one argument
+    const arg2 = parser.parse(tokens, 0, varMap, registeredNodes, dependsMap);  // allow for one argument
+    const arg3 = parser.parse(tokens, 0, varMap, registeredNodes, dependsMap);  // allow for one argument
+    tokens.expectToken(']');
+
+
+    const position = token2pos(token);
+    const id = pos2string(position);
+    // add node to the map
+    let newNode = {
+      nodeType: 'Iterator' as 'Iterator',
+      outputType: { status: 'Definitely' as 'Definitely',
+                    valueType: 'number' as 'number' },
+      pos: position,
+      nodeId: id,
+      index: 0,
+      values: [],
+      start: arg1,
+      end: arg2,
+      step: arg3,
+    };
+
+    console.log("The Iterator parslet is running!")
+    registeredNodes[id] = newNode;
+
+
+    return newNode;
+
+  }
+}
+
 export abstract class ConsequentParselet {
   constructor(
     readonly tokenType: TokenType,
@@ -214,6 +252,7 @@ export class VariableAssignmentParselet implements InitialParselet {
     tokens.expectToken('=');
     const assignment = parser.parse(tokens, 0, varMap, registeredNodes, dependsMap);
 
+
     // need to save the variable and its assignment in a lookup table
     varMap[token.text] = id;
     let newNode = {
@@ -228,6 +267,7 @@ export class VariableAssignmentParselet implements InitialParselet {
     registeredNodes[id] = newNode;
     dependsMap[id] = findBases(assignment, dependsMap); // NEW FUNCTION HERE
 
+ 
     return newNode;
   }
 }

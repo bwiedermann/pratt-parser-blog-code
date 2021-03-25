@@ -154,6 +154,12 @@ class CheckIdentifier implements TypeChecker {
   }
 }
 
+class CheckIterator implements TypeChecker {
+  check(node: AST.IteratorNode): TypeError[] {
+    return [];
+  }
+}
+
 // Dictionary of builtin functions that maps a function name to the type of its argument
 const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType} } = {
   "IsDefined": {inputType: 'any', resultType: 'boolean'},
@@ -174,5 +180,6 @@ const checkerMap: Partial<{[K in AST.NodeType]: TypeChecker}> = {
   'Function' : new CheckFunction(),
   'Choose': new CheckChoose(),
   'VariableAssignment': new CheckVariable(),
-  'Identifier': new CheckIdentifier()
+  'Identifier': new CheckIdentifier(),
+  'Iterator': new CheckIterator(),
 }

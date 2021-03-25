@@ -5,8 +5,6 @@ import {equals} from './equals';
 
 
 
-let duChain : Map<string, string[]> = new Map();
-
 
 export function darCheck(nodes: AST.Node[],  registeredNodes: {[key: string]: AST.Node}): TypeError[] {
     const errors = nodes.map(n => darCheckNode(n, nodes, registeredNodes));
@@ -141,6 +139,48 @@ class DarCheckIdentifier implements DarChecker {
     }
   }
 
+  class DarCheckIterator implements DarChecker {
+
+    getRange(start: number, end: number, step: number): number[]{
+        let current = start;
+        let out = [];
+        while (current < end){
+            out.push(current);
+            current += step;
+        }
+        return out;
+    }
+    darCheck(node: AST.IteratorNode, nodes: AST.Node[], registeredNodes: {[key: string]: AST.Node}): TypeError[] {
+        const errors: TypeError[] = [];
+
+        //pre-check nodes
+        darCheckNode(node.start, nodes, registeredNodes);
+        darCheckNode(node.end, nodes, registeredNodes);
+        darCheckNode(node.step, nodes, registeredNodes);
+
+
+        //calculate range
+
+        if (node.start?.outputType?.value != undefined && node.end?.outputType?.value != undefined && node.step?.outputType?.value != undefined){
+            //if start, end, and step all are constant numbers
+
+            const start = node.start?.outputType?.value;
+            const end = node.end?.outputType?.value;
+            const step = node.step?.outputType?.value;
+
+            console.log("start, end, step:", start, end, step);
+
+            node.values = this.getRange(start, end, step);
+        } else {
+            console.log("Iterator used with non constant stuff")
+            errors.push(new TypeError("Non constant value used in iterator decleration", node.pos));
+        }
+
+
+        return errors;
+    }
+  }
+
 
 
 const darCheckerMap: Partial<{[K in AST.NodeType]: DarChecker}> = {
@@ -150,5 +190,6 @@ const darCheckerMap: Partial<{[K in AST.NodeType]: DarChecker}> = {
 'Function' : new DarCheckFunction(),
 //'Choose': new CheckChoose(),
 'VariableAssignment': new DarCheckVariable(),
-'Identifier': new DarCheckIdentifier()
+'Identifier': new DarCheckIdentifier(),
+'Iterator': new DarCheckIterator(),
 }

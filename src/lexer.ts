@@ -97,6 +97,14 @@ export function getDefaultToken(
     return ')';
   }
 
+  if (stream.match(/\[/)) {
+    return '[';
+  }
+
+  if (stream.match(/\]/)) {
+    return ']';
+  }
+
   // adding an equals operator
   if (stream.match(/\=/)) {
     return '=';
@@ -170,6 +178,9 @@ export type TokenType =
   | 'CHOOSE1'
   | 'CHOOSE2'
   | '='
+  | 'RANGE'
+  | '['
+  | ']'
 
 export interface Token<T extends TokenType = TokenType> {
   type: T;

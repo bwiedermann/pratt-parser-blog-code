@@ -79,6 +79,12 @@ class BaseIdentifier implements BaseFinder {
     }
 }
 
+class BaseIterator implements BaseFinder {
+    findBase(node: AST.IteratorNode): string[] {
+        return []
+    }
+}
+
 
 const baseMap: Partial<{[K in AST.NodeType]: BaseFinder}> = {
   'Number' : new BaseNumber(),
@@ -87,5 +93,6 @@ const baseMap: Partial<{[K in AST.NodeType]: BaseFinder}> = {
   'Function' : new BaseFunction(),
   'Choose': new BaseChoose(),
   'VariableAssignment': new BaseVariableAssignment(),
-  'Identifier': new BaseIdentifier()
+  'Identifier': new BaseIdentifier(),
+  'Iterator': new BaseIterator()
 }

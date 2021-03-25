@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nfunction __DefaultExport__(value) {\n  return this.eachAfter(function (node) {\n    var sum = +value(node.data) || 0, children = node.children, i = children && children.length;\n    while (--i >= 0) sum += children[i].value;\n    node.value = sum;\n  });\n}\nexports.default = __DefaultExport__;\n"}

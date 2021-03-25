@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nfunction __DefaultExport__(event) {\n  let sourceEvent;\n  while (sourceEvent = event.sourceEvent) event = sourceEvent;\n  return event;\n}\nexports.default = __DefaultExport__;\n"}

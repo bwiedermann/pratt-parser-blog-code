@@ -124,6 +124,7 @@ export class Parser extends AbstractParser {
       TRUE: new Parselet.BooleanParselet(true),
       FALSE: new Parselet.BooleanParselet(false),
       '(': new Parselet.ParenParselet(),
+      '[': new Parselet.BracketParselet(),
       FUNCTION: new Parselet.FunctionParselet(),
       CHOOSE1: new Parselet.ChooseParselet(),
       IDENTIFIER: new Parselet.IdentifierParselet()

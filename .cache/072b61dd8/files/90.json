@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nvar math_js_1 = __fusereq(182);\nexports.default = {\n  draw: function (context, size) {\n    var r = Math.sqrt(size / math_js_1.pi);\n    context.moveTo(r, 0);\n    context.arc(0, 0, r, 0, math_js_1.tau);\n  }\n};\n"}

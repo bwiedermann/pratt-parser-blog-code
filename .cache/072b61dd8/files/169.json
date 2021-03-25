@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nfunction lower() {\n  if (this.previousSibling) this.parentNode.insertBefore(this, this.parentNode.firstChild);\n}\nfunction __DefaultExport__() {\n  return this.each(lower);\n}\nexports.default = __DefaultExport__;\n"}

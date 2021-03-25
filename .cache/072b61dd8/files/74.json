@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nvar index_js_1 = __fusereq(76);\nfunction __DefaultExport__(selector) {\n  return typeof selector === \"string\" ? new index_js_1.Selection([[document.querySelector(selector)]], [document.documentElement]) : new index_js_1.Selection([[selector]], index_js_1.root);\n}\nexports.default = __DefaultExport__;\n"}

@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nfunction __DefaultExport__(node) {\n  node.x0 = Math.round(node.x0);\n  node.y0 = Math.round(node.y0);\n  node.x1 = Math.round(node.x1);\n  node.y1 = Math.round(node.y1);\n}\nexports.default = __DefaultExport__;\n"}

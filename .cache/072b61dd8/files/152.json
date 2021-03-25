@@ -1,0 +1,1 @@
+{"contents":"exports.__esModule = true;\nvar sparse_js_1 = __fusereq(187);\nvar sparse_js_1d = __fuse.dt(sparse_js_1);\nvar index_js_1 = __fusereq(76);\nfunction __DefaultExport__() {\n  return new index_js_1.Selection(this._exit || this._groups.map(sparse_js_1d.default), this._parents);\n}\nexports.default = __DefaultExport__;\n"}
