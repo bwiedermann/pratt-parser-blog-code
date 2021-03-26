@@ -163,7 +163,7 @@ class MudCheckChoose implements MudChecker {
         // consequent in MU and we have a binary predicate
         if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'BinaryOperation') {
           
-          consDef = handleCheck(consequent, dependsMap, predicate.outputType.asserts);
+          consDef = handleCheck(consequent, dependsMap, findAsserts(node));
 
         }
 
@@ -256,15 +256,37 @@ const mudCheckerMap: Partial<{[K in AST.NodeType]: MudChecker}> = {
 function handleCheck(consequent: AST.Node,
                     dependsMap: {[key: string]: string[]},
                     asserts: string[]): boolean {
-
-  let consBases = findBases(consequent, dependsMap);
-
   let contained = true;
+  if (consequent?.nodeType == 'Choose') {
+    // we need to check its bases separately
+    let consAsserts = consequent.case.predicate.outputType.asserts;
+    let consConsContained = handleCheck(consequent.case.consequent, dependsMap, asserts.concat(consAsserts));
+    let consOtherContained = handleCheck(consequent.otherwise, dependsMap, asserts.concat(consAsserts));
+
+    if (!(consConsContained && consOtherContained)) {
+      contained = false;
+    }
+
+  }
+  else {
+    let consBases = findBases(consequent, dependsMap);
+
     for (let i = 0; i < consBases.length; i++) {
       if (!asserts.find(e => e == consBases[i])) {
         contained = false;
       }
     }
+  }
 
-    return contained;
+  return contained;
+}
+
+function findAsserts(node: AST.ChooseNode): string[] {
+  let predAsserts = node.case.predicate.outputType.asserts;
+  if (node.case.consequent?.nodeType != 'Choose') {
+    return predAsserts
+  }
+  else {
+    return predAsserts.concat(findAsserts(node.case.consequent));
+  }
 }

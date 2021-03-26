@@ -328,6 +328,271 @@ const checkerMap = {
 
 },
 
+// src/mudChecker.ts @15
+15: function(__fusereq, exports, module){
+var _1_, _2_;
+var _3_, _4_;
+var _5_, _6_;
+var _7_, _8_;
+var _9_;
+var _10_;
+var _11_;
+exports.__esModule = true;
+var findBase_1 = __fusereq(42);
+function mudCheck(nodes, registeredNodes, dependsMap) {
+  const errors = nodes.map(n => mudCheckNode(n, nodes, registeredNodes, dependsMap));
+  return [].concat(...errors);
+}
+exports.mudCheck = mudCheck;
+function mudCheckNode(node, nodes, registeredNodes, dependsMap) {
+  return mudCheckerMap[node.nodeType].mudCheck(node, nodes, registeredNodes, dependsMap);
+}
+class TypeError {
+  constructor(message, position) {
+    this.message = message;
+    this.position = position;
+  }
+}
+exports.TypeError = TypeError;
+class MudCheckNumber {
+  mudCheck(node) {
+    return [];
+  }
+}
+class MudCheckBoolean {
+  mudCheck(node) {
+    return [];
+  }
+}
+class MudCheckBinary {
+  mudCheck(node, nodes, registeredNodes, dependsMap) {
+    const errors = mudCheckNode(node.left, nodes, registeredNodes, dependsMap).concat(mudCheckNode(node.right, nodes, registeredNodes, dependsMap));
+    if (((_2_ = (_1_ = node.right) === null || _1_ === void 0 ? void 0 : _1_.outputType) === null || _2_ === void 0 ? void 0 : _2_.status) == 'Maybe-Undefined' || ((_4_ = (_3_ = node.left) === null || _3_ === void 0 ? void 0 : _3_.outputType) === null || _4_ === void 0 ? void 0 : _4_.status) == 'Maybe-Undefined') {
+      node.outputType.status = 'Maybe-Undefined';
+    } else {
+      node.outputType.status = 'Definitely';
+    }
+    if (node.operator == '|') {
+      let intersection = [];
+      let leftAsserts = node.left.outputType.asserts;
+      let rightAsserts = node.right.outputType.asserts;
+      for (let i = 0; i < leftAsserts.length; i++) {
+        if (rightAsserts.find(e => e == leftAsserts[i])) {
+          intersection.push(leftAsserts[i]);
+        }
+      }
+      node.outputType.asserts = intersection;
+    } else {
+      let leftAsserts = node.left.outputType.asserts;
+      let rightAsserts = node.right.outputType.asserts;
+      let allAsserts = leftAsserts.concat(rightAsserts);
+      node.outputType.asserts = allAsserts;
+    }
+    return errors;
+  }
+}
+class MudCheckFunction {
+  mudCheck(node, nodes, registeredNodes, dependsMap) {
+    let errors = [];
+    if (node.name == 'IsDefined') {
+      let bases = findBase_1.findBases(node.args[0], dependsMap);
+      node.outputType.asserts = node.outputType.asserts.concat(bases);
+    }
+    const arg1Errors = mudCheckNode(node.args[0], nodes, registeredNodes, dependsMap);
+    errors = errors.concat(arg1Errors);
+    if (node.args.length > 1) {
+      const arg2Errors = mudCheckNode(node.args[1], nodes, registeredNodes, dependsMap);
+      errors = errors.concat(arg2Errors);
+    }
+    const functionName = node.name;
+    const returnType = builtins[functionName].resultType;
+    if (functionName == 'Sink') {
+      if (((_6_ = (_5_ = node.args[0]) === null || _5_ === void 0 ? void 0 : _5_.outputType) === null || _6_ === void 0 ? void 0 : _6_.status) == 'Maybe-Undefined') {
+        errors.push(new TypeError("User facing content could be undefined.", node.args[0].pos));
+      }
+    }
+    if (builtins[functionName].status == "Variable") {
+      node.outputType.status = (_8_ = (_7_ = node.args[0]) === null || _7_ === void 0 ? void 0 : _7_.outputType) === null || _8_ === void 0 ? void 0 : _8_.status;
+    } else {
+      node.outputType.status = builtins[functionName].status;
+    }
+    return errors;
+  }
+}
+class MudCheckChoose {
+  mudCheck(node, nodes, registeredNodes, dependsMap) {
+    let errors = [];
+    const predicate = node.case.predicate;
+    const consequent = node.case.consequent;
+    const otherwise = node.otherwise;
+    const predErrors = mudCheckNode(predicate, nodes, registeredNodes, dependsMap);
+    const consErrors = mudCheckNode(consequent, nodes, registeredNodes, dependsMap);
+    const otherErrors = mudCheckNode(otherwise, nodes, registeredNodes, dependsMap);
+    errors = errors.concat(predErrors).concat(consErrors).concat(otherErrors);
+    let consDef = false;
+    let otherDef = false;
+    let localAsserts = [];
+    if (otherwise.outputType.status == 'Definitely') {
+      otherDef = true;
+    }
+    if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'BinaryOperation') {
+      consDef = handleCheck(consequent, dependsMap, findAsserts(node));
+    }
+    if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'Function') {
+      if (predicate.name == 'IsDefined') {
+        consDef = handleCheck(consequent, dependsMap, predicate.outputType.asserts);
+      }
+    }
+    if (((_9_ = consequent) === null || _9_ === void 0 ? void 0 : _9_.outputType.status) == 'Definitely') {
+      consDef = true;
+    }
+    if (consDef && otherDef) {
+      node.outputType.status = 'Definitely';
+    }
+    return errors;
+  }
+}
+class MudCheckVariable {
+  mudCheck(node, nodes, registeredNodes, dependsMap) {
+    let errors = [];
+    const assignmentErrors = mudCheckNode(node.assignment, nodes, registeredNodes, dependsMap);
+    errors = errors.concat(assignmentErrors);
+    node.outputType.status = node.assignment.outputType.status;
+    return errors;
+  }
+}
+class MudCheckIdentifier {
+  mudCheck(node, nodes, registeredNodes, dependsMap) {
+    let errors = [];
+    let valueNode = registeredNodes[node.assignmentId].assignment;
+    if (valueNode == undefined) {
+      errors.push(new TypeError("This variable doesn't have a value", node.pos));
+    } else {
+      node.outputType.status = valueNode.outputType.status;
+    }
+    return errors;
+  }
+}
+const builtins = {
+  "IsDefined": {
+    inputType: 'any',
+    resultType: 'boolean',
+    status: "Definitely"
+  },
+  "Inverse": {
+    inputType: 'number',
+    resultType: 'number',
+    status: "Variable"
+  },
+  "InputN": {
+    inputType: 'number',
+    resultType: 'number',
+    status: "Maybe-Undefined"
+  },
+  "Sink": {
+    inputType: 'any',
+    resultType: 'any',
+    status: "Variable"
+  },
+  "ParseOrderedPair": {
+    inputType: 'number',
+    resultType: 'pair',
+    status: "Variable"
+  },
+  "X": {
+    inputType: 'pair',
+    resultType: 'number',
+    status: "Variable"
+  },
+  "Y": {
+    inputType: 'pair',
+    resultType: 'number',
+    status: "Variable"
+  },
+  "Not": {
+    inputType: 'boolean',
+    resultType: 'boolean',
+    status: "Definitely"
+  },
+  "InputB": {
+    inputType: 'boolean',
+    resultType: 'boolean',
+    status: "Maybe-Undefined"
+  }
+};
+const mudCheckerMap = {
+  'Number': new MudCheckNumber(),
+  'Boolean': new MudCheckBoolean(),
+  'BinaryOperation': new MudCheckBinary(),
+  'Function': new MudCheckFunction(),
+  'Choose': new MudCheckChoose(),
+  'VariableAssignment': new MudCheckVariable(),
+  'Identifier': new MudCheckIdentifier()
+};
+function handleCheck(consequent, dependsMap, asserts) {
+  let contained = true;
+  if (((_10_ = consequent) === null || _10_ === void 0 ? void 0 : _10_.nodeType) == 'Choose') {
+    let consAsserts = consequent.case.predicate.outputType.asserts;
+    let consConsContained = handleCheck(consequent.case.consequent, dependsMap, asserts.concat(consAsserts));
+    let consOtherContained = handleCheck(consequent.otherwise, dependsMap, asserts.concat(consAsserts));
+    if (!(consConsContained && consOtherContained)) {
+      contained = false;
+    }
+  } else {
+    let consBases = findBase_1.findBases(consequent, dependsMap);
+    for (let i = 0; i < consBases.length; i++) {
+      if (!asserts.find(e => e == consBases[i])) {
+        contained = false;
+      }
+    }
+  }
+  return contained;
+}
+function findAsserts(node) {
+  let predAsserts = node.case.predicate.outputType.asserts;
+  if (((_11_ = node.case.consequent) === null || _11_ === void 0 ? void 0 : _11_.nodeType) != 'Choose') {
+    return predAsserts;
+  } else {
+    return predAsserts.concat(findAsserts(node.case.consequent));
+  }
+}
+
+},
+
+// src/position.ts @49
+49: function(__fusereq, exports, module){
+function token2pos(token) {
+  return {
+    first_line: token.line,
+    last_line: token.line,
+    first_column: token.first_column,
+    last_column: token.last_column
+  };
+}
+exports.token2pos = token2pos;
+function join(start, end) {
+  return {
+    first_line: start.first_line,
+    last_line: end.last_line,
+    first_column: start.first_column,
+    last_column: end.last_column
+  };
+}
+exports.join = join;
+function pos2string(pos) {
+  return pos.first_line.toString() + "." + pos.first_column.toString() + "." + pos.last_line.toString() + "." + pos.last_column.toString();
+}
+exports.pos2string = pos2string;
+class ParseError {
+  constructor(message, position) {
+    this.message = message;
+    this.position = position;
+  }
+}
+exports.ParseError = ParseError;
+
+},
+
 // src/findBase.ts @42
 42: function(__fusereq, exports, module){
 function findBases(node, dependsMap) {
@@ -443,252 +708,6 @@ const builtins = {
     status: "Maybe-Undefined"
   }
 };
-
-},
-
-// src/mudChecker.ts @15
-15: function(__fusereq, exports, module){
-var _1_, _2_;
-var _3_, _4_;
-var _5_, _6_;
-var _7_, _8_;
-var _9_;
-exports.__esModule = true;
-var findBase_1 = __fusereq(42);
-function mudCheck(nodes, registeredNodes, dependsMap) {
-  const errors = nodes.map(n => mudCheckNode(n, nodes, registeredNodes, dependsMap));
-  return [].concat(...errors);
-}
-exports.mudCheck = mudCheck;
-function mudCheckNode(node, nodes, registeredNodes, dependsMap) {
-  return mudCheckerMap[node.nodeType].mudCheck(node, nodes, registeredNodes, dependsMap);
-}
-class TypeError {
-  constructor(message, position) {
-    this.message = message;
-    this.position = position;
-  }
-}
-exports.TypeError = TypeError;
-class MudCheckNumber {
-  mudCheck(node) {
-    return [];
-  }
-}
-class MudCheckBoolean {
-  mudCheck(node) {
-    return [];
-  }
-}
-class MudCheckBinary {
-  mudCheck(node, nodes, registeredNodes, dependsMap) {
-    const errors = mudCheckNode(node.left, nodes, registeredNodes, dependsMap).concat(mudCheckNode(node.right, nodes, registeredNodes, dependsMap));
-    if (((_2_ = (_1_ = node.right) === null || _1_ === void 0 ? void 0 : _1_.outputType) === null || _2_ === void 0 ? void 0 : _2_.status) == 'Maybe-Undefined' || ((_4_ = (_3_ = node.left) === null || _3_ === void 0 ? void 0 : _3_.outputType) === null || _4_ === void 0 ? void 0 : _4_.status) == 'Maybe-Undefined') {
-      node.outputType.status = 'Maybe-Undefined';
-    } else {
-      node.outputType.status = 'Definitely';
-    }
-    if (node.operator == '|') {
-      let intersection = [];
-      let leftAsserts = node.left.outputType.asserts;
-      let rightAsserts = node.right.outputType.asserts;
-      for (let i = 0; i < leftAsserts.length; i++) {
-        if (rightAsserts.find(e => e == leftAsserts[i])) {
-          intersection.push(leftAsserts[i]);
-        }
-      }
-      node.outputType.asserts = intersection;
-    } else {
-      let leftAsserts = node.left.outputType.asserts;
-      let rightAsserts = node.right.outputType.asserts;
-      let allAsserts = leftAsserts.concat(rightAsserts);
-      node.outputType.asserts = allAsserts;
-    }
-    return errors;
-  }
-}
-class MudCheckFunction {
-  mudCheck(node, nodes, registeredNodes, dependsMap) {
-    let errors = [];
-    if (node.name == 'IsDefined') {
-      let bases = findBase_1.findBases(node.args[0], dependsMap);
-      node.outputType.asserts = node.outputType.asserts.concat(bases);
-    }
-    const arg1Errors = mudCheckNode(node.args[0], nodes, registeredNodes, dependsMap);
-    errors = errors.concat(arg1Errors);
-    if (node.args.length > 1) {
-      const arg2Errors = mudCheckNode(node.args[1], nodes, registeredNodes, dependsMap);
-      errors = errors.concat(arg2Errors);
-    }
-    const functionName = node.name;
-    const returnType = builtins[functionName].resultType;
-    if (functionName == 'Sink') {
-      if (((_6_ = (_5_ = node.args[0]) === null || _5_ === void 0 ? void 0 : _5_.outputType) === null || _6_ === void 0 ? void 0 : _6_.status) == 'Maybe-Undefined') {
-        errors.push(new TypeError("User facing content could be undefined.", node.args[0].pos));
-      }
-    }
-    if (builtins[functionName].status == "Variable") {
-      node.outputType.status = (_8_ = (_7_ = node.args[0]) === null || _7_ === void 0 ? void 0 : _7_.outputType) === null || _8_ === void 0 ? void 0 : _8_.status;
-    } else {
-      node.outputType.status = builtins[functionName].status;
-    }
-    return errors;
-  }
-}
-class MudCheckChoose {
-  mudCheck(node, nodes, registeredNodes, dependsMap) {
-    let errors = [];
-    const predicate = node.case.predicate;
-    const consequent = node.case.consequent;
-    const otherwise = node.otherwise;
-    const predErrors = mudCheckNode(predicate, nodes, registeredNodes, dependsMap);
-    const consErrors = mudCheckNode(consequent, nodes, registeredNodes, dependsMap);
-    const otherErrors = mudCheckNode(otherwise, nodes, registeredNodes, dependsMap);
-    errors = errors.concat(predErrors).concat(consErrors).concat(otherErrors);
-    let consDef = false;
-    let otherDef = false;
-    let localAsserts = [];
-    if (otherwise.outputType.status == 'Definitely') {
-      otherDef = true;
-    }
-    if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'BinaryOperation') {
-      consDef = handleCheck(consequent, dependsMap, predicate.outputType.asserts);
-    }
-    if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'Function') {
-      if (predicate.name == 'IsDefined') {
-        consDef = handleCheck(consequent, dependsMap, predicate.outputType.asserts);
-      }
-    }
-    if (((_9_ = consequent) === null || _9_ === void 0 ? void 0 : _9_.outputType.status) == 'Definitely') {
-      consDef = true;
-    }
-    if (consDef && otherDef) {
-      node.outputType.status = 'Definitely';
-    }
-    return errors;
-  }
-}
-class MudCheckVariable {
-  mudCheck(node, nodes, registeredNodes, dependsMap) {
-    let errors = [];
-    const assignmentErrors = mudCheckNode(node.assignment, nodes, registeredNodes, dependsMap);
-    errors = errors.concat(assignmentErrors);
-    node.outputType.status = node.assignment.outputType.status;
-    return errors;
-  }
-}
-class MudCheckIdentifier {
-  mudCheck(node, nodes, registeredNodes, dependsMap) {
-    let errors = [];
-    let valueNode = registeredNodes[node.assignmentId].assignment;
-    if (valueNode == undefined) {
-      errors.push(new TypeError("This variable doesn't have a value", node.pos));
-    } else {
-      node.outputType.status = valueNode.outputType.status;
-    }
-    return errors;
-  }
-}
-const builtins = {
-  "IsDefined": {
-    inputType: 'any',
-    resultType: 'boolean',
-    status: "Definitely"
-  },
-  "Inverse": {
-    inputType: 'number',
-    resultType: 'number',
-    status: "Variable"
-  },
-  "InputN": {
-    inputType: 'number',
-    resultType: 'number',
-    status: "Maybe-Undefined"
-  },
-  "Sink": {
-    inputType: 'any',
-    resultType: 'any',
-    status: "Variable"
-  },
-  "ParseOrderedPair": {
-    inputType: 'number',
-    resultType: 'pair',
-    status: "Variable"
-  },
-  "X": {
-    inputType: 'pair',
-    resultType: 'number',
-    status: "Variable"
-  },
-  "Y": {
-    inputType: 'pair',
-    resultType: 'number',
-    status: "Variable"
-  },
-  "Not": {
-    inputType: 'boolean',
-    resultType: 'boolean',
-    status: "Definitely"
-  },
-  "InputB": {
-    inputType: 'boolean',
-    resultType: 'boolean',
-    status: "Maybe-Undefined"
-  }
-};
-const mudCheckerMap = {
-  'Number': new MudCheckNumber(),
-  'Boolean': new MudCheckBoolean(),
-  'BinaryOperation': new MudCheckBinary(),
-  'Function': new MudCheckFunction(),
-  'Choose': new MudCheckChoose(),
-  'VariableAssignment': new MudCheckVariable(),
-  'Identifier': new MudCheckIdentifier()
-};
-function handleCheck(consequent, dependsMap, asserts) {
-  let consBases = findBase_1.findBases(consequent, dependsMap);
-  let contained = true;
-  for (let i = 0; i < consBases.length; i++) {
-    if (!asserts.find(e => e == consBases[i])) {
-      contained = false;
-    }
-  }
-  return contained;
-}
-
-},
-
-// src/position.ts @49
-49: function(__fusereq, exports, module){
-function token2pos(token) {
-  return {
-    first_line: token.line,
-    last_line: token.line,
-    first_column: token.first_column,
-    last_column: token.last_column
-  };
-}
-exports.token2pos = token2pos;
-function join(start, end) {
-  return {
-    first_line: start.first_line,
-    last_line: end.last_line,
-    first_column: start.first_column,
-    last_column: end.last_column
-  };
-}
-exports.join = join;
-function pos2string(pos) {
-  return pos.first_line.toString() + "." + pos.first_column.toString() + "." + pos.last_line.toString() + "." + pos.last_column.toString();
-}
-exports.pos2string = pos2string;
-class ParseError {
-  constructor(message, position) {
-    this.message = message;
-    this.position = position;
-  }
-}
-exports.ParseError = ParseError;
 
 },
 
