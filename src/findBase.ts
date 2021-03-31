@@ -41,12 +41,14 @@ class BaseFunction implements BaseFinder {
         // If the builtin status IS a variable, then it does depend on its arguments
         // Unlike for Definitely and Maybe-Undefined functions, which status is the same always
 
-        if (builtins[node.name].status == 'Variable') {
+        if (node.outputType.status == 'Def-Undefined') {
+            baseList.push(node.nodeId);
+        } else if (builtins[node.name].status == 'Variable') {
             // recursively call findBases on argument(s)
             for (let i = 0; i < node.args.length; i++) {
                 baseList = baseList.concat(findBases(node.args[i], dependsMap));
             }
-        } else if (builtins[node.name].status == 'Maybe-Undefined') {
+        } else if (builtins[node.name].constType == 'Non-Constant') {
             // If Maybe-Undefined funtion, it IS a base (the root of a maybe-undefined status)
             baseList.push(node.nodeId);
         }
@@ -93,14 +95,15 @@ const baseMap: Partial<{[K in AST.NodeType]: BaseFinder}> = {
   'Identifier': new BaseIdentifier()
 }
 
-const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType, status: string} } = {
-    "IsDefined": {inputType: 'any', resultType: 'boolean', status: "Definitely"},
-    "Inverse": {inputType: 'number', resultType: 'number', status: "Variable"},
-    "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined"},
-    "Sink": {inputType: 'any', resultType: 'any', status: "Variable"},
-    "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Variable"},
-    "X": {inputType: 'pair', resultType: 'number', status: "Variable"},
-    "Y": {inputType: 'pair', resultType: 'number', status: "Variable"},
-    "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely"},
-    "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined"}
-}
+const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType, status: string, constType: string} } = {
+    "IsDefined": {inputType: 'any', resultType: 'boolean', status: "Definitely", constType: "Constant"},
+    "Inverse": {inputType: 'number', resultType: 'number', status: "Variable", constType: "Constant"},
+    "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined", constType: "Non-Constant"},
+    "Sink": {inputType: 'any', resultType: 'any', status: "Variable", constType: "Constant"},
+    // change ParseOrderedPair to be Variable to show constant type stuff
+    "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Variable", constType: "Constant"},
+    "X": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
+    "Y": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
+    "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely", constType: "Constant"},
+    "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined", constType: "Non-Constant"}
+  }

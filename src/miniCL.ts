@@ -28,8 +28,9 @@ export const miniCL: StreamParser<State> = {
   // Get the result types
   const results = view.state.field(parseResults);
 
+  let dependsMap: {[key: string]: string[]} = {}
   // Error checking
-  const mudErrors = mudCheck(results.nodes, results.registeredNodes, results.dependsMap);
+  const mudErrors = mudCheck(results.nodes, results.registeredNodes, dependsMap);
   const typeErrors = typecheck(results.nodes, results.registeredNodes);
 
   // Create a diagnostic for each kind of error

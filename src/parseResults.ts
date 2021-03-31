@@ -20,15 +20,13 @@ function parseProgram(tr: Transaction) : ParseResults {
 
   let varMap: {[key: string]: string} = {}
   let registeredNodes: {[key: string]: AST.Node} = {}
-  let dependsMap: {[key: string]: string[]} = {}
-  const ast = parse(contents, varMap, registeredNodes, dependsMap)
+  const ast = parse(contents, varMap, registeredNodes)
 
   return {
     nodes: ast.nodes,
     parseErrors: ast.errors,
     varMap: varMap,
-    registeredNodes: registeredNodes,
-    dependsMap: dependsMap
+    registeredNodes: registeredNodes
   }
 }
 
@@ -40,7 +38,6 @@ export type ParseResults = {
   parseErrors: ParseError[];
   varMap: {[key: string]: string};
   registeredNodes: {[key: string]: AST.Node};
-  dependsMap: {[key: string]: string[]};
 }
 
 /**
@@ -50,6 +47,5 @@ const emptyParseResults: ParseResults = {
   nodes: [],
   parseErrors: [],
   varMap: {},
-  registeredNodes: {},
-  dependsMap: {}
+  registeredNodes: {}
 }

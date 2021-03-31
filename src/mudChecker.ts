@@ -86,15 +86,6 @@ class MudCheckFunction implements MudChecker {
             dependsMap: {[key: string]: string[]}): TypeError[] {
         let errors: TypeError[] = [];
 
-
-        // 
-
-
-        if (node.name == 'IsDefined') {
-          let bases = findBases(node.args[0], dependsMap);
-          node.outputType.asserts = node.outputType.asserts.concat(bases);
-        }
-        
         // First typecheck the argument
         const arg1Errors = mudCheckNode(node.args[0], nodes, registeredNodes, dependsMap);
         errors = errors.concat(arg1Errors);
@@ -103,7 +94,11 @@ class MudCheckFunction implements MudChecker {
         errors = errors.concat(arg2Errors);
         }
 
-       
+        /***** MAYBE-UNDEFINED-NESS *****/
+        if (node.name == 'IsDefined') {
+          let bases = findBases(node.args[0], dependsMap);
+          node.outputType.asserts = node.outputType.asserts.concat(bases);
+        }
 
         const functionName = node.name
         const returnType = builtins[functionName].resultType;
@@ -112,16 +107,34 @@ class MudCheckFunction implements MudChecker {
         if (functionName == 'Sink') {
           // if sink "node" takes in possibly undefined values, warn the author
           // a sink has one argument
-          if (node.args[0]?.outputType?.status == 'Maybe-Undefined') {
+          if (node.args[0]?.outputType?.status != 'Definitely') {
               errors.push(new TypeError("User facing content could be undefined.", node.args[0].pos));
           }
         }
+
+        node.outputType.constType = builtins[node.name].constType;  /***** CONSTANT-NESS *****/
         
         if (builtins[functionName].status == "Variable") {
           // this is essentially doing what a constant type would do
           // if the argument is maybe-undefined, then the node is maybe-undefined
           // otherwise, the node is definitely
-          node.outputType.status = node.args[0]?.outputType?.status;
+
+          if (node.args[0].outputType.constType == 'Constant') {
+            const result = evaluate(node);
+
+            // Check if in dependsMap
+            // If so, replace ndoe reference in dependsMap with
+            dependsMap[node.nodeId] = findBases(node, dependsMap)
+
+            if (result) {
+              node.outputType.status = "Definitely";
+            } else {
+              node.outputType.status = "Def-Undefined";
+            }
+          } else {
+            node.outputType.status = node.args[0]?.outputType?.status;
+          }
+
         }
         else {
           node.outputType.status = builtins[functionName].status;
@@ -154,29 +167,14 @@ class MudCheckChoose implements MudChecker {
 
         let consDef = false;
         let otherDef = false;
-        let localAsserts: string[] = [];
 
         if (otherwise.outputType.status == 'Definitely') {
           otherDef = true;
         }
 
-        // consequent in MU and we have a binary predicate
-        if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'BinaryOperation') {
-          
-          consDef = handleCheck(consequent, dependsMap, findAsserts(node));
-
-        }
-
-
-        // propagate maybe-undefined type, or change to definitely
-        // if the predicate is not a function, we cannot error check its type
-        if (consequent.outputType.status == 'Maybe-Undefined' && predicate.nodeType == 'Function') {
-          // we can only errorr check with IsDefined function
-          // IsDefined has only one argument
-          if (predicate.name == 'IsDefined') {
-            consDef = handleCheck(consequent, dependsMap, predicate.outputType.asserts);
-          }
-        }
+        // Check the definitive status of the consequent using the predicates asserts
+        // NOTE: only binary operations and IsDefined functions have non-empty assert fields
+        consDef = handleCheck(consequent, dependsMap, predicate.outputType.asserts);
 
         if (consequent?.outputType.status == 'Definitely') {
           consDef = true;
@@ -202,6 +200,8 @@ class MudCheckVariable implements MudChecker {
 
     // Set variable assignment node output type to the same as it's assignment
     node.outputType.status = node.assignment.outputType.status;
+
+    // dependsMap[id] = findBases(assignment, dependsMap); // NEW FUNCTION HERE
 
     return errors;
   }
@@ -230,17 +230,17 @@ class MudCheckIdentifier implements MudChecker {
 }
 
 // Dictionary of builtin functions that maps a function name to the type of its argument
-const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType, status: string} } = {
-  "IsDefined": {inputType: 'any', resultType: 'boolean', status: "Definitely"},
-  "Inverse": {inputType: 'number', resultType: 'number', status: "Variable"},
-  "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined"},
-  "Sink": {inputType: 'any', resultType: 'any', status: "Variable"},
+const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType, status: string, constType: string} } = {
+  "IsDefined": {inputType: 'any', resultType: 'boolean', status: "Definitely", constType: "Constant"},
+  "Inverse": {inputType: 'number', resultType: 'number', status: "Variable", constType: "Constant"},
+  "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined", constType: "Non-Constant"},
+  "Sink": {inputType: 'any', resultType: 'any', status: "Variable", constType: "Constant"},
   // change ParseOrderedPair to be Variable to show constant type stuff
-  "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Variable"},
-  "X": {inputType: 'pair', resultType: 'number', status: "Variable"},
-  "Y": {inputType: 'pair', resultType: 'number', status: "Variable"},
-  "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely"},
-  "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined"}
+  "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Variable", constType: "Constant"},
+  "X": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
+  "Y": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
+  "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely", constType: "Constant"},
+  "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined", constType: "Non-Constant"}
 }
 
 const mudCheckerMap: Partial<{[K in AST.NodeType]: MudChecker}> = {
@@ -257,11 +257,12 @@ function handleCheck(consequent: AST.Node,
                     dependsMap: {[key: string]: string[]},
                     asserts: string[]): boolean {
   let contained = true;
+
   if (consequent?.nodeType == 'Choose') {
     // we need to check its bases separately
     let consAsserts = consequent.case.predicate.outputType.asserts;
     let consConsContained = handleCheck(consequent.case.consequent, dependsMap, asserts.concat(consAsserts));
-    let consOtherContained = handleCheck(consequent.otherwise, dependsMap, asserts.concat(consAsserts));
+    let consOtherContained = handleCheck(consequent.otherwise, dependsMap, asserts);
 
     if (!(consConsContained && consOtherContained)) {
       contained = false;
@@ -270,6 +271,7 @@ function handleCheck(consequent: AST.Node,
   }
   else {
     let consBases = findBases(consequent, dependsMap);
+    console.log("consBases: ", consBases);
 
     for (let i = 0; i < consBases.length; i++) {
       if (!asserts.find(e => e == consBases[i])) {
@@ -281,12 +283,12 @@ function handleCheck(consequent: AST.Node,
   return contained;
 }
 
-function findAsserts(node: AST.ChooseNode): string[] {
-  let predAsserts = node.case.predicate.outputType.asserts;
-  if (node.case.consequent?.nodeType != 'Choose') {
-    return predAsserts
+// This funciton simulates running the body of a miniCL function (like Inverse(x))
+function evaluate(node: AST.FunctionNode): boolean {
+  if (node.name == "Inverse") {
+    if (node.args[0].value == 0) {
+      return false;
+    }
   }
-  else {
-    return predAsserts.concat(findAsserts(node.case.consequent));
-  }
+  return true;
 }

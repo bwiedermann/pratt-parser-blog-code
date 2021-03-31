@@ -21,6 +21,7 @@ export type NumberNode = {
   outputType: Definitely<ValueType>;
   pos: Position;
   nodeId: string;
+  neg: boolean;
 };
 
 export type BooleanNode = {
@@ -78,11 +79,11 @@ export type IdentifierNode = {
   nodeId: string;
 }
 
-export type ProgramNode = {
-  nodeType: 'Program';
-  children: Node[];
-  nodeId: string;
-}
+// export type ProgramNode = {
+//   nodeType: 'Program';
+//   children: Node[];
+//   nodeId: string;
+// }
 
 export type Node = 
   | BooleanNode 
@@ -92,7 +93,7 @@ export type Node =
   | ChooseNode 
   | VariableAssignmentNode 
   | IdentifierNode
-  | ProgramNode
+  // | ProgramNode
   | undefined;
 
 // on to the proof of concept stuff
@@ -101,17 +102,24 @@ export type Definitely<ValueType> = {
   status: 'Definitely';
   valueType: ValueType;
   asserts: string[];
-  // variability: ConstantType;
+  constType: ConstantType;
 }
 
 export type Maybe<ValueType> = {
   status: 'Maybe-Undefined';
   valueType: ValueType;
   asserts: string[];
-  // variability: ConstantType;
+  constType: ConstantType;
+}
+
+export type Und<ValueType> = {
+  status: 'Def-Undefined';
+  valueType: ValueType;
+  asserts: string[];
+  constType: ConstantType;
 }
 
 export type ValueType = 'number' | 'boolean' | 'pair' | 'any' | undefined;
-// export type ConstantType = 'Constant' | 'Variable' | undefined;
+export type ConstantType = 'Constant' | 'Non-Constant' | undefined;
 
-export type Possible<ValueType> = Definitely<ValueType> | Maybe<ValueType>;
+export type Possible<ValueType> = Definitely<ValueType> | Maybe<ValueType> | Und<ValueType>;

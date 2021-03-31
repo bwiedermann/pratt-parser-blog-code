@@ -64,7 +64,7 @@ export function getDefaultToken(
     // skip whitespace
     return undefined;
   }
-
+  
   if (stream.match(/\+/)) {
     return '+';
   }
