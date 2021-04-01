@@ -21,7 +21,6 @@ export type NumberNode = {
   outputType: Definitely<ValueType>;
   pos: Position;
   nodeId: string;
-  neg: boolean;
 };
 
 export type BooleanNode = {

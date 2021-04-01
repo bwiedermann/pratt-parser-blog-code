@@ -167,7 +167,8 @@ const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.Val
   "X": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
   "Y": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
   "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely", constType: "Constant"},
-  "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined", constType: "Non-Constant"}
+  "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined", constType: "Non-Constant"},
+  "Sqrt": {inputType: 'number', resultType: 'number', status: "Variable", constType: "Constant"}
 }
 
 const checkerMap: Partial<{[K in AST.NodeType]: TypeChecker}> = {

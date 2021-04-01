@@ -76,7 +76,7 @@
         7
       ],
       "id": 5,
-      "mtime": 1616197659400,
+      "mtime": 1617319509671,
       "packageId": "default",
       "publicPath": "src/miniCL.ts"
     },
@@ -100,7 +100,7 @@
         17
       ],
       "id": 7,
-      "mtime": 1615938130812,
+      "mtime": 1617319509672,
       "packageId": "default",
       "publicPath": "src/parseResults.ts"
     },
@@ -163,7 +163,7 @@
         6
       ],
       "id": 13,
-      "mtime": 1615938130812,
+      "mtime": 1617320045082,
       "packageId": "default",
       "publicPath": "src/lexer.ts"
     },
@@ -171,7 +171,7 @@
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/typechecker.ts",
       "dependencies": [],
       "id": 14,
-      "mtime": 1616544163780,
+      "mtime": 1617320382245,
       "packageId": "default",
       "publicPath": "src/typechecker.ts"
     },
@@ -181,7 +181,7 @@
         42
       ],
       "id": 15,
-      "mtime": 1616720412442,
+      "mtime": 1617321484379,
       "packageId": "default",
       "publicPath": "src/mudChecker.ts"
     },
@@ -198,12 +198,12 @@
     "17": {
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/parser.ts",
       "dependencies": [
-        47,
+        48,
         49,
-        48
+        47
       ],
       "id": 17,
-      "mtime": 1614652650882,
+      "mtime": 1617319509673,
       "packageId": "default",
       "publicPath": "src/parser.ts"
     },
@@ -487,7 +487,7 @@
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/findBase.ts",
       "dependencies": [],
       "id": 42,
-      "mtime": 1616546312773,
+      "mtime": 1617320189503,
       "packageId": "default",
       "publicPath": "src/findBase.ts"
     },
@@ -605,11 +605,10 @@
     "47": {
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/parselet.ts",
       "dependencies": [
-        49,
-        42
+        49
       ],
       "id": 47,
-      "mtime": 1616546214169,
+      "mtime": 1617320080640,
       "packageId": "default",
       "publicPath": "src/parselet.ts"
     },

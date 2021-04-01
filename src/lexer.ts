@@ -65,6 +65,11 @@ export function getDefaultToken(
     return undefined;
   }
   
+  // parse both negative and positive numbers
+  if (stream.match(/-?[0-9]+(\.[0-9]+)?/)) {
+    return 'NUMBER';
+  }
+
   if (stream.match(/\+/)) {
     return '+';
   }
@@ -100,10 +105,6 @@ export function getDefaultToken(
   // adding an equals operator
   if (stream.match(/\=/)) {
     return '=';
-  }
-
-  if (stream.match(/-?[0-9]+(\.[0-9]+)?/)) {
-    return 'NUMBER';
   }
 
   if (stream.match(/True/)) {

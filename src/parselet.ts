@@ -30,8 +30,7 @@ export class NumberParselet implements InitialParselet {
                     asserts: [],
                     constType: 'Constant' as 'Constant'},
       pos: position,
-      nodeId: id,
-      neg: false
+      nodeId: id
     };
     registeredNodes[id] = newNode;
     return newNode;

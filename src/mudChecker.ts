@@ -49,7 +49,10 @@ class MudCheckBinary implements MudChecker {
         .concat(mudCheckNode(node.right, nodes, registeredNodes, dependsMap));
 
         // If no type errors, update the output type of this node, based on the outputType of its inputs
-        if (node.right?.outputType?.status == 'Maybe-Undefined' || node.left?.outputType?.status == 'Maybe-Undefined') {
+        if (node.right?.outputType?.status == 'Def-Undefined' || node.left?.outputType?.status == 'Def-Undefined') {
+          node.outputType.status = 'Def-Undefined';
+        }
+        else if (node.right?.outputType?.status == 'Maybe-Undefined' || node.left?.outputType?.status == 'Maybe-Undefined') {
             node.outputType.status = 'Maybe-Undefined';
         } else {
             node.outputType.status = 'Definitely'
@@ -130,6 +133,7 @@ class MudCheckFunction implements MudChecker {
               node.outputType.status = "Definitely";
             } else {
               node.outputType.status = "Def-Undefined";
+              errors.push(new TypeError("The result of this operation is undefined.", node.pos));
             }
           } else {
             node.outputType.status = node.args[0]?.outputType?.status;
@@ -201,7 +205,7 @@ class MudCheckVariable implements MudChecker {
     // Set variable assignment node output type to the same as it's assignment
     node.outputType.status = node.assignment.outputType.status;
 
-    // dependsMap[id] = findBases(assignment, dependsMap); // NEW FUNCTION HERE
+    dependsMap[node.nodeId] = findBases(node.assignment, dependsMap); // NEW FUNCTION HERE
 
     return errors;
   }
@@ -240,7 +244,8 @@ const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.Val
   "X": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
   "Y": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
   "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely", constType: "Constant"},
-  "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined", constType: "Non-Constant"}
+  "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined", constType: "Non-Constant"},
+  "Sqrt": {inputType: 'number', resultType: 'number', status: "Variable", constType: "Constant"}
 }
 
 const mudCheckerMap: Partial<{[K in AST.NodeType]: MudChecker}> = {
@@ -271,7 +276,6 @@ function handleCheck(consequent: AST.Node,
   }
   else {
     let consBases = findBases(consequent, dependsMap);
-    console.log("consBases: ", consBases);
 
     for (let i = 0; i < consBases.length; i++) {
       if (!asserts.find(e => e == consBases[i])) {
@@ -287,6 +291,11 @@ function handleCheck(consequent: AST.Node,
 function evaluate(node: AST.FunctionNode): boolean {
   if (node.name == "Inverse") {
     if (node.args[0].value == 0) {
+      return false;
+    }
+  }
+  if (node.name == "Sqrt") {
+    if (node.args[0].value < 0) {
       return false;
     }
   }
