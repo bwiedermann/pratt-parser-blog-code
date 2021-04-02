@@ -2,18 +2,13 @@ import {Position} from './position';
 import {BinaryOperationTokenType} from './lexer';
 
 export type NodeType =
-  | 'SinkAssignment'
   | 'VariableAssignment'
   | 'Number'
   | 'Boolean'
-  | 'String'
   | 'BinaryOperation'
   | 'Choose'
   | 'Identifier'
-  | 'Function'
-  | 'Pair'
-  | 'CalculatorReference'
-  | 'Program';
+  | 'Function';
 
 export type NumberNode = {
   nodeType: 'Number';
@@ -41,7 +36,7 @@ export type BinaryOperationNode = {
   nodeId: string;
 };
 
-// Built to support isDefined(test()), isDefined(boolean), and test()
+// This supports only builtin functions (defined in typechecker.ts)
 export type FunctionNode = {
   nodeType: 'Function';
   name: string;
@@ -51,6 +46,7 @@ export type FunctionNode = {
   nodeId: string;
 }
 
+// This only allows one predicate-consequent pair per choose node
 export type ChooseNode = {
   nodeType: 'Choose';
   case: { predicate: Node, consequent: Node };
@@ -78,12 +74,6 @@ export type IdentifierNode = {
   nodeId: string;
 }
 
-// export type ProgramNode = {
-//   nodeType: 'Program';
-//   children: Node[];
-//   nodeId: string;
-// }
-
 export type Node = 
   | BooleanNode 
   | NumberNode 
@@ -91,11 +81,9 @@ export type Node =
   | FunctionNode 
   | ChooseNode 
   | VariableAssignmentNode 
-  | IdentifierNode
-  // | ProgramNode
-  | undefined;
+  | IdentifierNode;
 
-// on to the proof of concept stuff
+// These are the new types
 
 export type Definitely<ValueType> = {
   status: 'Definitely';
