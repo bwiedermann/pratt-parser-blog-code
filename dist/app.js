@@ -164,6 +164,7 @@ var _17_, _18_;
 var _19_, _20_;
 var _21_, _22_;
 var _23_, _24_;
+exports.__esModule = true;
 function typecheck(nodes, registeredNodes) {
   const errors = nodes.map(n => typecheckNode(n, registeredNodes));
   return [].concat(...errors);
@@ -216,8 +217,8 @@ class CheckFunction {
       }
     }
     const functionName = node.name;
-    const argType = builtins[functionName].inputType;
-    node.outputType.valueType = builtins[functionName].resultType;
+    const argType = exports.builtins[functionName].inputType;
+    node.outputType.valueType = exports.builtins[functionName].resultType;
     if (argType) {
       if (argType != 'any' && ((_16_ = (_15_ = node.args[0]) === null || _15_ === void 0 ? void 0 : _15_.outputType) === null || _16_ === void 0 ? void 0 : _16_.valueType) != argType) {
         errors.push(new TypeError("incompatible argument type for " + functionName, node.pos));
@@ -269,7 +270,7 @@ class CheckIdentifier {
     return errors;
   }
 }
-const builtins = {
+exports.builtins = {
   "IsDefined": {
     inputType: 'any',
     resultType: 'boolean',
@@ -345,6 +346,8 @@ const checkerMap = {
 
 // src/findBase.ts @42
 42: function(__fusereq, exports, module){
+exports.__esModule = true;
+var typechecker_1 = __fusereq(14);
 function findBases(node, dependsMap) {
   return baseMap[node.nodeType].findBase(node, dependsMap);
 }
@@ -374,11 +377,11 @@ class BaseFunction {
     let baseList = [];
     if (node.outputType.status == 'Def-Undefined') {
       baseList.push(node.nodeId);
-    } else if (builtins[node.name].status == 'Variable') {
+    } else if (typechecker_1.builtins[node.name].status == 'Variable') {
       for (let i = 0; i < node.args.length; i++) {
         baseList = baseList.concat(findBases(node.args[i], dependsMap));
       }
-    } else if (builtins[node.name].constType == 'Non-Constant') {
+    } else if (typechecker_1.builtins[node.name].constType == 'Non-Constant') {
       baseList.push(node.nodeId);
     }
     return baseList;
@@ -413,68 +416,6 @@ const baseMap = {
   'VariableAssignment': new BaseVariableAssignment(),
   'Identifier': new BaseIdentifier()
 };
-const builtins = {
-  "IsDefined": {
-    inputType: 'any',
-    resultType: 'boolean',
-    status: "Definitely",
-    constType: "Constant"
-  },
-  "Inverse": {
-    inputType: 'number',
-    resultType: 'number',
-    status: "Variable",
-    constType: "Constant"
-  },
-  "InputN": {
-    inputType: 'number',
-    resultType: 'number',
-    status: "Maybe-Undefined",
-    constType: "Non-Constant"
-  },
-  "Sink": {
-    inputType: 'any',
-    resultType: 'any',
-    status: "Variable",
-    constType: "Constant"
-  },
-  "ParseOrderedPair": {
-    inputType: 'number',
-    resultType: 'pair',
-    status: "Variable",
-    constType: "Constant"
-  },
-  "X": {
-    inputType: 'pair',
-    resultType: 'number',
-    status: "Variable",
-    constType: "Constant"
-  },
-  "Y": {
-    inputType: 'pair',
-    resultType: 'number',
-    status: "Variable",
-    constType: "Constant"
-  },
-  "Not": {
-    inputType: 'boolean',
-    resultType: 'boolean',
-    status: "Definitely",
-    constType: "Constant"
-  },
-  "InputB": {
-    inputType: 'boolean',
-    resultType: 'boolean',
-    status: "Maybe-Undefined",
-    constType: "Non-Constant"
-  },
-  "Sqrt": {
-    inputType: 'number',
-    resultType: 'number',
-    status: "Variable",
-    constType: "Constant"
-  }
-};
 
 },
 
@@ -490,6 +431,7 @@ var _13_;
 var _14_;
 exports.__esModule = true;
 var findBase_1 = __fusereq(42);
+var typechecker_1 = __fusereq(14);
 function mudCheck(nodes, registeredNodes, dependsMap) {
   const errors = nodes.map(n => mudCheckNode(n, nodes, registeredNodes, dependsMap));
   return [].concat(...errors);
@@ -558,14 +500,14 @@ class MudCheckFunction {
       node.outputType.asserts = node.outputType.asserts.concat(bases);
     }
     const functionName = node.name;
-    const returnType = builtins[functionName].resultType;
+    const returnType = typechecker_1.builtins[functionName].resultType;
     if (functionName == 'Sink') {
       if (((_10_ = (_9_ = node.args[0]) === null || _9_ === void 0 ? void 0 : _9_.outputType) === null || _10_ === void 0 ? void 0 : _10_.status) != 'Definitely') {
         errors.push(new TypeError("User facing content could be undefined.", node.args[0].pos));
       }
     }
-    node.outputType.constType = builtins[node.name].constType;
-    if (builtins[functionName].status == "Variable") {
+    node.outputType.constType = typechecker_1.builtins[node.name].constType;
+    if (typechecker_1.builtins[functionName].status == "Variable") {
       if (node.args[0].outputType.constType == 'Constant') {
         const result = evaluate(node);
         dependsMap[node.nodeId] = findBase_1.findBases(node, dependsMap);
@@ -579,7 +521,7 @@ class MudCheckFunction {
         node.outputType.status = (_12_ = (_11_ = node.args[0]) === null || _11_ === void 0 ? void 0 : _11_.outputType) === null || _12_ === void 0 ? void 0 : _12_.status;
       }
     } else {
-      node.outputType.status = builtins[functionName].status;
+      node.outputType.status = typechecker_1.builtins[functionName].status;
     }
     return errors;
   }
@@ -631,68 +573,6 @@ class MudCheckIdentifier {
     return errors;
   }
 }
-const builtins = {
-  "IsDefined": {
-    inputType: 'any',
-    resultType: 'boolean',
-    status: "Definitely",
-    constType: "Constant"
-  },
-  "Inverse": {
-    inputType: 'number',
-    resultType: 'number',
-    status: "Variable",
-    constType: "Constant"
-  },
-  "InputN": {
-    inputType: 'number',
-    resultType: 'number',
-    status: "Maybe-Undefined",
-    constType: "Non-Constant"
-  },
-  "Sink": {
-    inputType: 'any',
-    resultType: 'any',
-    status: "Variable",
-    constType: "Constant"
-  },
-  "ParseOrderedPair": {
-    inputType: 'number',
-    resultType: 'pair',
-    status: "Variable",
-    constType: "Constant"
-  },
-  "X": {
-    inputType: 'pair',
-    resultType: 'number',
-    status: "Variable",
-    constType: "Constant"
-  },
-  "Y": {
-    inputType: 'pair',
-    resultType: 'number',
-    status: "Variable",
-    constType: "Constant"
-  },
-  "Not": {
-    inputType: 'boolean',
-    resultType: 'boolean',
-    status: "Definitely",
-    constType: "Constant"
-  },
-  "InputB": {
-    inputType: 'boolean',
-    resultType: 'boolean',
-    status: "Maybe-Undefined",
-    constType: "Non-Constant"
-  },
-  "Sqrt": {
-    inputType: 'number',
-    resultType: 'number',
-    status: "Variable",
-    constType: "Constant"
-  }
-};
 const mudCheckerMap = {
   'Number': new MudCheckNumber(),
   'Boolean': new MudCheckBoolean(),

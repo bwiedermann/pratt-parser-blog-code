@@ -1,4 +1,5 @@
 import * as AST from './ast';
+import {builtins} from './typechecker';
 
 export function findBases(node: AST.Node, dependsMap: {[key: string]: string[]}): string[] {
     return baseMap[node.nodeType].findBase(node, dependsMap); 
@@ -94,17 +95,3 @@ const baseMap: Partial<{[K in AST.NodeType]: BaseFinder}> = {
   'VariableAssignment': new BaseVariableAssignment(),
   'Identifier': new BaseIdentifier()
 }
-
-const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType, status: string, constType: string} } = {
-    "IsDefined": {inputType: 'any', resultType: 'boolean', status: "Definitely", constType: "Constant"},
-    "Inverse": {inputType: 'number', resultType: 'number', status: "Variable", constType: "Constant"},
-    "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined", constType: "Non-Constant"},
-    "Sink": {inputType: 'any', resultType: 'any', status: "Variable", constType: "Constant"},
-    // change ParseOrderedPair to be Variable to show constant type stuff
-    "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Variable", constType: "Constant"},
-    "X": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
-    "Y": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
-    "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely", constType: "Constant"},
-    "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined", constType: "Non-Constant"},
-    "Sqrt": {inputType: 'number', resultType: 'number', status: "Variable", constType: "Constant"}
-  }

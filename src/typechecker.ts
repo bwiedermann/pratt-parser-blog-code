@@ -157,7 +157,7 @@ class CheckIdentifier implements TypeChecker {
 }
 
 // Dictionary of builtin functions that maps a function name to the type of its argument
-const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType, status: string, constType: string} } = {
+export const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType, status: string, constType: string} } = {
   "IsDefined": {inputType: 'any', resultType: 'boolean', status: "Definitely", constType: "Constant"},
   "Inverse": {inputType: 'number', resultType: 'number', status: "Variable", constType: "Constant"},
   "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined", constType: "Non-Constant"},
