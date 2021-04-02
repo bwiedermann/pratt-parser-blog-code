@@ -1,6 +1,5 @@
 import {Position} from './position';
 import * as AST from './ast';
-import {equals} from './equals';
 
 /***** ITERATION: change all outputType.valueType to simply outputType *****/
 

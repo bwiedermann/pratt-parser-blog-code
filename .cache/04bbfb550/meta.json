@@ -171,7 +171,7 @@
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/typechecker.ts",
       "dependencies": [],
       "id": 14,
-      "mtime": 1617322063353,
+      "mtime": 1617323139271,
       "packageId": "default",
       "publicPath": "src/typechecker.ts"
     },
@@ -182,7 +182,7 @@
         14
       ],
       "id": 15,
-      "mtime": 1617322111862,
+      "mtime": 1617323141395,
       "packageId": "default",
       "publicPath": "src/mudChecker.ts"
     },
