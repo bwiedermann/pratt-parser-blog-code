@@ -11,7 +11,6 @@ type TokenType =
   | 'number'
   | 'boolean'
   | 'comment'
-  | 'string'
   | 'error'
   | 'function'
   | 'choose'

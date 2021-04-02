@@ -3,6 +3,15 @@ import * as AST from './ast';
 import {findBases} from './findBase';
 import {builtins} from './typechecker';
 
+/*
+  The function mudCheck manipulates the status of each node's outputType.
+  It produces type errors based on that status.
+  For example, it will produce a warning when the author tries to use 
+  a maybe-undefined node in a Sink function, which is user-facing.
+  It also produces a warning when the author tries to compute a 
+  definitely undefined operation (e.g. Inverse(0)).
+*/
+
 export function mudCheck(nodes: AST.Node[], 
                         registeredNodes: {[key: string]: AST.Node},
                         dependsMap: {[key: string]: string[]}): TypeError[] {
@@ -28,29 +37,34 @@ export interface MudChecker {
           dependsMap: {[key: string]: string[]}): TypeError[];
 }
 
+// Numbers are always defined.
 class MudCheckNumber implements MudChecker {
   mudCheck(node: AST.NumberNode): TypeError[] {
     return [];
   }
 }
 
+// Booleans are always defined.
 class MudCheckBoolean implements MudChecker {
     mudCheck(node: AST.BooleanNode): TypeError[] {
     return [];
   }
 }
 
+// Binary operations must take into account their operands' statuses when determining their own.
 class MudCheckBinary implements MudChecker {
     mudCheck(node: AST.BinaryOperationNode, 
             nodes: AST.Node[], 
             registeredNodes: {[key: string]: AST.Node},
             dependsMap: {[key: string]: string[]}): TypeError[] {
+        
+        // recursively mud-check the left and right operands
         const errors: TypeError[] = mudCheckNode(node.left, nodes, registeredNodes, dependsMap)
         .concat(mudCheckNode(node.right, nodes, registeredNodes, dependsMap));
 
-        // If no type errors, update the output type of this node, based on the outputType of its inputs
+        // Update the output type of the node, based on the outputType of its operands
         if (node.right?.outputType?.status == 'Def-Undefined' || node.left?.outputType?.status == 'Def-Undefined') {
-          node.outputType.status = 'Def-Undefined';
+            node.outputType.status = 'Def-Undefined';
         }
         else if (node.right?.outputType?.status == 'Maybe-Undefined' || node.left?.outputType?.status == 'Maybe-Undefined') {
             node.outputType.status = 'Maybe-Undefined';
@@ -58,6 +72,7 @@ class MudCheckBinary implements MudChecker {
             node.outputType.status = 'Definitely'
         }
 
+        // Each ORed binary operation will assert the intersection of its operands' assertions
         if (node.operator == '|') {
           let intersection = [];
           let leftAsserts = node.left.outputType.asserts;
@@ -69,8 +84,8 @@ class MudCheckBinary implements MudChecker {
           }
           node.outputType.asserts = intersection;
         }
+        // Each ANDed binary operation will assert the union of its operands' assertions
         else {
-          // if it's an and, we take all of the asserts
           let leftAsserts = node.left.outputType.asserts;
           let rightAsserts = node.right.outputType.asserts;
           let allAsserts = leftAsserts.concat(rightAsserts);
@@ -82,6 +97,8 @@ class MudCheckBinary implements MudChecker {
     }
 }
 
+// The status of a function is determined by its argument and/or its status as defined
+// in the builtins dictionary.
 class MudCheckFunction implements MudChecker {
     mudCheck(node: AST.FunctionNode, 
             nodes: AST.Node[], 
@@ -89,46 +106,43 @@ class MudCheckFunction implements MudChecker {
             dependsMap: {[key: string]: string[]}): TypeError[] {
         let errors: TypeError[] = [];
 
-        // First typecheck the argument
+        // First mud-check the argument(s)
         const arg1Errors = mudCheckNode(node.args[0], nodes, registeredNodes, dependsMap);
         errors = errors.concat(arg1Errors);
         if (node.args.length > 1) {
-        const arg2Errors = mudCheckNode(node.args[1], nodes, registeredNodes, dependsMap);
-        errors = errors.concat(arg2Errors);
+          const arg2Errors = mudCheckNode(node.args[1], nodes, registeredNodes, dependsMap);
+          errors = errors.concat(arg2Errors);
         }
 
-        /***** MAYBE-UNDEFINED-NESS *****/
+        // IsDefined is the only function that asserts anything
+        // It asserts its argument
         if (node.name == 'IsDefined') {
           let bases = findBases(node.args[0], dependsMap);
           node.outputType.asserts = node.outputType.asserts.concat(bases);
         }
 
         const functionName = node.name
-        const returnType = builtins[functionName].resultType;
-
-        // only show error if in sink "node"
+        
+        // If sink "node" takes in possibly undefined values, warn the author
         if (functionName == 'Sink') {
-          // if sink "node" takes in possibly undefined values, warn the author
           // a sink has one argument
           if (node.args[0]?.outputType?.status != 'Definitely') {
               errors.push(new TypeError("User facing content could be undefined.", node.args[0].pos));
           }
         }
 
-        node.outputType.constType = builtins[node.name].constType;  /***** CONSTANT-NESS *****/
+        // The contstant-ness of a function is whatever is defined in builtins
+        node.outputType.constType = builtins[node.name].constType;
         
+        // If the function is variable, then its status depends on its argument's status
         if (builtins[functionName].status == "Variable") {
-          // this is essentially doing what a constant type would do
-          // if the argument is maybe-undefined, then the node is maybe-undefined
-          // otherwise, the node is definitely
 
+          // If the argument is constant, we can use it to evaluate the oepration
           if (node.args[0].outputType.constType == 'Constant') {
+
             const result = evaluate(node);
 
-            // Check if in dependsMap
-            // If so, replace ndoe reference in dependsMap with
-            dependsMap[node.nodeId] = findBases(node, dependsMap)
-
+            // If the result is undefined, warn the author
             if (result) {
               node.outputType.status = "Definitely";
             } else {
