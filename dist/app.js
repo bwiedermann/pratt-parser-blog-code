@@ -344,6 +344,81 @@ const checkerMap = {
 
 },
 
+// src/findBase.ts @42
+42: function(__fusereq, exports, module){
+exports.__esModule = true;
+var typechecker_1 = __fusereq(14);
+function findBases(node, dependsMap) {
+  return baseMap[node.nodeType].findBase(node, dependsMap);
+}
+exports.findBases = findBases;
+class BaseNumber {
+  findBase(node) {
+    return [];
+  }
+}
+class BaseBoolean {
+  findBase(node) {
+    return [];
+  }
+}
+class BaseBinary {
+  findBase(node, dependsMap) {
+    let baseList = [];
+    let leftList = findBases(node.left, dependsMap);
+    baseList = baseList.concat(leftList);
+    let rightList = findBases(node.right, dependsMap);
+    baseList = baseList.concat(rightList);
+    return baseList;
+  }
+}
+class BaseFunction {
+  findBase(node, dependsMap) {
+    let baseList = [];
+    if (node.outputType.status == 'Def-Undefined') {
+      baseList.push(node.nodeId);
+    } else if (typechecker_1.builtins[node.name].status == 'Variable') {
+      for (let i = 0; i < node.args.length; i++) {
+        baseList = baseList.concat(findBases(node.args[i], dependsMap));
+      }
+    } else if (typechecker_1.builtins[node.name].constType == 'Non-Constant') {
+      baseList.push(node.nodeId);
+    }
+    return baseList;
+  }
+}
+class BaseChoose {
+  findBase(node, dependsMap) {
+    let baseList = [];
+    let consBases = findBases(node.case.consequent, dependsMap);
+    baseList = baseList.concat(consBases);
+    let otherBases = findBases(node.otherwise, dependsMap);
+    baseList = baseList.concat(otherBases);
+    return baseList;
+  }
+}
+class BaseVariableAssignment {
+  findBase(node) {
+    return [];
+  }
+}
+class BaseIdentifier {
+  findBase(node, dependsMap) {
+    return dependsMap[node.assignmentId];
+  }
+}
+const baseMap = {
+  'Number': new BaseNumber(),
+  'Boolean': new BaseBoolean(),
+  'BinaryOperation': new BaseBinary(),
+  'Function': new BaseFunction(),
+  'Choose': new BaseChoose(),
+  'VariableAssignment': new BaseVariableAssignment(),
+  'Identifier': new BaseIdentifier()
+};
+
+},
+
 // src/mudChecker.ts @15
 15: function(__fusereq, exports, module){
 var _1_, _2_;
@@ -1238,81 +1313,6 @@ function updateOutput(tr) {
   miniCLEditor.update([tr]);
   devTools_1.updateDevTools(tr);
 }
-
-},
-
-// src/findBase.ts @42
-42: function(__fusereq, exports, module){
-exports.__esModule = true;
-var typechecker_1 = __fusereq(14);
-function findBases(node, dependsMap) {
-  return baseMap[node.nodeType].findBase(node, dependsMap);
-}
-exports.findBases = findBases;
-class BaseNumber {
-  findBase(node) {
-    return [];
-  }
-}
-class BaseBoolean {
-  findBase(node) {
-    return [];
-  }
-}
-class BaseBinary {
-  findBase(node, dependsMap) {
-    let baseList = [];
-    let leftList = findBases(node.left, dependsMap);
-    baseList = baseList.concat(leftList);
-    let rightList = findBases(node.right, dependsMap);
-    baseList = baseList.concat(rightList);
-    return baseList;
-  }
-}
-class BaseFunction {
-  findBase(node, dependsMap) {
-    let baseList = [];
-    if (node.outputType.status == 'Def-Undefined') {
-      baseList.push(node.nodeId);
-    } else if (typechecker_1.builtins[node.name].status == 'Variable') {
-      for (let i = 0; i < node.args.length; i++) {
-        baseList = baseList.concat(findBases(node.args[i], dependsMap));
-      }
-    } else if (typechecker_1.builtins[node.name].constType == 'Non-Constant') {
-      baseList.push(node.nodeId);
-    }
-    return baseList;
-  }
-}
-class BaseChoose {
-  findBase(node, dependsMap) {
-    let baseList = [];
-    let consBases = findBases(node.case.consequent, dependsMap);
-    baseList = baseList.concat(consBases);
-    let otherBases = findBases(node.otherwise, dependsMap);
-    baseList = baseList.concat(otherBases);
-    return baseList;
-  }
-}
-class BaseVariableAssignment {
-  findBase(node) {
-    return [];
-  }
-}
-class BaseIdentifier {
-  findBase(node, dependsMap) {
-    return dependsMap[node.assignmentId];
-  }
-}
-const baseMap = {
-  'Number': new BaseNumber(),
-  'Boolean': new BaseBoolean(),
-  'BinaryOperation': new BaseBinary(),
-  'Function': new BaseFunction(),
-  'Choose': new BaseChoose(),
-  'VariableAssignment': new BaseVariableAssignment(),
-  'Identifier': new BaseIdentifier()
-};
 
 }
 })
