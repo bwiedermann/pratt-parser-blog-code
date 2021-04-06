@@ -162,6 +162,8 @@ class MudCheckFunction implements MudChecker {
     }
 }
 
+// The status of a choose node is determined by the status of the consequent
+// given what the predicate asserts and the status of the otherwise statement
 class MudCheckChoose implements MudChecker {
     mudCheck(node: AST.ChooseNode, 
             nodes: AST.Node[], 
@@ -173,16 +175,13 @@ class MudCheckChoose implements MudChecker {
         const consequent = node.case.consequent;
         const otherwise = node.otherwise;
 
-        // add stuff to the assertMap
-
         // First typecheck the inner nodes
         const predErrors = mudCheckNode(predicate, nodes, registeredNodes, dependsMap);
         const consErrors = mudCheckNode(consequent, nodes, registeredNodes, dependsMap);
         const otherErrors = mudCheckNode(otherwise, nodes, registeredNodes, dependsMap);
         errors = errors.concat(predErrors).concat(consErrors).concat(otherErrors);
 
-        // DEFUALT status = maybe-undefined
-
+        // DEFAULT status is maybe-undefined, hence default false values
         let consDef = false;
         let otherDef = false;
 
@@ -206,25 +205,30 @@ class MudCheckChoose implements MudChecker {
     }
 }
 
+// The status of a variable assignment is determined by the status of its assignment
 class MudCheckVariable implements MudChecker {
     mudCheck(node: AST.VariableAssignmentNode, 
             nodes: AST.Node[], 
             registeredNodes: {[key: string]: AST.Node},
             dependsMap: {[key: string]: string[]}): TypeError[] {
     let errors: TypeError[] = [];
-    // First typecheck the assignment node
+
+    // First mud-check the assignment node
     const assignmentErrors = mudCheckNode(node.assignment, nodes, registeredNodes, dependsMap);
     errors = errors.concat(assignmentErrors);
 
-    // Set variable assignment node output type to the same as it's assignment
+    // Set variable assignment node output type to the same as its assignment
     node.outputType.status = node.assignment.outputType.status;
 
-    dependsMap[node.nodeId] = findBases(node.assignment, dependsMap); // NEW FUNCTION HERE
+    // Update the dependsMap to hold the bases of this new variable
+    dependsMap[node.nodeId] = findBases(node.assignment, dependsMap);
 
     return errors;
   }
 }
 
+// The status of an identifier is determined by the status of its assignment,
+// given in registered nodes
 class MudCheckIdentifier implements MudChecker {
     mudCheck(node: AST.IdentifierNode, 
             nodes: AST.Node[], 
@@ -232,7 +236,7 @@ class MudCheckIdentifier implements MudChecker {
             dependsMap: {[key: string]: string[]}): TypeError[] {
     let errors: TypeError[] = [];
 
-    // Maybe make assigmentId be valueId?
+    // Grab the node the identifier was previously assigned to
     let valueNode = registeredNodes[node.assignmentId].assignment;
 
     // If this assignmentId is not found in the AST, throw an error
@@ -258,25 +262,32 @@ const mudCheckerMap: Partial<{[K in AST.NodeType]: MudChecker}> = {
   'Identifier': new MudCheckIdentifier()
 }
 
+// Given the consequent to a choose node, return true if the given list of asserts
+// includes all of the bases of that consequent
 function handleCheck(consequent: AST.Node,
                     dependsMap: {[key: string]: string[]},
                     asserts: string[]): boolean {
   let contained = true;
 
+  // If the given consequent is a choose node, recursively check the its consequent and otherwise statements
   if (consequent?.nodeType == 'Choose') {
-    // we need to check its bases separately
+    // We need to check each statement's bases separately in order to exclude
+    // the next predicate's asserts in the next otherwise
+    // while including the current asserts in both
     let consAsserts = consequent.case.predicate.outputType.asserts;
     let consConsContained = handleCheck(consequent.case.consequent, dependsMap, asserts.concat(consAsserts));
     let consOtherContained = handleCheck(consequent.otherwise, dependsMap, asserts);
 
+    // If either the next consequent or otherwise statements aren't covered by their asserts,
+    // the current consequent is also not covered
     if (!(consConsContained && consOtherContained)) {
       contained = false;
     }
 
-  }
-  else {
+  } else {
     let consBases = findBases(consequent, dependsMap);
 
+    // Ensure that every base is in the given asserts list
     for (let i = 0; i < consBases.length; i++) {
       if (!asserts.find(e => e == consBases[i])) {
         contained = false;
@@ -289,15 +300,18 @@ function handleCheck(consequent: AST.Node,
 
 // This funciton simulates running the body of a miniCL function (like Inverse(x))
 function evaluate(node: AST.FunctionNode): boolean {
+  // 0 is the only input to Inverse that makes it undefined
   if (node.name == "Inverse") {
     if (node.args[0].value == 0) {
       return false;
     }
   }
+  // A negative number is the only input to Sqrt that makes it undefined
   if (node.name == "Sqrt") {
     if (node.args[0].value < 0) {
       return false;
     }
   }
+  // No other functions can have inputs that make them definitely undefined
   return true;
 }
