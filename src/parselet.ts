@@ -2,9 +2,9 @@ import { TokenStream } from './tokenstream';
 import { Token, TokenType, BinaryOperationTokenType} from './lexer';
 import * as AST from './ast';
 import { AbstractParser } from './parser';
-import {ParseError, token2pos, join, pos2string} from './position';
-import {findBases} from './findBase';
+import {token2pos, join, pos2string} from './position';
 
+// All parselets add their nodeType to the AST
 export interface InitialParselet {
   parse(parser: AbstractParser,
         tokens: TokenStream, token: Token,
@@ -21,7 +21,7 @@ export class NumberParselet implements InitialParselet {
         registeredNodes: {[key: string]: AST.Node}) {
     const position = token2pos(token);
     const id = pos2string(position);
-    // add node to the map
+
     let newNode = {
       nodeType: 'Number' as 'Number',
       value: parseFloat(token.text),
@@ -45,6 +45,7 @@ export class BooleanParselet implements InitialParselet {
         registeredNodes: {[key: string]: AST.Node}) {
     const position = token2pos(token);
     const id = pos2string(position);
+
     let newNode = {
       nodeType: 'Boolean' as 'Boolean',
       value: this.value,
@@ -131,7 +132,6 @@ export class BinaryOperatorParselet extends ConsequentParselet {
   }
 }
 
-// Parse function calls
 export class FunctionParselet implements InitialParselet {
   
   parse(parser: AbstractParser,
@@ -142,9 +142,12 @@ export class FunctionParselet implements InitialParselet {
 
     const position = token2pos(token);
     const id = pos2string(position);
+
+    // All functions have at least one argument inside parens
     tokens.expectToken('(');
     const arg1 = parser.parse(tokens, 0, varMap, registeredNodes);  // allow for one argument
     let args = [arg1];
+    // ParseOrderedPair is the only function that takes two arguments
     if (token.text == "ParseOrderedPair") {
       const arg2 = parser.parse(tokens, 0, varMap, registeredNodes);  // allow for second argument
       args.push(arg2);
@@ -177,6 +180,8 @@ export class ChooseParselet implements InitialParselet {
     const position = token2pos(token);
     const id = pos2string(position);
 
+    // Choose nodes include two nodes followed by the keyword "OTHERWISE" (CHOOSE2)
+    // which is followed by another node
     const predicate = parser.parse(tokens, 0, varMap, registeredNodes);
     const consequent = parser.parse(tokens, 0, varMap, registeredNodes);
     tokens.expectToken('CHOOSE2');
@@ -208,12 +213,12 @@ export class VariableAssignmentParselet implements InitialParselet {
     const position = token2pos(token);
     const id = pos2string(position);
     
-    // deal with variable assignment
     tokens.expectToken('=');
     const assignment = parser.parse(tokens, 0, varMap, registeredNodes);
 
-    // need to save the variable and its assignment in a lookup table
+    // Save the variable and its assignment in the variable map
     varMap[token.text] = id;
+
     let newNode = {
       nodeType: 'VariableAssignment' as 'VariableAssignment',
       name: token.text,
@@ -240,10 +245,12 @@ export class IdentifierParselet implements InitialParselet {
     
     const position = token2pos(token);
     const id = pos2string(position);
-    // need to look up known variables in a lookup table (map?)
 
+    // Look up the node this identifier was assigned to
     const assignmentId = varMap[token.text];
 
+    // An identifier must be previously assigned,
+    // otherwise we call the variable assignment parselet
     if (!assignmentId) {
       const varParselet = new VariableAssignmentParselet();
       return varParselet.parse(parser, tokens, token, varMap, registeredNodes);
