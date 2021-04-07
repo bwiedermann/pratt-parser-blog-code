@@ -29,8 +29,8 @@ export type BooleanNode = {
 export type BinaryOperationNode = {
   nodeType: 'BinaryOperation';
   operator: BinaryOperationTokenType;
-  left: Node;
-  right: Node;
+  left: AnalyzedNode;
+  right: AnalyzedNode;
   outputType: Possible<ValueType> | undefined;
   pos: Position;
   nodeId: string;
@@ -40,7 +40,7 @@ export type BinaryOperationNode = {
 export type FunctionNode = {
   nodeType: 'Function';
   name: string;
-  args: Node[];
+  args: AnalyzedNode[];
   outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
@@ -49,8 +49,8 @@ export type FunctionNode = {
 // This only allows one predicate-consequent pair per choose node
 export type ChooseNode = {
   nodeType: 'Choose';
-  case: { predicate: Node, consequent: Node };
-  otherwise: Node;
+  case: { predicate: AnalyzedNode, consequent: AnalyzedNode };
+  otherwise: AnalyzedNode;
   outputType: Possible<ValueType>;
   pos: Position
   nodeId: string;
@@ -59,7 +59,7 @@ export type ChooseNode = {
 export type VariableAssignmentNode = {
   nodeType: 'VariableAssignment';
   name: string;
-  assignment: Node;
+  assignment: AnalyzedNode;
   outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
@@ -74,7 +74,7 @@ export type IdentifierNode = {
   nodeId: string;
 }
 
-export type Node = 
+export type AnalyzedNode = 
   | BooleanNode 
   | NumberNode 
   | BinaryOperationNode 

@@ -6,6 +6,7 @@ import {ParseError} from './position'
 import {typecheck} from './typechecker';
 import {mudCheck} from './mudChecker';
 import {parseResults} from './parseResults';
+import * as AnalyzedTree from './analyzedTree';
 
 /**
  * The extension for our language
@@ -29,9 +30,10 @@ export const miniCL: StreamParser<State> = {
   const results = view.state.field(parseResults);
 
   let dependsMap: {[key: string]: string[]} = {};
+  let registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode} = {}
   // Error checking
-  const {typeErrors, analyzedNodes} = typecheck(results.nodes, results.registeredNodes);
-  const mudErrors = mudCheck(analyzedNodes, results.registeredNodes, dependsMap);
+  const {errors: typeErrors, aTree: analyzedNodes} = typecheck(results.nodes, registeredNodes);
+  const mudErrors = mudCheck(analyzedNodes, registeredNodes, dependsMap);
 
   // Create a diagnostic for each kind of error
   const parseDiagnostics = results.parseErrors.map(makeDiagnostic(view));

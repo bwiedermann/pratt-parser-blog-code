@@ -19,14 +19,12 @@ function parseProgram(tr: Transaction) : ParseResults {
   const contents = tr.state.doc.toString()
 
   let varMap: {[key: string]: string} = {}
-  let registeredNodes: {[key: string]: AST.Node} = {}
-  const ast = parse(contents, varMap, registeredNodes)
+  const ast = parse(contents, varMap)
 
   return {
     nodes: ast.nodes,
     parseErrors: ast.errors,
-    varMap: varMap,
-    registeredNodes: registeredNodes
+    varMap: varMap
   }
 }
 
@@ -37,7 +35,6 @@ export type ParseResults = {
   nodes: AST.Node[];
   parseErrors: ParseError[];
   varMap: {[key: string]: string};
-  registeredNodes: {[key: string]: AST.Node};
 }
 
 /**
@@ -46,6 +43,5 @@ export type ParseResults = {
 const emptyParseResults: ParseResults = {
   nodes: [],
   parseErrors: [],
-  varMap: {},
-  registeredNodes: {}
+  varMap: {}
 }

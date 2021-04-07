@@ -2,8 +2,9 @@ import {Position} from './position';
 import * as AST from './ast';
 import * as AnalyzedTree from './analyzedTree';
 
-export function typecheck(nodes: AST.Node[], registeredNodes: {[key: string]: AST.Node}): {errors: TypeError[], aTree: AnalyzedTree.Node[]} {
-  const aNodes: AnalyzedTree.Node[] = [];
+export function typecheck(nodes: AST.Node[], registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}):
+                          {errors: TypeError[], aTree: AnalyzedTree.AnalyzedNode[]} {
+  const aNodes: AnalyzedTree.AnalyzedNode[] = [];
   let totalErrors: TypeError[] = [];
 
   nodes.forEach(node => {
@@ -15,7 +16,8 @@ export function typecheck(nodes: AST.Node[], registeredNodes: {[key: string]: AS
   return {errors: totalErrors, aTree: aNodes};
 }
 
-function typecheckNode(node: AST.Node, registeredNodes: {[key: string]: AST.Node}): {errors: TypeError[], aNode: AnalyzedTree.Node} {
+function typecheckNode(node: AST.Node, registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}):
+                        {errors: TypeError[], aNode: AnalyzedTree.AnalyzedNode} {
   return checkerMap[node.nodeType].check(node, registeredNodes);
 }
 
@@ -24,12 +26,14 @@ export class TypeError {
 }
 
 export interface TypeChecker {
-  check(node: AST.Node, registeredNodes: {[key: string]: AST.Node}): {errors: TypeError[], aNode: AnalyzedTree.Node};
+  check(node: AST.Node, registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}):
+        {errors: TypeError[], aNode: AnalyzedTree.AnalyzedNode};
 }
 
 // A number requires no type checking
 class CheckNumber implements TypeChecker {
-  check(node: AST.NumberNode): {errors: TypeError[], aNode: AnalyzedTree.Node} {
+  check(node: AST.NumberNode, registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}):
+        {errors: TypeError[], aNode: AnalyzedTree.AnalyzedNode} {
     let newNode = {
       nodeType: node.nodeType,
       value: node.value,
@@ -42,6 +46,8 @@ class CheckNumber implements TypeChecker {
       pos: node.pos,
       nodeId: node.nodeId
     };
+
+    registeredNodes[newNode.nodeId] = newNode;
 
     return {errors: [], aNode: newNode};
   }
@@ -49,7 +55,8 @@ class CheckNumber implements TypeChecker {
 
 // A boolean requires no type checking
 class CheckBoolean implements TypeChecker {
-  check(node: AST.BooleanNode): {errors: TypeError[], aNode: AnalyzedTree.Node} {
+  check(node: AST.BooleanNode, registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}):
+        {errors: TypeError[], aNode: AnalyzedTree.AnalyzedNode} {
     let newNode = {
       nodeType: node.nodeType,
       value: node.value,
@@ -63,12 +70,15 @@ class CheckBoolean implements TypeChecker {
       nodeId: node.nodeId
     };
 
+    registeredNodes[newNode.nodeId] = newNode;
+
     return {errors: [], aNode: newNode};
   }
 }
 
 class CheckBinary implements TypeChecker {
-  check(node: AST.BinaryOperationNode, registeredNodes: {[key: string]: AST.Node}): {errors: TypeError[], aNode: AnalyzedTree.Node} {
+  check(node: AST.BinaryOperationNode, registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}):
+        {errors: TypeError[], aNode: AnalyzedTree.AnalyzedNode} {
     const { errors: lErrors, aNode: lANode } = typecheckNode(node.left, registeredNodes);
     const { errors: rErrors, aNode: rANode } = typecheckNode(node.right, registeredNodes);
     const totalErrors = lErrors.concat(rErrors);
@@ -103,14 +113,17 @@ class CheckBinary implements TypeChecker {
       nodeId: node.nodeId
     };
 
+    registeredNodes[newNode.nodeId] = newNode;
+
     return {errors: [], aNode: newNode};
   }
 }
 
 class CheckFunction implements TypeChecker {
-  check(node: AST.FunctionNode, registeredNodes: {[key: string]: AST.Node}): {errors: TypeError[], aNode: AnalyzedTree.Node} {
+  check(node: AST.FunctionNode, registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}):
+        {errors: TypeError[], aNode: AnalyzedTree.AnalyzedNode} {
     let totalErrors: TypeError[] = [];
-    let aArgs: AnalyzedTree.Node[] = [];
+    let aArgs: AnalyzedTree.AnalyzedNode[] = [];
 
     // First typecheck the argument(s)
     const { errors: arg1Errors, aNode: arg1Node } = typecheckNode(node.args[0], registeredNodes);
@@ -121,7 +134,7 @@ class CheckFunction implements TypeChecker {
       totalErrors = totalErrors.concat(arg2Errors);
       aArgs.push(arg2Node);
       // Both arguments must have the same type
-      if (node.args[0].valueType != node.args[1].valueType) {
+      if (aArgs[0].outputType.valueType != aArgs[1].outputType.valueType) {
         totalErrors.push(new TypeError("arguments must have same type", node.args[0].pos));
       }
     }
@@ -147,20 +160,23 @@ class CheckFunction implements TypeChecker {
     // otherwise throw an error (we don't know what this function is)
     if (argType) {
       // Assume both arguments are the same type (see error produced above)
-      if (argType != 'any' && newNode.args[0]?.outputType.valueType != argType) {
+      if (argType != 'any' && newNode.args[0].outputType.valueType != argType) {
         totalErrors.push(new TypeError("incompatible argument type for " + functionName, node.pos));
       }
       
     } else {
       totalErrors.push(new TypeError("unknown function", node.pos));
-    }    
+    }
+
+    registeredNodes[newNode.nodeId] = newNode;
 
     return {errors: totalErrors, aNode: newNode};
   }
 }
 
 class CheckChoose implements TypeChecker {
-  check(node: AST.ChooseNode, registeredNodes: {[key: string]: AST.Node}): {errors: TypeError[], aNode: AnalyzedTree.Node} {
+  check(node: AST.ChooseNode, registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}):
+        {errors: TypeError[], aNode: AnalyzedTree.AnalyzedNode} {
     let totalErrors: TypeError[] = [];
 
     const predicate = node.case.predicate;
@@ -200,12 +216,15 @@ class CheckChoose implements TypeChecker {
       nodeId: node.nodeId
     };
 
+    registeredNodes[newNode.nodeId] = newNode;
+
     return {errors: totalErrors, aNode: newNode};
   }
 }
 
 class CheckVariable implements TypeChecker {
-  check(node: AST.VariableAssignmentNode, registeredNodes: {[key: string]: AST.Node}): {errors: TypeError[], aNode: AnalyzedTree.Node} {
+  check(node: AST.VariableAssignmentNode, registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}):
+        {errors: TypeError[], aNode: AnalyzedTree.AnalyzedNode} {
     let totalErrors: TypeError[] = [];
 
     // First typecheck the assignment node
@@ -226,12 +245,15 @@ class CheckVariable implements TypeChecker {
       nodeId: node.nodeId
     };
 
+    registeredNodes[newNode.nodeId] = newNode;
+
     return {errors: totalErrors, aNode: newNode};
   }
 }
 
 class CheckIdentifier implements TypeChecker {
-  check(node: AST.IdentifierNode, registeredNodes: {[key: string]: AST.Node}): {errors: TypeError[], aNode: AnalyzedTree.Node} {
+  check(node: AST.IdentifierNode, registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}):
+        {errors: TypeError[], aNode: AnalyzedTree.AnalyzedNode} {
     let totalErrors: TypeError[] = [];
 
     // Grab the node the identifier was previously assigned to
@@ -248,13 +270,15 @@ class CheckIdentifier implements TypeChecker {
       assignmentId: node.assignmentId,
       outputType: {
         status: 'Maybe-Undefined' as 'Maybe-Undefined',
-        valueType: valueNode.outputType.valueType, // PROBLEM??
+        valueType: valueNode.outputType.valueType, // Shouldn't be problem anymore
         asserts: [],
         constType: 'Constant' as 'Constant'
       },
       pos: node.pos,
       nodeId: node.nodeId
     };
+
+    registeredNodes[newNode.nodeId] = newNode;
 
     return {errors: totalErrors, aNode: newNode};
   }

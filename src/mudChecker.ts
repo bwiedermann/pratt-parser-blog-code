@@ -2,6 +2,7 @@ import {Position} from './position';
 import * as AST from './ast';
 import {findBases} from './findBase';
 import {builtins} from './typechecker';
+import * as AnalyzedTree from './analyzedTree';
 
 /*
   The function mudCheck manipulates the status of each node's outputType.
@@ -12,16 +13,16 @@ import {builtins} from './typechecker';
   definitely undefined operation (e.g. Inverse(0)).
 */
 
-export function mudCheck(nodes: AST.Node[], 
-                        registeredNodes: {[key: string]: AST.Node},
+export function mudCheck(nodes: AnalyzedTree.AnalyzedNode[], 
+                        registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode},
                         dependsMap: {[key: string]: string[]}): TypeError[] {
   const errors = nodes.map(n => mudCheckNode(n, nodes, registeredNodes, dependsMap));
   return ([] as TypeError[]).concat(...errors);
 }
 
-function mudCheckNode(node: AST.Node, 
-                    nodes: AST.Node[], 
-                    registeredNodes: {[key: string]: AST.Node},
+function mudCheckNode(node: AnalyzedTree.AnalyzedNode, 
+                    nodes: AnalyzedTree.AnalyzedNode[], 
+                    registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode},
                     dependsMap: {[key: string]: string[]}): TypeError[] {
   return mudCheckerMap[node.nodeType].mudCheck(node, nodes, registeredNodes, dependsMap);
 }
@@ -31,31 +32,31 @@ export class TypeError {
 }
 
 export interface MudChecker {
-  mudCheck(node: AST.Node, 
-          nodes: AST.Node[], 
-          registeredNodes: {[key: string]: AST.Node},
+  mudCheck(node: AnalyzedTree.AnalyzedNode, 
+          nodes: AnalyzedTree.AnalyzedNode[], 
+          registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode},
           dependsMap: {[key: string]: string[]}): TypeError[];
 }
 
 // Numbers are always defined.
 class MudCheckNumber implements MudChecker {
-  mudCheck(node: AST.NumberNode): TypeError[] {
+  mudCheck(node: AnalyzedTree.NumberNode): TypeError[] {
     return [];
   }
 }
 
 // Booleans are always defined.
 class MudCheckBoolean implements MudChecker {
-    mudCheck(node: AST.BooleanNode): TypeError[] {
+    mudCheck(node: AnalyzedTree.BooleanNode): TypeError[] {
     return [];
   }
 }
 
 // Binary operations must take into account their operands' statuses when determining their own.
 class MudCheckBinary implements MudChecker {
-    mudCheck(node: AST.BinaryOperationNode, 
-            nodes: AST.Node[], 
-            registeredNodes: {[key: string]: AST.Node},
+    mudCheck(node: AnalyzedTree.BinaryOperationNode, 
+            nodes: AnalyzedTree.AnalyzedNode[], 
+            registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode},
             dependsMap: {[key: string]: string[]}): TypeError[] {
         
         // recursively mud-check the left and right operands
@@ -63,10 +64,10 @@ class MudCheckBinary implements MudChecker {
         .concat(mudCheckNode(node.right, nodes, registeredNodes, dependsMap));
 
         // Update the output type of the node, based on the outputType of its operands
-        if (node.right?.outputType?.status == 'Def-Undefined' || node.left?.outputType?.status == 'Def-Undefined') {
+        if (node.right.outputType.status == 'Def-Undefined' || node.left.outputType.status == 'Def-Undefined') {
             node.outputType.status = 'Def-Undefined';
         }
-        else if (node.right?.outputType?.status == 'Maybe-Undefined' || node.left?.outputType?.status == 'Maybe-Undefined') {
+        else if (node.right.outputType.status == 'Maybe-Undefined' || node.left.outputType.status == 'Maybe-Undefined') {
             node.outputType.status = 'Maybe-Undefined';
         } else {
             node.outputType.status = 'Definitely'
@@ -100,9 +101,9 @@ class MudCheckBinary implements MudChecker {
 // The status of a function is determined by its argument and/or its status as defined
 // in the builtins dictionary.
 class MudCheckFunction implements MudChecker {
-    mudCheck(node: AST.FunctionNode, 
-            nodes: AST.Node[], 
-            registeredNodes: {[key: string]: AST.Node},
+    mudCheck(node: AnalyzedTree.FunctionNode, 
+            nodes: AnalyzedTree.AnalyzedNode[], 
+            registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode},
             dependsMap: {[key: string]: string[]}): TypeError[] {
         let errors: TypeError[] = [];
 
@@ -165,9 +166,9 @@ class MudCheckFunction implements MudChecker {
 // The status of a choose node is determined by the status of the consequent
 // given what the predicate asserts and the status of the otherwise statement
 class MudCheckChoose implements MudChecker {
-    mudCheck(node: AST.ChooseNode, 
-            nodes: AST.Node[], 
-            registeredNodes: {[key: string]: AST.Node},
+    mudCheck(node: AnalyzedTree.ChooseNode, 
+            nodes: AnalyzedTree.AnalyzedNode[], 
+            registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode},
             dependsMap: {[key: string]: string[]}): TypeError[] {
         let errors: TypeError[] = [];
 
@@ -207,9 +208,9 @@ class MudCheckChoose implements MudChecker {
 
 // The status of a variable assignment is determined by the status of its assignment
 class MudCheckVariable implements MudChecker {
-    mudCheck(node: AST.VariableAssignmentNode, 
-            nodes: AST.Node[], 
-            registeredNodes: {[key: string]: AST.Node},
+    mudCheck(node: AnalyzedTree.VariableAssignmentNode, 
+            nodes: AnalyzedTree.AnalyzedNode[], 
+            registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode},
             dependsMap: {[key: string]: string[]}): TypeError[] {
     let errors: TypeError[] = [];
 
@@ -230,9 +231,9 @@ class MudCheckVariable implements MudChecker {
 // The status of an identifier is determined by the status of its assignment,
 // given in registered nodes
 class MudCheckIdentifier implements MudChecker {
-    mudCheck(node: AST.IdentifierNode, 
-            nodes: AST.Node[], 
-            registeredNodes: {[key: string]: AST.Node},
+    mudCheck(node: AnalyzedTree.IdentifierNode, 
+            nodes: AnalyzedTree.AnalyzedNode[], 
+            registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode},
             dependsMap: {[key: string]: string[]}): TypeError[] {
     let errors: TypeError[] = [];
 
@@ -264,7 +265,7 @@ const mudCheckerMap: Partial<{[K in AST.NodeType]: MudChecker}> = {
 
 // Given the consequent to a choose node, return true if the given list of asserts
 // includes all of the bases of that consequent
-function handleCheck(consequent: AST.Node,
+function handleCheck(consequent: AnalyzedTree.AnalyzedNode,
                     dependsMap: {[key: string]: string[]},
                     asserts: string[]): boolean {
   let contained = true;
@@ -299,7 +300,7 @@ function handleCheck(consequent: AST.Node,
 }
 
 // This funciton simulates running the body of a miniCL function (like Inverse(x))
-function evaluate(node: AST.FunctionNode): boolean {
+function evaluate(node: AnalyzedTree.FunctionNode): boolean {
   // 0 is the only input to Inverse that makes it undefined
   if (node.name == "Inverse") {
     if (node.args[0].value == 0) {

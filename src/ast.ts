@@ -31,7 +31,6 @@ export type BinaryOperationNode = {
   operator: BinaryOperationTokenType;
   left: Node;
   right: Node;
-  valueType: ValueType; // or undefined?
   pos: Position;
   nodeId: string;
 };
@@ -41,7 +40,6 @@ export type FunctionNode = {
   nodeType: 'Function';
   name: string;
   args: Node[];
-  valueType: ValueType;
   pos: Position;
   nodeId: string;
 }
@@ -51,7 +49,6 @@ export type ChooseNode = {
   nodeType: 'Choose';
   case: { predicate: Node, consequent: Node };
   otherwise: Node;
-  valueType: ValueType;
   pos: Position
   nodeId: string;
 }
@@ -60,7 +57,6 @@ export type VariableAssignmentNode = {
   nodeType: 'VariableAssignment';
   name: string;
   assignment: Node;
-  valueType: ValueType;
   pos: Position;
   nodeId: string;
 }
@@ -69,7 +65,6 @@ export type IdentifierNode = {
   nodeType: 'Identifier';
   name: string;
   assignmentId: string;
-  valueType: ValueType;
   pos: Position;
   nodeId: string;
 }

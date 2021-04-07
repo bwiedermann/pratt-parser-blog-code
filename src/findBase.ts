@@ -1,5 +1,6 @@
 import * as AST from './ast';
 import {builtins} from './typechecker';
+import * as AnalyzedTree from './analyzedTree';
 
 /*
     The findBases function, given an AST node and the current dependsMap, determines
@@ -10,31 +11,31 @@ import {builtins} from './typechecker';
     introduces the possibility to be undefined.
 */
 
-export function findBases(node: AST.Node, dependsMap: {[key: string]: string[]}): string[] {
+export function findBases(node: AnalyzedTree.AnalyzedNode, dependsMap: {[key: string]: string[]}): string[] {
     return baseMap[node.nodeType].findBase(node, dependsMap); 
 }
 
 export interface BaseFinder {
-  findBase(node: AST.Node, dependsMap: {[key: string]: string[]}): string[];
+  findBase(node: AnalyzedTree.AnalyzedNode, dependsMap: {[key: string]: string[]}): string[];
 }
 
 // Numbers are constant, and therefore cannot have bases
 class BaseNumber implements BaseFinder {
-  findBase(node: AST.NumberNode): string[] {
+  findBase(node: AnalyzedTree.NumberNode): string[] {
     return []
   }
 }
 
 // Booleans are constant, and therefore cannot have bases
 class BaseBoolean implements BaseFinder {
-    findBase(node: AST.BooleanNode): string[] {
+    findBase(node: AnalyzedTree.BooleanNode): string[] {
         return []
     }
 }
 
 // Binary operations could have bases on either side of their operator
 class BaseBinary implements BaseFinder {
-    findBase(node: AST.BinaryOperationNode, dependsMap: {[key: string]: string[]}): string[] {
+    findBase(node: AnalyzedTree.BinaryOperationNode, dependsMap: {[key: string]: string[]}): string[] {
         let baseList: string[] = [];
         // recursively call findBases on left and right
         let leftList = findBases(node.left, dependsMap);
@@ -51,7 +52,7 @@ class BaseBinary implements BaseFinder {
 // Otherwise, the base of the function is determined by its argument(s)
 // This means that the base is the id of the function node itself
 class BaseFunction implements BaseFinder {
-    findBase(node: AST.FunctionNode, dependsMap: {[key: string]: string[]}): string[] {
+    findBase(node: AnalyzedTree.FunctionNode, dependsMap: {[key: string]: string[]}): string[] {
         let baseList: string[] = [];
 
         if (node.outputType.status == 'Def-Undefined') {
@@ -73,7 +74,7 @@ class BaseFunction implements BaseFinder {
 
 // The bases of choose nodes are determined by the bases of their consequent and their otherwise
 class BaseChoose implements BaseFinder {
-    findBase(node: AST.ChooseNode, dependsMap: {[key: string]: string[]}): string[] {
+    findBase(node: AnalyzedTree.ChooseNode, dependsMap: {[key: string]: string[]}): string[] {
         let baseList: string[] = [];
  
         let consBases = findBases(node.case.consequent, dependsMap);
@@ -88,7 +89,7 @@ class BaseChoose implements BaseFinder {
 
 // Variable assignments are constant, and therefore cannot have bases
 class BaseVariableAssignment implements BaseFinder {
-    findBase(node: AST.VariableAssignmentNode): string[] {
+    findBase(node: AnalyzedTree.VariableAssignmentNode): string[] {
         return []
     }
 }
@@ -96,7 +97,7 @@ class BaseVariableAssignment implements BaseFinder {
 // The bases of an identifier are stored in the dependsMap, which has a reference
 // to its assignment.
 class BaseIdentifier implements BaseFinder {
-    findBase(node: AST.IdentifierNode, dependsMap: {[key: string]: string[]}): string[] {
+    findBase(node: AnalyzedTree.IdentifierNode, dependsMap: {[key: string]: string[]}): string[] {
         // follow the chain in the dependsMap
         return dependsMap[node.assignmentId];
     }
