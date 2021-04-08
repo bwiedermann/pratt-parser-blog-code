@@ -127,7 +127,7 @@ class MudCheckFunction implements MudChecker {
         // If sink "node" takes in possibly undefined values, warn the author
         if (functionName == 'Sink') {
           // a sink has one argument
-          if (node.args[0]?.outputType?.status != 'Definitely') {
+          if (node.args[0].outputType.status != 'Definitely') {
               errors.push(new TypeError("User facing content could be undefined.", node.args[0].pos));
           }
         }
