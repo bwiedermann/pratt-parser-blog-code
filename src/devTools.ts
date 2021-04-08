@@ -39,13 +39,13 @@ function newJSONViewerState(): EditorState {
 // JSON viewer for AST
 let astViewer = new EditorView({
   state: newJSONViewerState(),
-  parent: document.querySelector("#ast-json"),
+  parent: document.querySelector("#ast-json") as Element,
 });
 
 // JSON viewer for depends map
 let dependsViewer = new EditorView({
   state: newJSONViewerState(),
-  parent: document.querySelector("#depends-json"),
+  parent: document.querySelector("#depends-json") as Element,
 });
 
 /**

@@ -12,10 +12,10 @@ export function darCheck(nodes: AST.Node[],  registeredNodes: {[key: string]: AS
 }
 
 function darCheckNode(node: AST.Node, nodes: AST.Node[], registeredNodes: {[key: string]: AST.Node}): TypeError[] {
-    if (darCheckerMap != undefined && node.nodeType != undefined && darCheckerMap[node.nodeType] == undefined){
+    if (darCheckerMap != undefined && node != undefined && node.nodeType != undefined && darCheckerMap[node.nodeType] == undefined){
         return [];
     }else{
-        return darCheckerMap[node.nodeType].darCheck(node, nodes, registeredNodes);
+        return darCheckerMap[node!.nodeType]!.darCheck(node, nodes, registeredNodes);
     }
 }
 
@@ -183,13 +183,34 @@ class DarCheckIdentifier implements DarChecker {
 
 
 
+
+class DarCheckAny implements DarChecker {
+    darCheck(node: AST.Node): TypeError[] {
+        return [];
+    }
+}
+
+
+
 const darCheckerMap: Partial<{[K in AST.NodeType]: DarChecker}> = {
 'Number' : new DarCheckNumber(),
-//'Boolean' : new CheckBoolean(),
+'Boolean' : new DarCheckAny(),
 'BinaryOperation' : new DarCheckBinary(),
 'Function' : new DarCheckFunction(),
-//'Choose': new CheckChoose(),
+'Choose': new DarCheckAny(),
 'VariableAssignment': new DarCheckVariable(),
 'Identifier': new DarCheckIdentifier(),
 'Iterator': new DarCheckIterator(),
+'RangeIdentifier': new DarCheckAny(),
+'SinkAssignment': new DarCheckAny(),
+'String': new DarCheckAny(),
+'Pair': new DarCheckAny(),
+'CalculatorReference': new DarCheckAny(),
+'Program': new DarCheckAny(),
 }
+
+
+
+
+
+

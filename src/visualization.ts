@@ -98,11 +98,11 @@ export function visualize(nodes: AST.Node[]): void {
 }
 
 // From https://stackoverflow.com/questions/32026194/how-to-add-a-background-color-to-d3-text-elements
-function getTextBox(selection) {
-  selection.each(function(d){d.bbox = this.getBBox();})
+function getTextBox(selection : any) {
+  selection.each(function(d : any){d.bbox = this.getBBox();})
 }
 
-function yep(selection) {
+function yep(selection : any) {
   // console.log(selection.nodes().map((d)=>d.bbox));
 }
 
@@ -111,21 +111,26 @@ const connection = d3shape.linkHorizontal().x(d => d.y).y(d => d.x)
 
 function getChildren(node: AST.Node): AST.Node[] {
   var children: AST.Node[] = [];
-  switch (node.nodeType) {
+  switch (node!.nodeType) {
     case 'Program':
-      children = node.children;
+      node = node as AST.ProgramNode;
+      children = node!.children;
       break;
     case 'Function':
-      children = node.args;
+      node = node as AST.FunctionNode;
+      children = node!.args;
       break;
     case 'Choose':
-      children = [node.case.predicate, node.case.consequent, node.otherwise];
+      node = node as AST.ChooseNode;
+      children = [node!.case.predicate, node!.case.consequent, node!.otherwise];
       break;
     case 'BinaryOperation':
-      children = [node.left, node.right];
+      node = node as AST.BinaryOperationNode;
+      children = [node!.left, node.right];
       break;
     case 'VariableAssignment':
-      children = [node.assignment];
+      node = node as AST.VariableAssignmentNode;
+      children = [node!.assignment];
       break;
     default:
       children = [];
@@ -134,31 +139,37 @@ function getChildren(node: AST.Node): AST.Node[] {
   return children;
 }
 
-function getText(node) {
+function getText(node: AST.Node) {
   var text = "";
-  switch (node.nodeType) {
+  switch (node!.nodeType) {
     case 'Program':
       text = '';
       break;
     case 'Function':
+      node = node as AST.FunctionNode;
       text = node.name;
       break;
     case 'Choose':
       text = "choose";
       break;
     case 'BinaryOperation':
+      node = node as AST.BinaryOperationNode;
       text = node.operator;
       break;
     case 'VariableAssignment':
+      node = node as AST.VariableAssignmentNode;
       text = node.name;
       break;
     case 'Identifier':
+      node = node as AST.IdentifierNode;
       text = node.name;
       break;
     case 'Number':  
+      node = node as AST.NumberNode;
       text = node.value.toString();
       break;
     case 'Boolean':
+      node = node as AST.BooleanNode;
       text = node.value.toString();
       break;
     default:
@@ -168,7 +179,7 @@ function getText(node) {
   return text;
 }
 
-function getFill(node): string {
+function getFill(node : AST.ProgramNode): string {
   if (isUndefined(node)) {
     return '#fc6666'
   }
@@ -179,6 +190,6 @@ function getFill(node): string {
   }
 }
 
-function isUndefined(d) {
+function isUndefined(d : any) {
   return d.data.outputType?.status === 'Maybe-Undefined'
 }

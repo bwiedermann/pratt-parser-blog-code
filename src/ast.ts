@@ -14,7 +14,8 @@ export type NodeType =
   | 'Pair'
   | 'CalculatorReference'
   | 'Iterator'
-  | 'Program';
+  | 'Program'
+  | 'RangeIdentifier';
 
 export type NumberNode = {
   nodeType: 'Number';
@@ -46,7 +47,7 @@ export type BinaryOperationNode = {
 export type FunctionNode = {
   nodeType: 'Function';
   name: string;
-  args: Node[];
+  args: Exclude<Node, ProgramNode>[]; //Everything except program node
   outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
@@ -54,8 +55,8 @@ export type FunctionNode = {
 
 export type ChooseNode = {
   nodeType: 'Choose';
-  case: { predicate: Node, consequent: Node };
-  otherwise: Node;
+  case: { predicate: Exclude<Node, ProgramNode>, consequent: Exclude<Node, ProgramNode> };
+  otherwise: Exclude<Node, ProgramNode>;
   outputType: Possible<ValueType>;
   pos: Position
   nodeId: string;
@@ -71,13 +72,23 @@ export type VariableAssignmentNode = {
 }
 
 export type IdentifierNode = {
-  nodeType: 'Identifier';
+  nodeType: 'Identifier' | 'RangeIdentifier';
   name: string;
   assignmentId: string;
   outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
 }
+
+//export type RangeIdentiferNode = {
+//  nodeType: 'RangeIdentifier';
+///  name: string;
+////  outputType: Possible<ValueType>;
+//  pos: Position;
+///  nodeId: string;
+//}
+
+
 
 export type ProgramNode = {
   nodeType: 'Program';
@@ -95,7 +106,6 @@ export type IteratorNode = {
   start: Node;
   end: Node;
   step: Node;
-
 }
 
 export type Node = 

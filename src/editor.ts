@@ -1,5 +1,4 @@
 import CM from 'codemirror';
-
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/addon/lint/lint'
 import 'codemirror/addon/lint/lint.css'

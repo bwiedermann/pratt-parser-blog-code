@@ -10,7 +10,14 @@ export function typecheck(nodes: AST.Node[], registeredNodes: {[key: string]: AS
 }
 
 function typecheckNode(node: AST.Node, registeredNodes: {[key: string]: AST.Node}): TypeError[] {
-  return checkerMap[node.nodeType].check(node, registeredNodes);
+
+  if (node != undefined && node.nodeType != undefined && checkerMap[node.nodeType] != undefined){
+    return checkerMap[node.nodeType]!.check(node, registeredNodes);
+  } else {
+    return [];
+  }
+
+  
 }
 
 export class TypeError {
@@ -66,7 +73,8 @@ class CheckFunction implements TypeChecker {
       const arg2Errors = typecheckNode(node.args[1], registeredNodes);
       errors = errors.concat(arg2Errors);
       if (node.args[0]?.outputType?.valueType != node.args[1]?.outputType?.valueType) {
-        errors.push(new TypeError("arguments must have same type", node.args[0].pos));
+
+        errors.push(new TypeError("arguments must have same type", node.args[0]!.pos));
       }
     }
 
@@ -108,13 +116,13 @@ class CheckChoose implements TypeChecker {
 
     // check return types are the same for both cases
     if (consequent?.outputType?.valueType != otherwise?.outputType?.valueType) {
-      errors.push(new TypeError("Return types are not the same for both cases", consequent.pos));
-      errors.push(new TypeError("Return types are not the same for both cases", otherwise.pos));
+      errors.push(new TypeError("Return types are not the same for both cases", consequent!.pos));
+      errors.push(new TypeError("Return types are not the same for both cases", otherwise!.pos));
     }
 
     // check that the predicate returns a boolean
-    if (predicate.outputType.valueType != 'boolean') {
-      errors.push(new TypeError("Predicate must return a boolean", predicate.pos));
+    if (predicate!.outputType!.valueType != 'boolean') {
+      errors.push(new TypeError("Predicate must return a boolean", predicate!.pos));
     }
 
     node.outputType.valueType = consequent?.outputType?.valueType;
@@ -141,7 +149,9 @@ class CheckIdentifier implements TypeChecker {
     let errors: TypeError[] = [];
 
     // Maybe make assigmentId be valueId?
-    let valueNode = registeredNodes[node.assignmentId].assignment;
+    let assignmentNode : any = registeredNodes[node.assignmentId];
+    let valueNode = assignmentNode.assignment;
+    //let valueNode : AST.VariableAssignmentNode = registeredNodes[node.assignmentId]!.assignment;
 
     // If this assignmentId is not found in the AST, throw an error
     if (valueNode == undefined) {
@@ -155,6 +165,13 @@ class CheckIdentifier implements TypeChecker {
 }
 
 class CheckIterator implements TypeChecker {
+  check(node: AST.IteratorNode): TypeError[] {
+    return [];
+  }
+}
+
+
+class CheckRangeIdentifier implements TypeChecker {
   check(node: AST.IteratorNode): TypeError[] {
     return [];
   }
@@ -182,4 +199,5 @@ const checkerMap: Partial<{[K in AST.NodeType]: TypeChecker}> = {
   'VariableAssignment': new CheckVariable(),
   'Identifier': new CheckIdentifier(),
   'Iterator': new CheckIterator(),
+  'RangeIdentifier': new CheckRangeIdentifier(),
 }

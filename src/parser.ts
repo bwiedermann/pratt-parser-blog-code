@@ -118,7 +118,7 @@ export abstract class AbstractParser {
 }
 
 export class Parser extends AbstractParser {
-  initialMap() {
+  initialMap() : any { //TODO: Setting this to any is hacky...
     return {
       NUMBER: new Parselet.NumberParselet(),
       TRUE: new Parselet.BooleanParselet(true),
@@ -130,6 +130,7 @@ export class Parser extends AbstractParser {
       IDENTIFIER: new Parselet.IdentifierParselet()
     };
   }
+
 
   consequentMap() {
     return {

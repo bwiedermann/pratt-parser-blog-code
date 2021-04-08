@@ -1,10 +1,10 @@
 import * as AST from './ast';
 
 export function equals(left: AST.Node, right: AST.Node): Boolean {
-  if (left.nodeType != right.nodeType) {
+  if (left!.nodeType != right!.nodeType) {
     return false;
   } else {
-    return equalsMap[left.nodeType].eq(left, right);
+    return equalsMap[left!.nodeType]!.eq(left, right);
   }
     
 }

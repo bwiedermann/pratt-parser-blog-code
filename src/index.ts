@@ -19,7 +19,7 @@ let miniCLEditor = new EditorView({
     ],
   }),
   dispatch: updateOutput,
-  parent: document.querySelector("#miniCL-editor")
+  parent: document.querySelector("#miniCL-editor") as Element
 })
 
 // When the content changes, update the editor and the dev tools

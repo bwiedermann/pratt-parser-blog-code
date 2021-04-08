@@ -5,7 +5,7 @@ export function getTokens(text: string): Token[] {
   const state: State = {line: 1, stack: ['default']};
 
   for (const line of text.split('\n')) {
-    const stream = new StringStream();
+    const stream = new StringStream(line, 4, 1);
     stream.string = line;
     while (!stream.eol()) {
       const token = getToken(stream, state);
@@ -140,6 +140,7 @@ export function getDefaultToken(
     return 'CHOOSE2';
   }
 
+
   if (stream.match(/[A-Z]([a-z|A-Z])*/)) {
     return 'FUNCTION';
   }
@@ -147,10 +148,14 @@ export function getDefaultToken(
   // Identifiers
   // For now, the form of a valid identifier is: a lower-case alphabetic character,
   // followed by zero or more alpha characters.
-  if (stream.match(/[a-z]([a-z|A-Z])*/)) {
+  //if (stream.match(/[A-Za-z][\w$]*(\.[\w$]+)?(\[\d+])?/)) {
+  //  return 'IDENTIFIER';
+  //}
+  if (stream.match(/[A-Za-z][(\w|\%)$]*(\.[\w$]+)?(\[\d+])?/)) {
     return 'IDENTIFIER';
   }
-  
+
+
 
   stream.next();
   return 'ERROR';
@@ -181,6 +186,7 @@ export type TokenType =
   | 'RANGE'
   | '['
   | ']'
+  | 'RANGEIDENTIFIER'
 
 export interface Token<T extends TokenType = TokenType> {
   type: T;

@@ -1,21 +1,21 @@
 {
-  "currentId": 189,
+  "currentId": 190,
   "modules": {
     "1": {
       "absPath": "C:\\Users\\harrismcc\\Documents\\pratt-parser-blog-code\\src\\index.ts",
       "dependencies": [
-        12,
-        10,
-        2,
+        5,
         6,
         7,
-        4,
-        5,
         8,
-        9
+        9,
+        10,
+        12,
+        2,
+        4
       ],
       "id": 1,
-      "mtime": 1616640583299,
+      "mtime": 1617749294196,
       "packageId": "default",
       "publicPath": "src/index.ts"
     },
@@ -44,19 +44,19 @@
       "dependencies": [
         14,
         15,
+        30,
         28,
         25,
-        24,
-        5,
-        32,
         31,
+        32,
         33,
         34,
         35,
         36,
         37,
         38,
-        30
+        24,
+        5
       ],
       "id": 4,
       "mtime": 499162500000,
@@ -80,13 +80,13 @@
     "6": {
       "absPath": "C:\\Users\\harrismcc\\Documents\\pratt-parser-blog-code\\src\\miniCL.ts",
       "dependencies": [
-        8,
         19,
         20,
-        21
+        21,
+        8
       ],
       "id": 6,
-      "mtime": 1616640583300,
+      "mtime": 1617920239260,
       "packageId": "default",
       "publicPath": "src/miniCL.ts"
     },
@@ -117,15 +117,15 @@
     "9": {
       "absPath": "C:\\Users\\harrismcc\\Documents\\pratt-parser-blog-code\\src\\devTools.ts",
       "dependencies": [
+        28,
+        29,
         4,
         5,
         8,
-        28,
-        27,
-        29
+        27
       ],
       "id": 9,
-      "mtime": 1616640583299,
+      "mtime": 1617749286885,
       "packageId": "default",
       "publicPath": "src/devTools.ts"
     },
@@ -225,7 +225,7 @@
         7
       ],
       "id": 19,
-      "mtime": 1616641620808,
+      "mtime": 1617747171823,
       "packageId": "default",
       "publicPath": "src/lexer.ts"
     },
@@ -233,7 +233,7 @@
       "absPath": "C:\\Users\\harrismcc\\Documents\\pratt-parser-blog-code\\src\\typechecker.ts",
       "dependencies": [],
       "id": 20,
-      "mtime": 1616643243472,
+      "mtime": 1617749067421,
       "packageId": "default",
       "publicPath": "src/typechecker.ts"
     },
@@ -241,7 +241,7 @@
       "absPath": "C:\\Users\\harrismcc\\Documents\\pratt-parser-blog-code\\src\\darChecker.ts",
       "dependencies": [],
       "id": 21,
-      "mtime": 1616644671665,
+      "mtime": 1617746983722,
       "packageId": "default",
       "publicPath": "src/darChecker.ts"
     },
@@ -253,7 +253,7 @@
         41
       ],
       "id": 22,
-      "mtime": 1616641722072,
+      "mtime": 1617749533747,
       "packageId": "default",
       "publicPath": "src/parser.ts"
     },
@@ -304,9 +304,9 @@
     "27": {
       "absPath": "C:\\Users\\harrismcc\\Documents\\pratt-parser-blog-code\\node_modules\\@codemirror\\lang-json\\dist\\index.js",
       "dependencies": [
+        45,
         25,
-        24,
-        45
+        24
       ],
       "id": 27,
       "mtime": 499162500000,
@@ -331,11 +331,11 @@
       "absPath": "C:\\Users\\harrismcc\\Documents\\pratt-parser-blog-code\\src\\visualization.ts",
       "dependencies": [
         46,
-        48,
-        47
+        47,
+        48
       ],
       "id": 29,
-      "mtime": 1616640583302,
+      "mtime": 1617750261303,
       "packageId": "default",
       "publicPath": "src/visualization.ts"
     },
@@ -462,7 +462,7 @@
         49
       ],
       "id": 39,
-      "mtime": 1616644160481,
+      "mtime": 1617747878023,
       "packageId": "default",
       "publicPath": "src/parselet.ts"
     },
@@ -525,20 +525,20 @@
       "absPath": "C:\\Users\\harrismcc\\Documents\\pratt-parser-blog-code\\node_modules\\d3-hierarchy\\src\\index.js",
       "dependencies": [
         50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
         57,
         58,
-        61,
         59,
-        54,
+        60,
+        61,
         62,
         63,
-        60,
-        64,
-        51,
-        56,
-        53,
-        52,
-        55
+        64
       ],
       "id": 46,
       "mtime": 1577986094000,
@@ -550,19 +550,19 @@
       "dependencies": [
         66,
         67,
-        69,
         68,
+        69,
         70,
         71,
+        72,
         73,
         74,
+        75,
+        76,
         77,
         78,
-        80,
         79,
-        72,
-        75,
-        76
+        80
       ],
       "id": 47,
       "mtime": 1598201443000,
@@ -572,31 +572,37 @@
     "48": {
       "absPath": "C:\\Users\\harrismcc\\Documents\\pratt-parser-blog-code\\node_modules\\d3-shape\\src\\index.js",
       "dependencies": [
+        81,
+        82,
         83,
+        84,
+        85,
         86,
         87,
         88,
         89,
-        91,
         90,
+        91,
         92,
         93,
         94,
         95,
         96,
-        100,
-        99,
-        101,
+        97,
         98,
+        99,
+        100,
+        101,
         102,
+        103,
+        104,
+        105,
         106,
         107,
         108,
-        104,
         109,
         110,
         111,
-        103,
         112,
         113,
         114,
@@ -604,18 +610,12 @@
         116,
         117,
         118,
-        105,
-        120,
         119,
+        120,
         121,
         122,
-        124,
         123,
-        81,
-        84,
-        97,
-        85,
-        82
+        124
       ],
       "id": 48,
       "mtime": 499162500000,
@@ -626,7 +626,7 @@
       "absPath": "C:\\Users\\harrismcc\\Documents\\pratt-parser-blog-code\\src\\findBase.ts",
       "dependencies": [],
       "id": 49,
-      "mtime": 1616644801654,
+      "mtime": 1617818885889,
       "packageId": "default",
       "publicPath": "src/findBase.ts"
     },
@@ -1991,6 +1991,14 @@
       "mtime": 1597838326000,
       "packageId": "d3-path@2.0.0",
       "publicPath": "node_modules/d3-path/src/path.js"
+    },
+    "190": {
+      "absPath": "C:\\Users\\harrismcc\\Documents\\pratt-parser-blog-code\\src\\ast.ts",
+      "dependencies": [],
+      "id": 190,
+      "mtime": 1617748682751,
+      "packageId": "default",
+      "publicPath": "src/ast.ts"
     }
   },
   "packages": {

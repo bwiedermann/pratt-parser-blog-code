@@ -24,15 +24,15 @@ export class NumberParselet implements InitialParselet {
     const position = token2pos(token);
     const id = pos2string(position);
     // add node to the map
-    let newNode = {
+    let newNode : AST.NumberNode = {
       nodeType: 'Number' as 'Number',
       value: parseFloat(token.text),
       outputType: { status: 'Definitely' as 'Definitely',
-                    valueType: 'number' as 'number' },
+                    valueType: 'number' as 'number',
+                    value: undefined },
       pos: position,
       nodeId: id
     };
-    console.log("The number parslet is running now!")
     registeredNodes[id] = newNode;
     return newNode;
   }
@@ -51,7 +51,8 @@ export class BooleanParselet implements InitialParselet {
       nodeType: 'Boolean' as 'Boolean',
       value: this.value,
       outputType: { status: 'Definitely' as 'Definitely',
-                    valueType: 'boolean' as 'boolean' },
+                    valueType: 'boolean' as 'boolean',
+                    value: undefined},
       pos: position,
       nodeId: id
     };
@@ -91,10 +92,9 @@ export class BracketParselet implements InitialParselet {
     const position = token2pos(token);
     const id = pos2string(position);
     // add node to the map
-    let newNode = {
+    let newNode : AST.IteratorNode = {
       nodeType: 'Iterator' as 'Iterator',
-      outputType: { status: 'Definitely' as 'Definitely',
-                    valueType: 'number' as 'number' },
+      outputType: undefined,
       pos: position,
       nodeId: id,
       index: 0,
@@ -140,7 +140,7 @@ export class BinaryOperatorParselet extends ConsequentParselet {
   parse(
     parser: AbstractParser,
     tokens: TokenStream,
-    left: AST.Node,
+    left: Exclude<Exclude<AST.Node, AST.ProgramNode>, undefined>,
     token: Token,
     varMap: {[key: string]: string},
     registeredNodes: {[key: string]: AST.Node},
@@ -163,7 +163,8 @@ export class BinaryOperatorParselet extends ConsequentParselet {
       left,
       right,
       outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
-                    valueType: undefined },
+                    valueType: undefined,
+                    value: undefined},
       pos: position,
       nodeId: id
     };
@@ -199,7 +200,8 @@ export class FunctionParselet implements InitialParselet {
       name: token.text,
       args: args,
       outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
-                    valueType: undefined },
+                    valueType: undefined,
+                    value: undefined },
       pos: position,
       nodeId: id
     };
@@ -228,7 +230,8 @@ export class ChooseParselet implements InitialParselet {
       case: { predicate: predicate, consequent: consequent },
       otherwise: otherwise,
       outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
-                    valueType: undefined },
+                    valueType: undefined,
+                    value: undefined },
       pos: position,
       nodeId: id
     };
@@ -248,6 +251,11 @@ export class VariableAssignmentParselet implements InitialParselet {
     const position = token2pos(token);
     const id = pos2string(position);
     
+    //is this a special '%' assignment or identifier?
+
+
+    
+
     // deal with variable assignment
     tokens.expectToken('=');
     const assignment = parser.parse(tokens, 0, varMap, registeredNodes, dependsMap);
@@ -255,20 +263,41 @@ export class VariableAssignmentParselet implements InitialParselet {
 
     // need to save the variable and its assignment in a lookup table
     varMap[token.text] = id;
-    let newNode = {
-      nodeType: 'VariableAssignment' as 'VariableAssignment',
-      name: token.text,
-      assignment: assignment,
-      outputType: { status: "Maybe-Undefined" as "Maybe-Undefined",
-                    valueType: assignment?.outputType?.valueType },
-      pos: position,
-      nodeId: id
-    };
-    registeredNodes[id] = newNode;
-    dependsMap[id] = findBases(assignment, dependsMap); // NEW FUNCTION HERE
+
+    if (token.text.indexOf("%") != -1){
+
+      let newNode = {
+        nodeType: 'VariableAssignment' as 'VariableAssignment',
+        name: token.text,
+        assignment: assignment,
+        outputType: { status: "Maybe-Undefined" as "Maybe-Undefined",
+                      valueType: assignment?.outputType?.valueType,
+                      value: undefined },
+        pos: position,
+        nodeId: id
+      };
+      registeredNodes[id] = newNode;
+      dependsMap[id] = findBases(assignment, dependsMap); // NEW FUNCTION HERE
+      return newNode;
+
+    } else {
+      let newNode = {
+        nodeType: 'VariableAssignment' as 'VariableAssignment',
+        name: token.text,
+        assignment: assignment,
+        outputType: { status: "Maybe-Undefined" as "Maybe-Undefined",
+                      valueType: assignment?.outputType?.valueType,
+                      value: undefined },
+        pos: position,
+        nodeId: id
+      };
+      registeredNodes[id] = newNode;
+      dependsMap[id] = findBases(assignment, dependsMap); // NEW FUNCTION HERE
+      return newNode;
+    }
 
  
-    return newNode;
+
   }
 }
 
@@ -284,24 +313,44 @@ export class IdentifierParselet implements InitialParselet {
     const id = pos2string(position);
     // need to look up known variables in a lookup table (map?)
 
+
     const assignmentId = varMap[token.text];
 
     if (!assignmentId) {
+      //if the variable is an assignment
       const varParselet = new VariableAssignmentParselet();
       return varParselet.parse(parser, tokens, token, varMap, registeredNodes, dependsMap);
+
     }
     else {
-      let newNode = {
-        nodeType: 'Identifier' as 'Identifier',
-        name: token.text,
-        assignmentId: assignmentId,
-        outputType: { status: "Maybe-Undefined" as "Maybe-Undefined",
-                      valueType: undefined },
-        pos: position,
-        nodeId: id
-      };
-      registeredNodes[id] = newNode;
-      return newNode;
+      if (token.text.indexOf("%") != -1){
+        let newNode = {
+          nodeType: 'RangeIdentifier' as 'RangeIdentifier',
+          name: token.text,
+          assignmentId: assignmentId,
+          outputType: { status: "Maybe-Undefined" as "Maybe-Undefined",
+                        valueType: undefined,
+                        value: undefined },
+          pos: position,
+          nodeId: id
+        };
+        registeredNodes[id] = newNode;
+        return newNode;
+      } else {
+        let newNode = {
+          nodeType: 'Identifier' as 'Identifier',
+          name: token.text,
+          assignmentId: assignmentId,
+          outputType: { status: "Maybe-Undefined" as "Maybe-Undefined",
+                        valueType: undefined,
+                        value: undefined },
+          pos: position,
+          nodeId: id
+        };
+        registeredNodes[id] = newNode;
+        return newNode;
+      }
+
     }
   }
 }

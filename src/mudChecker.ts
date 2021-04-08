@@ -1,6 +1,7 @@
-ouimport {Position} from './position';
+
+/*
+import {Position} from './position';
 import * as AST from './ast';
-import {equals} from './equals';
 import {findBases} from './findBase';
 
 export function mudCheck(nodes: AST.Node[], 
@@ -16,7 +17,7 @@ function mudCheckNode(node: AST.Node,
                     registeredNodes: {[key: string]: AST.Node},
                     dependsMap: {[key: string]: string[]},
                     assertMap: string[]): TypeError[] {
-  return mudCheckerMap[node.nodeType].mudCheck(node, nodes, registeredNodes, dependsMap, assertMap);
+  return mudCheckerMap[node!.nodeType]!.mudCheck(node, nodes, registeredNodes, dependsMap, assertMap);
 }
 
 export class TypeError {
@@ -590,3 +591,5 @@ function doBinOp(predicate: AST.Node,
 
   return consDef;
 }
+
+*/

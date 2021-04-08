@@ -20,7 +20,10 @@
     "@codemirror/lang-javascript": "^0.18.0",
     "@codemirror/lang-json": "^0.18.0",
     "@codemirror/stream-parser": "^0.18.0",
+    "@types/codemirror": "0.0.108",
     "@types/d3": "^6.3.0",
-    "d3": "^6.5.0"
+    "codemirror": "^5.60.0",
+    "d3": "^6.5.0",
+    "typedoc": "^0.20.35"
   }
 }

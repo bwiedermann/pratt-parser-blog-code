@@ -1,838 +1,5 @@
 __fuse.bundle({
 
-// node_modules/fuse-box/modules/fuse-box-css/index.js @11
-11: function(__fusereq, exports, module){
-var cssHandler = function (__filename, contents) {
-  var styleId = __filename.replace(/[\.\/]+/g, '-');
-  if (styleId.charAt(0) === '-') styleId = styleId.substring(1);
-  var exists = document.getElementById(styleId);
-  if (!exists) {
-    var s = document.createElement(contents ? 'style' : 'link');
-    s.id = styleId;
-    s.type = 'text/css';
-    if (contents) {
-      s.innerHTML = contents;
-    } else {
-      s.rel = 'stylesheet';
-      s.href = __filename;
-    }
-    document.getElementsByTagName('head')[0].appendChild(s);
-  } else {
-    if (contents) exists.innerHTML = contents;
-  }
-};
-module.exports = cssHandler;
-
-},
-
-// node_modules/fuse-box/modules/fuse-box-websocket/index.js @3
-3: function(__fusereq, exports, module){
-const events = __fusereq(13);
-function log(text) {
-  console.info(`%c${text}`, 'color: #237abe');
-}
-class SocketClient {
-  constructor(opts) {
-    opts = opts || ({});
-    const port = opts.port || window.location.port;
-    const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const domain = location.hostname || 'localhost';
-    if (opts.connectionURL) {
-      this.url = opts.connectionURL;
-    } else {
-      if (opts.useCurrentURL) {
-        this.url = protocol + location.hostname + (location.port ? ':' + location.port : '');
-      }
-      if (opts.port) {
-        this.url = `${protocol}${domain}:${opts.port}`;
-      }
-    }
-    this.authSent = false;
-    this.emitter = new events.EventEmitter();
-  }
-  reconnect(fn) {
-    setTimeout(() => {
-      this.emitter.emit('reconnect', {
-        message: 'Trying to reconnect'
-      });
-      this.connect(fn);
-    }, 5000);
-  }
-  on(event, fn) {
-    this.emitter.on(event, fn);
-  }
-  connect(fn) {
-    setTimeout(() => {
-      log(`Connecting to FuseBox HMR at ${this.url}`);
-      this.client = new WebSocket(this.url);
-      this.bindEvents(fn);
-    }, 0);
-  }
-  close() {
-    this.client.close();
-  }
-  send(eventName, data) {
-    if (this.client.readyState === 1) {
-      this.client.send(JSON.stringify({
-        name: eventName,
-        payload: data || ({})
-      }));
-    }
-  }
-  error(data) {
-    this.emitter.emit('error', data);
-  }
-  bindEvents(fn) {
-    this.client.onopen = event => {
-      log('Connection successful');
-      if (fn) {
-        fn(this);
-      }
-    };
-    this.client.onerror = event => {
-      this.error({
-        reason: event.reason,
-        message: 'Socket error'
-      });
-    };
-    this.client.onclose = event => {
-      this.emitter.emit('close', {
-        message: 'Socket closed'
-      });
-      if (event.code !== 1011) {
-        this.reconnect(fn);
-      }
-    };
-    this.client.onmessage = event => {
-      let data = event.data;
-      if (data) {
-        let item = JSON.parse(data);
-        this.emitter.emit(item.name, item.payload);
-      }
-    };
-  }
-}
-exports.SocketClient = SocketClient;
-
-},
-
-// node_modules/fuse-box/modules/events/index.js @13
-13: function(__fusereq, exports, module){
-function EventEmitter() {
-  this._events = this._events || ({});
-  this._maxListeners = this._maxListeners || undefined;
-}
-module.exports = EventEmitter;
-EventEmitter.EventEmitter = EventEmitter;
-EventEmitter.prototype._events = undefined;
-EventEmitter.prototype._maxListeners = undefined;
-EventEmitter.defaultMaxListeners = 10;
-EventEmitter.prototype.setMaxListeners = function (n) {
-  if (!isNumber(n) || n < 0 || isNaN(n)) throw TypeError('n must be a positive number');
-  this._maxListeners = n;
-  return this;
-};
-EventEmitter.prototype.emit = function (type) {
-  var er, handler, len, args, i, listeners;
-  if (!this._events) this._events = {};
-  if (type === 'error') {
-    if (!this._events.error || isObject(this._events.error) && !this._events.error.length) {
-      er = arguments[1];
-      if (er instanceof Error) {
-        throw er;
-      }
-      throw TypeError('Uncaught, unspecified "error" event.');
-    }
-  }
-  handler = this._events[type];
-  if (isUndefined(handler)) return false;
-  if (isFunction(handler)) {
-    switch (arguments.length) {
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      default:
-        args = Array.prototype.slice.call(arguments, 1);
-        handler.apply(this, args);
-    }
-  } else if (isObject(handler)) {
-    args = Array.prototype.slice.call(arguments, 1);
-    listeners = handler.slice();
-    len = listeners.length;
-    for (i = 0; i < len; i++) listeners[i].apply(this, args);
-  }
-  return true;
-};
-EventEmitter.prototype.addListener = function (type, listener) {
-  var m;
-  if (!isFunction(listener)) throw TypeError('listener must be a function');
-  if (!this._events) this._events = {};
-  if (this._events.newListener) this.emit('newListener', type, isFunction(listener.listener) ? listener.listener : listener);
-  if (!this._events[type]) this._events[type] = listener; else if (isObject(this._events[type])) this._events[type].push(listener); else this._events[type] = [this._events[type], listener];
-  if (isObject(this._events[type]) && !this._events[type].warned) {
-    if (!isUndefined(this._maxListeners)) {
-      m = this._maxListeners;
-    } else {
-      m = EventEmitter.defaultMaxListeners;
-    }
-    if (m && m > 0 && this._events[type].length > m) {
-      this._events[type].warned = true;
-      console.error('(node) warning: possible EventEmitter memory ' + 'leak detected. %d listeners added. ' + 'Use emitter.setMaxListeners() to increase limit.', this._events[type].length);
-      if (typeof console.trace === 'function') {
-        console.trace();
-      }
-    }
-  }
-  return this;
-};
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-EventEmitter.prototype.once = function (type, listener) {
-  if (!isFunction(listener)) throw TypeError('listener must be a function');
-  var fired = false;
-  function g() {
-    this.removeListener(type, g);
-    if (!fired) {
-      fired = true;
-      listener.apply(this, arguments);
-    }
-  }
-  g.listener = listener;
-  this.on(type, g);
-  return this;
-};
-EventEmitter.prototype.removeListener = function (type, listener) {
-  var list, position, length, i;
-  if (!isFunction(listener)) throw TypeError('listener must be a function');
-  if (!this._events || !this._events[type]) return this;
-  list = this._events[type];
-  length = list.length;
-  position = -1;
-  if (list === listener || isFunction(list.listener) && list.listener === listener) {
-    delete this._events[type];
-    if (this._events.removeListener) this.emit('removeListener', type, listener);
-  } else if (isObject(list)) {
-    for (i = length; i-- > 0; ) {
-      if (list[i] === listener || list[i].listener && list[i].listener === listener) {
-        position = i;
-        break;
-      }
-    }
-    if (position < 0) return this;
-    if (list.length === 1) {
-      list.length = 0;
-      delete this._events[type];
-    } else {
-      list.splice(position, 1);
-    }
-    if (this._events.removeListener) this.emit('removeListener', type, listener);
-  }
-  return this;
-};
-EventEmitter.prototype.removeAllListeners = function (type) {
-  var key, listeners;
-  if (!this._events) return this;
-  if (!this._events.removeListener) {
-    if (arguments.length === 0) this._events = {}; else if (this._events[type]) delete this._events[type];
-    return this;
-  }
-  if (arguments.length === 0) {
-    for (key in this._events) {
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-    this.removeAllListeners('removeListener');
-    this._events = {};
-    return this;
-  }
-  listeners = this._events[type];
-  if (isFunction(listeners)) {
-    this.removeListener(type, listeners);
-  } else if (listeners) {
-    while (listeners.length) this.removeListener(type, listeners[listeners.length - 1]);
-  }
-  delete this._events[type];
-  return this;
-};
-EventEmitter.prototype.listeners = function (type) {
-  var ret;
-  if (!this._events || !this._events[type]) ret = []; else if (isFunction(this._events[type])) ret = [this._events[type]]; else ret = this._events[type].slice();
-  return ret;
-};
-EventEmitter.prototype.listenerCount = function (type) {
-  if (this._events) {
-    var evlistener = this._events[type];
-    if (isFunction(evlistener)) return 1; else if (evlistener) return evlistener.length;
-  }
-  return 0;
-};
-EventEmitter.listenerCount = function (emitter, type) {
-  return emitter.listenerCount(type);
-};
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-function isUndefined(arg) {
-  return arg === void 0;
-}
-
-},
-
-// node_modules/fuse-box/modules/fuse-box-hot-reload/clientHotReload.ts @2
-2: function(__fusereq, exports, module){
-exports.__esModule = true;
-const {SocketClient} = __fusereq(3);
-function log(text) {
-  console.info(`%c${text}`, 'color: #237abe');
-}
-const STYLESHEET_EXTENSIONS = ['.css', '.scss', '.sass', '.less', '.styl'];
-function gatherSummary() {
-  const modules = [];
-  for (const id in __fuse.modules) {
-    modules.push(parseInt(id));
-  }
-  return {
-    modules
-  };
-}
-function createHMRHelper(payload) {
-  const {updates} = payload;
-  let isStylesheeetUpdate = true;
-  for (const item of updates) {
-    const file = item.path;
-    const s = file.match(/(\.\w+)$/i);
-    const extension = s[1];
-    if (!STYLESHEET_EXTENSIONS.includes(extension)) {
-      isStylesheeetUpdate = false;
-    }
-  }
-  return {
-    isStylesheeetUpdate,
-    callEntries: () => {
-      const appEntries = [1];
-      for (const entryId of appEntries) {
-        __fuse.r(entryId);
-      }
-    },
-    callModules: modules => {
-      for (const item of modules) __fuse.r(item.id);
-    },
-    flushAll: () => {
-      __fuse.c = {};
-    },
-    flushModules: modules => {
-      for (const item of modules) {
-        __fuse.c[item.id] = undefined;
-      }
-    },
-    updateModules: () => {
-      for (const update of updates) {
-        new Function(update.content)();
-      }
-    }
-  };
-}
-exports.connect = opts => {
-  let client = new SocketClient(opts);
-  client.connect();
-  client.on('get-summary', data => {
-    const {id} = data;
-    const summary = gatherSummary();
-    client.send('summary', {
-      id,
-      summary
-    });
-  });
-  client.on('reload', () => {
-    window.location.reload();
-  });
-  client.on('hmr', payload => {
-    const {updates} = payload;
-    const hmr = createHMRHelper(payload);
-    const hmrModuleId = undefined;
-    if (hmrModuleId) {
-      const hmrModule = __fuse.r(hmrModuleId);
-      if (!hmrModule.default) throw new Error('An HMR plugin must export a default function');
-      hmrModule.default(payload, hmr);
-      return;
-    }
-    hmr.updateModules();
-    if (hmr.isStylesheeetUpdate) {
-      log(`Flushing ${updates.map(item => item.path)}`);
-      hmr.flushModules(updates);
-      log(`Calling modules ${updates.map(item => item.path)}`);
-      hmr.callModules(updates);
-    } else {
-      log(`Flushing all`);
-      hmr.flushAll();
-      log(`Calling entries all`);
-      hmr.callEntries();
-    }
-  });
-};
-
-},
-
-// node_modules/@codemirror/text/dist/index.js @26
-26: function(__fusereq, exports, module){
-exports.__esModule = true;
-let extend = ("lc,34,7n,7,7b,19,,,,2,,2,,,20,b,1c,l,g,,2t,7,2,6,2,2,,4,z,,u,r,2j,b,1m,9,9,,o,4,,9,,3,,5,17,3,3b,f,,w,1j,,,,4,8,4,,3,7,a,2,t,,1m,,,,2,4,8,,9,,a,2,q,,2,2,1l,,4,2,4,2,2,3,3,,u,2,3,,b,2,1l,,4,5,,2,4,,k,2,m,6,,,1m,,,2,,4,8,,7,3,a,2,u,,1n,,,,c,,9,,14,,3,,1l,3,5,3,,4,7,2,b,2,t,,1m,,2,,2,,3,,5,2,7,2,b,2,s,2,1l,2,,,2,4,8,,9,,a,2,t,,20,,4,,2,3,,,8,,29,,2,7,c,8,2q,,2,9,b,6,22,2,r,,,,,,1j,e,,5,,2,5,b,,10,9,,2u,4,,6,,2,2,2,p,2,4,3,g,4,d,,2,2,6,,f,,jj,3,qa,3,t,3,t,2,u,2,1s,2,,7,8,,2,b,9,,19,3,3b,2,y,,3a,3,4,2,9,,6,3,63,2,2,,1m,,,7,,,,,2,8,6,a,2,,1c,h,1r,4,1c,7,,,5,,14,9,c,2,w,4,2,2,,3,1k,,,2,3,,,3,1m,8,2,2,48,3,,d,,7,4,,6,,3,2,5i,1m,,5,ek,,5f,x,2da,3,3x,,2o,w,fe,6,2x,2,n9w,4,,a,w,2,28,2,7k,,3,,4,,p,2,5,,47,2,q,i,d,,12,8,p,b,1a,3,1c,,2,4,2,2,13,,1v,6,2,2,2,2,c,,8,,1b,,1f,,,3,2,2,5,2,,,16,2,8,,6m,,2,,4,,fn4,,kh,g,g,g,a6,2,gt,,6a,,45,5,1ae,3,,2,5,4,14,3,4,,4l,2,fx,4,ar,2,49,b,4w,,1i,f,1k,3,1d,4,2,2,1x,3,10,5,,8,1q,,c,2,1g,9,a,4,2,,2n,3,2,,,2,6,,4g,,3,8,l,2,1l,2,,,,,m,,e,7,3,5,5f,8,2,3,,,n,,29,,2,6,,,2,,,2,,2,6j,,2,4,6,2,,2,r,2,2d,8,2,,,2,2y,,,,2,6,,,2t,3,2,4,,5,77,9,,2,6t,,a,2,,,4,,40,4,2,2,4,,w,a,14,6,2,4,8,,9,6,2,3,1a,d,,2,ba,7,,6,,,2a,m,2,7,,2,,2,3e,6,3,,,2,,7,,,20,2,3,,,,9n,2,f0b,5,1n,7,t4,,1r,4,29,,f5k,2,43q,,,3,4,5,8,8,2,7,u,4,44,3,1iz,1j,4,1e,8,,e,,m,5,,f,11s,7,,h,2,7,,2,,5,79,7,c5,4,15s,7,31,7,240,5,gx7k,2o,3k,6o").split(",").map(s => s ? parseInt(s, 36) : 1);
-for (let i = 1; i < extend.length; i++) extend[i] += extend[i - 1];
-function isExtendingChar(code) {
-  for (let i = 1; i < extend.length; i += 2) if (extend[i] > code) return extend[i - 1] <= code;
-  return false;
-}
-function isRegionalIndicator(code) {
-  return code >= 0x1F1E6 && code <= 0x1F1FF;
-}
-const ZWJ = 0x200d;
-function findClusterBreak(str, pos, forward = true) {
-  return (forward ? nextClusterBreak : prevClusterBreak)(str, pos);
-}
-function nextClusterBreak(str, pos) {
-  if (pos == str.length) return pos;
-  if (pos && surrogateLow(str.charCodeAt(pos)) && surrogateHigh(str.charCodeAt(pos - 1))) pos--;
-  let prev = codePointAt(str, pos);
-  pos += codePointSize(prev);
-  while (pos < str.length) {
-    let next = codePointAt(str, pos);
-    if (prev == ZWJ || next == ZWJ || isExtendingChar(next)) {
-      pos += codePointSize(next);
-      prev = next;
-    } else if (isRegionalIndicator(next)) {
-      let countBefore = 0, i = pos - 2;
-      while (i >= 0 && isRegionalIndicator(codePointAt(str, i))) {
-        countBefore++;
-        i -= 2;
-      }
-      if (countBefore % 2 == 0) break; else pos += 2;
-    } else {
-      break;
-    }
-  }
-  return pos;
-}
-function prevClusterBreak(str, pos) {
-  while (pos > 0) {
-    let found = nextClusterBreak(str, pos - 2);
-    if (found < pos) return found;
-    pos--;
-  }
-  return 0;
-}
-function surrogateLow(ch) {
-  return ch >= 0xDC00 && ch < 0xE000;
-}
-function surrogateHigh(ch) {
-  return ch >= 0xD800 && ch < 0xDC00;
-}
-function codePointAt(str, pos) {
-  let code0 = str.charCodeAt(pos);
-  if (!surrogateHigh(code0) || pos + 1 == str.length) return code0;
-  let code1 = str.charCodeAt(pos + 1);
-  if (!surrogateLow(code1)) return code0;
-  return (code0 - 0xd800 << 10) + (code1 - 0xdc00) + 0x10000;
-}
-function fromCodePoint(code) {
-  if (code <= 0xffff) return String.fromCharCode(code);
-  code -= 0x10000;
-  return String.fromCharCode((code >> 10) + 0xd800, (code & 1023) + 0xdc00);
-}
-function codePointSize(code) {
-  return code < 0x10000 ? 1 : 2;
-}
-function countColumn(string, n, tabSize) {
-  for (let i = 0; i < string.length; ) {
-    if (string.charCodeAt(i) == 9) {
-      n += tabSize - n % tabSize;
-      i++;
-    } else {
-      n++;
-      i = findClusterBreak(string, i);
-    }
-  }
-  return n;
-}
-function findColumn(string, n, col, tabSize) {
-  for (let i = 0; i < string.length; ) {
-    if (n >= col) return {
-      offset: i,
-      leftOver: 0
-    };
-    n += string.charCodeAt(i) == 9 ? tabSize - n % tabSize : 1;
-    i = findClusterBreak(string, i);
-  }
-  return {
-    offset: string.length,
-    leftOver: col - n
-  };
-}
-class Text {
-  constructor() {}
-  lineAt(pos) {
-    if (pos < 0 || pos > this.length) throw new RangeError(`Invalid position ${pos} in document of length ${this.length}`);
-    return this.lineInner(pos, false, 1, 0);
-  }
-  line(n) {
-    if (n < 1 || n > this.lines) throw new RangeError(`Invalid line number ${n} in ${this.lines}-line document`);
-    return this.lineInner(n, true, 1, 0);
-  }
-  replace(from, to, text) {
-    let parts = [];
-    this.decompose(0, from, parts, 2);
-    if (text.length) text.decompose(0, text.length, parts, 1 | 2);
-    this.decompose(to, this.length, parts, 1);
-    return TextNode.from(parts, this.length - (to - from) + text.length);
-  }
-  append(other) {
-    return this.replace(this.length, this.length, other);
-  }
-  slice(from, to = this.length) {
-    let parts = [];
-    this.decompose(from, to, parts, 0);
-    return TextNode.from(parts, to - from);
-  }
-  eq(other) {
-    if (other == this) return true;
-    if (other.length != this.length || other.lines != this.lines) return false;
-    let a = new RawTextCursor(this), b = new RawTextCursor(other);
-    for (; ; ) {
-      a.next();
-      b.next();
-      if (a.lineBreak != b.lineBreak || a.done != b.done || a.value != b.value) return false;
-      if (a.done) return true;
-    }
-  }
-  iter(dir = 1) {
-    return new RawTextCursor(this, dir);
-  }
-  iterRange(from, to = this.length) {
-    return new PartialTextCursor(this, from, to);
-  }
-  toString() {
-    return this.sliceString(0);
-  }
-  toJSON() {
-    let lines = [];
-    this.flatten(lines);
-    return lines;
-  }
-  static of(text) {
-    if (text.length == 0) throw new RangeError("A document must have at least one line");
-    if (text.length == 1 && !text[0]) return Text.empty;
-    return text.length <= 32 ? new TextLeaf(text) : TextNode.from(TextLeaf.split(text, []));
-  }
-}
-if (typeof Symbol != "undefined") Text.prototype[Symbol.iterator] = function () {
-  return this.iter();
-};
-class TextLeaf extends Text {
-  constructor(text, length = textLength(text)) {
-    super();
-    this.text = text;
-    this.length = length;
-  }
-  get lines() {
-    return this.text.length;
-  }
-  get children() {
-    return null;
-  }
-  lineInner(target, isLine, line, offset) {
-    for (let i = 0; ; i++) {
-      let string = this.text[i], end = offset + string.length;
-      if ((isLine ? line : end) >= target) return new Line(offset, end, line, string);
-      offset = end + 1;
-      line++;
-    }
-  }
-  decompose(from, to, target, open) {
-    let text = from <= 0 && to >= this.length ? this : new TextLeaf(sliceText(this.text, from, to), Math.min(to, this.length) - Math.max(0, from));
-    if (open & 1) {
-      let prev = target.pop();
-      let joined = appendText(text.text, prev.text.slice(), 0, text.length);
-      if (joined.length <= 32) {
-        target.push(new TextLeaf(joined, prev.length + text.length));
-      } else {
-        let mid = joined.length >> 1;
-        target.push(new TextLeaf(joined.slice(0, mid)), new TextLeaf(joined.slice(mid)));
-      }
-    } else {
-      target.push(text);
-    }
-  }
-  replace(from, to, text) {
-    if (!(text instanceof TextLeaf)) return super.replace(from, to, text);
-    let lines = appendText(this.text, appendText(text.text, sliceText(this.text, 0, from)), to);
-    let newLen = this.length + text.length - (to - from);
-    if (lines.length <= 32) return new TextLeaf(lines, newLen);
-    return TextNode.from(TextLeaf.split(lines, []), newLen);
-  }
-  sliceString(from, to = this.length, lineSep = "\n") {
-    let result = "";
-    for (let pos = 0, i = 0; pos <= to && i < this.text.length; i++) {
-      let line = this.text[i], end = pos + line.length;
-      if (pos > from && i) result += lineSep;
-      if (from < end && to > pos) result += line.slice(Math.max(0, from - pos), to - pos);
-      pos = end + 1;
-    }
-    return result;
-  }
-  flatten(target) {
-    for (let line of this.text) target.push(line);
-  }
-  static split(text, target) {
-    let part = [], len = -1;
-    for (let line of text) {
-      part.push(line);
-      len += line.length + 1;
-      if (part.length == 32) {
-        target.push(new TextLeaf(part, len));
-        part = [];
-        len = -1;
-      }
-    }
-    if (len > -1) target.push(new TextLeaf(part, len));
-    return target;
-  }
-}
-class TextNode extends Text {
-  constructor(children, length) {
-    super();
-    this.children = children;
-    this.length = length;
-    this.lines = 0;
-    for (let child of children) this.lines += child.lines;
-  }
-  lineInner(target, isLine, line, offset) {
-    for (let i = 0; ; i++) {
-      let child = this.children[i], end = offset + child.length, endLine = line + child.lines - 1;
-      if ((isLine ? endLine : end) >= target) return child.lineInner(target, isLine, line, offset);
-      offset = end + 1;
-      line = endLine + 1;
-    }
-  }
-  decompose(from, to, target, open) {
-    for (let i = 0, pos = 0; pos <= to && i < this.children.length; i++) {
-      let child = this.children[i], end = pos + child.length;
-      if (from <= end && to >= pos) {
-        let childOpen = open & ((pos <= from ? 1 : 0) | (end >= to ? 2 : 0));
-        if (pos >= from && end <= to && !childOpen) target.push(child); else child.decompose(from - pos, to - pos, target, childOpen);
-      }
-      pos = end + 1;
-    }
-  }
-  replace(from, to, text) {
-    if (text.lines < this.lines) for (let i = 0, pos = 0; i < this.children.length; i++) {
-      let child = this.children[i], end = pos + child.length;
-      if (from >= pos && to <= end) {
-        let updated = child.replace(from - pos, to - pos, text);
-        let totalLines = this.lines - child.lines + updated.lines;
-        if (updated.lines < totalLines >> 5 - 1 && updated.lines > totalLines >> 5 + 1) {
-          let copy = this.children.slice();
-          copy[i] = updated;
-          return new TextNode(copy, this.length - (to - from) + text.length);
-        }
-        return super.replace(pos, end, updated);
-      }
-      pos = end + 1;
-    }
-    return super.replace(from, to, text);
-  }
-  sliceString(from, to = this.length, lineSep = "\n") {
-    let result = "";
-    for (let i = 0, pos = 0; i < this.children.length && pos <= to; i++) {
-      let child = this.children[i], end = pos + child.length;
-      if (pos > from && i) result += lineSep;
-      if (from < end && to > pos) result += child.sliceString(from - pos, to - pos, lineSep);
-      pos = end + 1;
-    }
-    return result;
-  }
-  flatten(target) {
-    for (let child of this.children) child.flatten(target);
-  }
-  static from(children, length = children.reduce((l, ch) => l + ch.length + 1, -1)) {
-    let lines = 0;
-    for (let ch of children) lines += ch.lines;
-    if (lines < 32) {
-      let flat = [];
-      for (let ch of children) ch.flatten(flat);
-      return new TextLeaf(flat, length);
-    }
-    let chunk = Math.max(32, lines >> 5), maxChunk = chunk << 1, minChunk = chunk >> 1;
-    let chunked = [], currentLines = 0, currentLen = -1, currentChunk = [];
-    function add(child) {
-      let last;
-      if (child.lines > maxChunk && child instanceof TextNode) {
-        for (let node of child.children) add(node);
-      } else if (child.lines > minChunk && (currentLines > minChunk || !currentLines)) {
-        flush();
-        chunked.push(child);
-      } else if (child instanceof TextLeaf && currentLines && (last = currentChunk[currentChunk.length - 1]) instanceof TextLeaf && child.lines + last.lines <= 32) {
-        currentLines += child.lines;
-        currentLen += child.length + 1;
-        currentChunk[currentChunk.length - 1] = new TextLeaf(last.text.concat(child.text), last.length + 1 + child.length);
-      } else {
-        if (currentLines + child.lines > chunk) flush();
-        currentLines += child.lines;
-        currentLen += child.length + 1;
-        currentChunk.push(child);
-      }
-    }
-    function flush() {
-      if (currentLines == 0) return;
-      chunked.push(currentChunk.length == 1 ? currentChunk[0] : TextNode.from(currentChunk, currentLen));
-      currentLen = -1;
-      currentLines = currentChunk.length = 0;
-    }
-    for (let child of children) add(child);
-    flush();
-    return chunked.length == 1 ? chunked[0] : new TextNode(chunked, length);
-  }
-}
-Text.empty = new TextLeaf([""], 0);
-function textLength(text) {
-  let length = -1;
-  for (let line of text) length += line.length + 1;
-  return length;
-}
-function appendText(text, target, from = 0, to = 1e9) {
-  for (let pos = 0, i = 0, first = true; i < text.length && pos <= to; i++) {
-    let line = text[i], end = pos + line.length;
-    if (end >= from) {
-      if (end > to) line = line.slice(0, to - pos);
-      if (pos < from) line = line.slice(from - pos);
-      if (first) {
-        target[target.length - 1] += line;
-        first = false;
-      } else target.push(line);
-    }
-    pos = end + 1;
-  }
-  return target;
-}
-function sliceText(text, from, to) {
-  return appendText(text, [""], from, to);
-}
-class RawTextCursor {
-  constructor(text, dir = 1) {
-    this.dir = dir;
-    this.done = false;
-    this.lineBreak = false;
-    this.value = "";
-    this.nodes = [text];
-    this.offsets = [dir > 0 ? 0 : text instanceof TextLeaf ? text.text.length : text.children.length];
-  }
-  next(skip = 0) {
-    for (; ; ) {
-      let last = this.nodes.length - 1;
-      if (last < 0) {
-        this.done = true;
-        this.value = "";
-        this.lineBreak = false;
-        return this;
-      }
-      let top = this.nodes[last], offset = this.offsets[last];
-      let size = top instanceof TextLeaf ? top.text.length : top.children.length;
-      if (offset == (this.dir > 0 ? size : 0)) {
-        this.nodes.pop();
-        this.offsets.pop();
-      } else if (!this.lineBreak && offset != (this.dir > 0 ? 0 : size)) {
-        this.lineBreak = true;
-        if (skip == 0) {
-          this.value = "\n";
-          return this;
-        }
-        skip--;
-      } else if (top instanceof TextLeaf) {
-        let next = top.text[offset - (this.dir < 0 ? 1 : 0)];
-        this.offsets[last] = offset += this.dir;
-        this.lineBreak = false;
-        if (next.length > Math.max(0, skip)) {
-          this.value = skip == 0 ? next : this.dir > 0 ? next.slice(skip) : next.slice(0, next.length - skip);
-          return this;
-        }
-        skip -= next.length;
-      } else {
-        let next = top.children[this.dir > 0 ? offset : offset - 1];
-        this.offsets[last] = offset + this.dir;
-        this.lineBreak = false;
-        if (skip > next.length) {
-          skip -= next.length;
-        } else {
-          this.nodes.push(next);
-          this.offsets.push(this.dir > 0 ? 0 : next instanceof TextLeaf ? next.text.length : next.children.length);
-        }
-      }
-    }
-  }
-}
-class PartialTextCursor {
-  constructor(text, start, end) {
-    this.value = "";
-    this.cursor = new RawTextCursor(text, start > end ? -1 : 1);
-    if (start > end) {
-      this.skip = text.length - start;
-      this.limit = start - end;
-    } else {
-      this.skip = start;
-      this.limit = end - start;
-    }
-  }
-  next(skip = 0) {
-    if (this.limit <= 0) {
-      this.limit = -1;
-    } else {
-      let {value, lineBreak, done} = this.cursor.next(this.skip + skip);
-      this.skip = 0;
-      this.value = value;
-      let len = lineBreak ? 1 : value.length;
-      if (len > this.limit) this.value = this.cursor.dir > 0 ? value.slice(0, this.limit) : value.slice(len - this.limit);
-      if (done || this.value.length == 0) this.limit = -1; else this.limit -= this.value.length;
-    }
-    return this;
-  }
-  get lineBreak() {
-    return this.cursor.lineBreak;
-  }
-  get done() {
-    return this.limit < 0;
-  }
-}
-class Line {
-  constructor(from, to, number, text) {
-    this.from = from;
-    this.to = to;
-    this.number = number;
-    this.text = text;
-  }
-  get length() {
-    return this.to - this.from;
-  }
-}
-exports.Line = Line;
-exports.Text = Text;
-exports.codePointAt = codePointAt;
-exports.codePointSize = codePointSize;
-exports.countColumn = countColumn;
-exports.findClusterBreak = findClusterBreak;
-exports.findColumn = findColumn;
-exports.fromCodePoint = fromCodePoint;
-
-},
-
 // node_modules/@codemirror/state/dist/index.js @15
 15: function(__fusereq, exports, module){
 exports.__esModule = true;
@@ -2070,1476 +1237,722 @@ exports.combineConfig = combineConfig;
 
 },
 
-// node_modules/lezer-tree/dist/tree.es.js @23
-23: function(__fusereq, exports, module){
+// node_modules/@codemirror/text/dist/index.js @26
+26: function(__fusereq, exports, module){
 exports.__esModule = true;
-const DefaultBufferLength = 1024;
-let nextPropID = 0;
-const CachedNode = new WeakMap();
-class NodeProp {
-  constructor({deserialize} = {}) {
-    this.id = nextPropID++;
-    this.deserialize = deserialize || (() => {
-      throw new Error("This node type doesn't define a deserialize function");
-    });
-  }
-  static string() {
-    return new NodeProp({
-      deserialize: str => str
-    });
-  }
-  static number() {
-    return new NodeProp({
-      deserialize: Number
-    });
-  }
-  static flag() {
-    return new NodeProp({
-      deserialize: () => true
-    });
-  }
-  set(propObj, value) {
-    propObj[this.id] = value;
-    return propObj;
-  }
-  add(match) {
-    if (typeof match != "function") match = NodeType.match(match);
-    return type => {
-      let result = match(type);
-      return result === undefined ? null : [this, result];
-    };
-  }
+let extend = ("lc,34,7n,7,7b,19,,,,2,,2,,,20,b,1c,l,g,,2t,7,2,6,2,2,,4,z,,u,r,2j,b,1m,9,9,,o,4,,9,,3,,5,17,3,3b,f,,w,1j,,,,4,8,4,,3,7,a,2,t,,1m,,,,2,4,8,,9,,a,2,q,,2,2,1l,,4,2,4,2,2,3,3,,u,2,3,,b,2,1l,,4,5,,2,4,,k,2,m,6,,,1m,,,2,,4,8,,7,3,a,2,u,,1n,,,,c,,9,,14,,3,,1l,3,5,3,,4,7,2,b,2,t,,1m,,2,,2,,3,,5,2,7,2,b,2,s,2,1l,2,,,2,4,8,,9,,a,2,t,,20,,4,,2,3,,,8,,29,,2,7,c,8,2q,,2,9,b,6,22,2,r,,,,,,1j,e,,5,,2,5,b,,10,9,,2u,4,,6,,2,2,2,p,2,4,3,g,4,d,,2,2,6,,f,,jj,3,qa,3,t,3,t,2,u,2,1s,2,,7,8,,2,b,9,,19,3,3b,2,y,,3a,3,4,2,9,,6,3,63,2,2,,1m,,,7,,,,,2,8,6,a,2,,1c,h,1r,4,1c,7,,,5,,14,9,c,2,w,4,2,2,,3,1k,,,2,3,,,3,1m,8,2,2,48,3,,d,,7,4,,6,,3,2,5i,1m,,5,ek,,5f,x,2da,3,3x,,2o,w,fe,6,2x,2,n9w,4,,a,w,2,28,2,7k,,3,,4,,p,2,5,,47,2,q,i,d,,12,8,p,b,1a,3,1c,,2,4,2,2,13,,1v,6,2,2,2,2,c,,8,,1b,,1f,,,3,2,2,5,2,,,16,2,8,,6m,,2,,4,,fn4,,kh,g,g,g,a6,2,gt,,6a,,45,5,1ae,3,,2,5,4,14,3,4,,4l,2,fx,4,ar,2,49,b,4w,,1i,f,1k,3,1d,4,2,2,1x,3,10,5,,8,1q,,c,2,1g,9,a,4,2,,2n,3,2,,,2,6,,4g,,3,8,l,2,1l,2,,,,,m,,e,7,3,5,5f,8,2,3,,,n,,29,,2,6,,,2,,,2,,2,6j,,2,4,6,2,,2,r,2,2d,8,2,,,2,2y,,,,2,6,,,2t,3,2,4,,5,77,9,,2,6t,,a,2,,,4,,40,4,2,2,4,,w,a,14,6,2,4,8,,9,6,2,3,1a,d,,2,ba,7,,6,,,2a,m,2,7,,2,,2,3e,6,3,,,2,,7,,,20,2,3,,,,9n,2,f0b,5,1n,7,t4,,1r,4,29,,f5k,2,43q,,,3,4,5,8,8,2,7,u,4,44,3,1iz,1j,4,1e,8,,e,,m,5,,f,11s,7,,h,2,7,,2,,5,79,7,c5,4,15s,7,31,7,240,5,gx7k,2o,3k,6o").split(",").map(s => s ? parseInt(s, 36) : 1);
+for (let i = 1; i < extend.length; i++) extend[i] += extend[i - 1];
+function isExtendingChar(code) {
+  for (let i = 1; i < extend.length; i += 2) if (extend[i] > code) return extend[i - 1] <= code;
+  return false;
 }
-NodeProp.closedBy = new NodeProp({
-  deserialize: str => str.split(" ")
-});
-NodeProp.openedBy = new NodeProp({
-  deserialize: str => str.split(" ")
-});
-NodeProp.group = new NodeProp({
-  deserialize: str => str.split(" ")
-});
-const noProps = Object.create(null);
-class NodeType {
-  constructor(name, props, id, flags = 0) {
-    this.name = name;
-    this.props = props;
-    this.id = id;
-    this.flags = flags;
-  }
-  static define(spec) {
-    let props = spec.props && spec.props.length ? Object.create(null) : noProps;
-    let flags = (spec.top ? 1 : 0) | (spec.skipped ? 2 : 0) | (spec.error ? 4 : 0) | (spec.name == null ? 8 : 0);
-    let type = new NodeType(spec.name || "", props, spec.id, flags);
-    if (spec.props) for (let src of spec.props) {
-      if (!Array.isArray(src)) src = src(type);
-      if (src) src[0].set(props, src[1]);
-    }
-    return type;
-  }
-  prop(prop) {
-    return this.props[prop.id];
-  }
-  get isTop() {
-    return (this.flags & 1) > 0;
-  }
-  get isSkipped() {
-    return (this.flags & 2) > 0;
-  }
-  get isError() {
-    return (this.flags & 4) > 0;
-  }
-  get isAnonymous() {
-    return (this.flags & 8) > 0;
-  }
-  is(name) {
-    if (typeof name == 'string') {
-      if (this.name == name) return true;
-      let group = this.prop(NodeProp.group);
-      return group ? group.indexOf(name) > -1 : false;
-    }
-    return this.id == name;
-  }
-  static match(map) {
-    let direct = Object.create(null);
-    for (let prop in map) for (let name of prop.split(" ")) direct[name] = map[prop];
-    return node => {
-      for (let groups = node.prop(NodeProp.group), i = -1; i < (groups ? groups.length : 0); i++) {
-        let found = direct[i < 0 ? node.name : groups[i]];
-        if (found) return found;
+function isRegionalIndicator(code) {
+  return code >= 0x1F1E6 && code <= 0x1F1FF;
+}
+const ZWJ = 0x200d;
+function findClusterBreak(str, pos, forward = true) {
+  return (forward ? nextClusterBreak : prevClusterBreak)(str, pos);
+}
+function nextClusterBreak(str, pos) {
+  if (pos == str.length) return pos;
+  if (pos && surrogateLow(str.charCodeAt(pos)) && surrogateHigh(str.charCodeAt(pos - 1))) pos--;
+  let prev = codePointAt(str, pos);
+  pos += codePointSize(prev);
+  while (pos < str.length) {
+    let next = codePointAt(str, pos);
+    if (prev == ZWJ || next == ZWJ || isExtendingChar(next)) {
+      pos += codePointSize(next);
+      prev = next;
+    } else if (isRegionalIndicator(next)) {
+      let countBefore = 0, i = pos - 2;
+      while (i >= 0 && isRegionalIndicator(codePointAt(str, i))) {
+        countBefore++;
+        i -= 2;
       }
-    };
-  }
-}
-NodeType.none = new NodeType("", Object.create(null), 0, 8);
-class NodeSet {
-  constructor(types) {
-    this.types = types;
-    for (let i = 0; i < types.length; i++) if (types[i].id != i) throw new RangeError("Node type ids should correspond to array positions when creating a node set");
-  }
-  extend(...props) {
-    let newTypes = [];
-    for (let type of this.types) {
-      let newProps = null;
-      for (let source of props) {
-        let add = source(type);
-        if (add) {
-          if (!newProps) newProps = Object.assign({}, type.props);
-          add[0].set(newProps, add[1]);
-        }
-      }
-      newTypes.push(newProps ? new NodeType(type.name, newProps, type.id, type.flags) : type);
+      if (countBefore % 2 == 0) break; else pos += 2;
+    } else {
+      break;
     }
-    return new NodeSet(newTypes);
+  }
+  return pos;
+}
+function prevClusterBreak(str, pos) {
+  while (pos > 0) {
+    let found = nextClusterBreak(str, pos - 2);
+    if (found < pos) return found;
+    pos--;
+  }
+  return 0;
+}
+function surrogateLow(ch) {
+  return ch >= 0xDC00 && ch < 0xE000;
+}
+function surrogateHigh(ch) {
+  return ch >= 0xD800 && ch < 0xDC00;
+}
+function codePointAt(str, pos) {
+  let code0 = str.charCodeAt(pos);
+  if (!surrogateHigh(code0) || pos + 1 == str.length) return code0;
+  let code1 = str.charCodeAt(pos + 1);
+  if (!surrogateLow(code1)) return code0;
+  return (code0 - 0xd800 << 10) + (code1 - 0xdc00) + 0x10000;
+}
+function fromCodePoint(code) {
+  if (code <= 0xffff) return String.fromCharCode(code);
+  code -= 0x10000;
+  return String.fromCharCode((code >> 10) + 0xd800, (code & 1023) + 0xdc00);
+}
+function codePointSize(code) {
+  return code < 0x10000 ? 1 : 2;
+}
+function countColumn(string, n, tabSize) {
+  for (let i = 0; i < string.length; ) {
+    if (string.charCodeAt(i) == 9) {
+      n += tabSize - n % tabSize;
+      i++;
+    } else {
+      n++;
+      i = findClusterBreak(string, i);
+    }
+  }
+  return n;
+}
+function findColumn(string, n, col, tabSize) {
+  for (let i = 0; i < string.length; ) {
+    if (n >= col) return {
+      offset: i,
+      leftOver: 0
+    };
+    n += string.charCodeAt(i) == 9 ? tabSize - n % tabSize : 1;
+    i = findClusterBreak(string, i);
+  }
+  return {
+    offset: string.length,
+    leftOver: col - n
+  };
+}
+class Text {
+  constructor() {}
+  lineAt(pos) {
+    if (pos < 0 || pos > this.length) throw new RangeError(`Invalid position ${pos} in document of length ${this.length}`);
+    return this.lineInner(pos, false, 1, 0);
+  }
+  line(n) {
+    if (n < 1 || n > this.lines) throw new RangeError(`Invalid line number ${n} in ${this.lines}-line document`);
+    return this.lineInner(n, true, 1, 0);
+  }
+  replace(from, to, text) {
+    let parts = [];
+    this.decompose(0, from, parts, 2);
+    if (text.length) text.decompose(0, text.length, parts, 1 | 2);
+    this.decompose(to, this.length, parts, 1);
+    return TextNode.from(parts, this.length - (to - from) + text.length);
+  }
+  append(other) {
+    return this.replace(this.length, this.length, other);
+  }
+  slice(from, to = this.length) {
+    let parts = [];
+    this.decompose(from, to, parts, 0);
+    return TextNode.from(parts, to - from);
+  }
+  eq(other) {
+    if (other == this) return true;
+    if (other.length != this.length || other.lines != this.lines) return false;
+    let a = new RawTextCursor(this), b = new RawTextCursor(other);
+    for (; ; ) {
+      a.next();
+      b.next();
+      if (a.lineBreak != b.lineBreak || a.done != b.done || a.value != b.value) return false;
+      if (a.done) return true;
+    }
+  }
+  iter(dir = 1) {
+    return new RawTextCursor(this, dir);
+  }
+  iterRange(from, to = this.length) {
+    return new PartialTextCursor(this, from, to);
+  }
+  toString() {
+    return this.sliceString(0);
+  }
+  toJSON() {
+    let lines = [];
+    this.flatten(lines);
+    return lines;
+  }
+  static of(text) {
+    if (text.length == 0) throw new RangeError("A document must have at least one line");
+    if (text.length == 1 && !text[0]) return Text.empty;
+    return text.length <= 32 ? new TextLeaf(text) : TextNode.from(TextLeaf.split(text, []));
   }
 }
-class Tree {
-  constructor(type, children, positions, length) {
-    this.type = type;
+if (typeof Symbol != "undefined") Text.prototype[Symbol.iterator] = function () {
+  return this.iter();
+};
+class TextLeaf extends Text {
+  constructor(text, length = textLength(text)) {
+    super();
+    this.text = text;
+    this.length = length;
+  }
+  get lines() {
+    return this.text.length;
+  }
+  get children() {
+    return null;
+  }
+  lineInner(target, isLine, line, offset) {
+    for (let i = 0; ; i++) {
+      let string = this.text[i], end = offset + string.length;
+      if ((isLine ? line : end) >= target) return new Line(offset, end, line, string);
+      offset = end + 1;
+      line++;
+    }
+  }
+  decompose(from, to, target, open) {
+    let text = from <= 0 && to >= this.length ? this : new TextLeaf(sliceText(this.text, from, to), Math.min(to, this.length) - Math.max(0, from));
+    if (open & 1) {
+      let prev = target.pop();
+      let joined = appendText(text.text, prev.text.slice(), 0, text.length);
+      if (joined.length <= 32) {
+        target.push(new TextLeaf(joined, prev.length + text.length));
+      } else {
+        let mid = joined.length >> 1;
+        target.push(new TextLeaf(joined.slice(0, mid)), new TextLeaf(joined.slice(mid)));
+      }
+    } else {
+      target.push(text);
+    }
+  }
+  replace(from, to, text) {
+    if (!(text instanceof TextLeaf)) return super.replace(from, to, text);
+    let lines = appendText(this.text, appendText(text.text, sliceText(this.text, 0, from)), to);
+    let newLen = this.length + text.length - (to - from);
+    if (lines.length <= 32) return new TextLeaf(lines, newLen);
+    return TextNode.from(TextLeaf.split(lines, []), newLen);
+  }
+  sliceString(from, to = this.length, lineSep = "\n") {
+    let result = "";
+    for (let pos = 0, i = 0; pos <= to && i < this.text.length; i++) {
+      let line = this.text[i], end = pos + line.length;
+      if (pos > from && i) result += lineSep;
+      if (from < end && to > pos) result += line.slice(Math.max(0, from - pos), to - pos);
+      pos = end + 1;
+    }
+    return result;
+  }
+  flatten(target) {
+    for (let line of this.text) target.push(line);
+  }
+  static split(text, target) {
+    let part = [], len = -1;
+    for (let line of text) {
+      part.push(line);
+      len += line.length + 1;
+      if (part.length == 32) {
+        target.push(new TextLeaf(part, len));
+        part = [];
+        len = -1;
+      }
+    }
+    if (len > -1) target.push(new TextLeaf(part, len));
+    return target;
+  }
+}
+class TextNode extends Text {
+  constructor(children, length) {
+    super();
     this.children = children;
-    this.positions = positions;
     this.length = length;
+    this.lines = 0;
+    for (let child of children) this.lines += child.lines;
   }
-  toString() {
-    let children = this.children.map(c => c.toString()).join();
-    return !this.type.name ? children : ((/\W/).test(this.type.name) && !this.type.isError ? JSON.stringify(this.type.name) : this.type.name) + (children.length ? "(" + children + ")" : "");
-  }
-  cursor(pos, side = 0) {
-    let scope = pos != null && CachedNode.get(this) || this.topNode;
-    let cursor = new TreeCursor(scope);
-    if (pos != null) {
-      cursor.moveTo(pos, side);
-      CachedNode.set(this, cursor._tree);
-    }
-    return cursor;
-  }
-  fullCursor() {
-    return new TreeCursor(this.topNode, true);
-  }
-  get topNode() {
-    return new TreeNode(this, 0, 0, null);
-  }
-  resolve(pos, side = 0) {
-    return this.cursor(pos, side).node;
-  }
-  iterate(spec) {
-    let {enter, leave, from = 0, to = this.length} = spec;
-    for (let c = this.cursor(); ; ) {
-      let mustLeave = false;
-      if (c.from <= to && c.to >= from && (c.type.isAnonymous || enter(c.type, c.from, c.to) !== false)) {
-        if (c.firstChild()) continue;
-        if (!c.type.isAnonymous) mustLeave = true;
-      }
-      for (; ; ) {
-        if (mustLeave && leave) leave(c.type, c.from, c.to);
-        mustLeave = c.type.isAnonymous;
-        if (c.nextSibling()) break;
-        if (!c.parent()) return;
-        mustLeave = true;
-      }
+  lineInner(target, isLine, line, offset) {
+    for (let i = 0; ; i++) {
+      let child = this.children[i], end = offset + child.length, endLine = line + child.lines - 1;
+      if ((isLine ? endLine : end) >= target) return child.lineInner(target, isLine, line, offset);
+      offset = end + 1;
+      line = endLine + 1;
     }
   }
-  balance(maxBufferLength = DefaultBufferLength) {
-    return this.children.length <= BalanceBranchFactor ? this : balanceRange(this.type, NodeType.none, this.children, this.positions, 0, this.children.length, 0, maxBufferLength, this.length, 0);
+  decompose(from, to, target, open) {
+    for (let i = 0, pos = 0; pos <= to && i < this.children.length; i++) {
+      let child = this.children[i], end = pos + child.length;
+      if (from <= end && to >= pos) {
+        let childOpen = open & ((pos <= from ? 1 : 0) | (end >= to ? 2 : 0));
+        if (pos >= from && end <= to && !childOpen) target.push(child); else child.decompose(from - pos, to - pos, target, childOpen);
+      }
+      pos = end + 1;
+    }
   }
-  static build(data) {
-    return buildTree(data);
+  replace(from, to, text) {
+    if (text.lines < this.lines) for (let i = 0, pos = 0; i < this.children.length; i++) {
+      let child = this.children[i], end = pos + child.length;
+      if (from >= pos && to <= end) {
+        let updated = child.replace(from - pos, to - pos, text);
+        let totalLines = this.lines - child.lines + updated.lines;
+        if (updated.lines < totalLines >> 5 - 1 && updated.lines > totalLines >> 5 + 1) {
+          let copy = this.children.slice();
+          copy[i] = updated;
+          return new TextNode(copy, this.length - (to - from) + text.length);
+        }
+        return super.replace(pos, end, updated);
+      }
+      pos = end + 1;
+    }
+    return super.replace(from, to, text);
+  }
+  sliceString(from, to = this.length, lineSep = "\n") {
+    let result = "";
+    for (let i = 0, pos = 0; i < this.children.length && pos <= to; i++) {
+      let child = this.children[i], end = pos + child.length;
+      if (pos > from && i) result += lineSep;
+      if (from < end && to > pos) result += child.sliceString(from - pos, to - pos, lineSep);
+      pos = end + 1;
+    }
+    return result;
+  }
+  flatten(target) {
+    for (let child of this.children) child.flatten(target);
+  }
+  static from(children, length = children.reduce((l, ch) => l + ch.length + 1, -1)) {
+    let lines = 0;
+    for (let ch of children) lines += ch.lines;
+    if (lines < 32) {
+      let flat = [];
+      for (let ch of children) ch.flatten(flat);
+      return new TextLeaf(flat, length);
+    }
+    let chunk = Math.max(32, lines >> 5), maxChunk = chunk << 1, minChunk = chunk >> 1;
+    let chunked = [], currentLines = 0, currentLen = -1, currentChunk = [];
+    function add(child) {
+      let last;
+      if (child.lines > maxChunk && child instanceof TextNode) {
+        for (let node of child.children) add(node);
+      } else if (child.lines > minChunk && (currentLines > minChunk || !currentLines)) {
+        flush();
+        chunked.push(child);
+      } else if (child instanceof TextLeaf && currentLines && (last = currentChunk[currentChunk.length - 1]) instanceof TextLeaf && child.lines + last.lines <= 32) {
+        currentLines += child.lines;
+        currentLen += child.length + 1;
+        currentChunk[currentChunk.length - 1] = new TextLeaf(last.text.concat(child.text), last.length + 1 + child.length);
+      } else {
+        if (currentLines + child.lines > chunk) flush();
+        currentLines += child.lines;
+        currentLen += child.length + 1;
+        currentChunk.push(child);
+      }
+    }
+    function flush() {
+      if (currentLines == 0) return;
+      chunked.push(currentChunk.length == 1 ? currentChunk[0] : TextNode.from(currentChunk, currentLen));
+      currentLen = -1;
+      currentLines = currentChunk.length = 0;
+    }
+    for (let child of children) add(child);
+    flush();
+    return chunked.length == 1 ? chunked[0] : new TextNode(chunked, length);
   }
 }
-Tree.empty = new Tree(NodeType.none, [], [], 0);
-function withHash(tree, hash) {
-  if (hash) tree.contextHash = hash;
-  return tree;
+Text.empty = new TextLeaf([""], 0);
+function textLength(text) {
+  let length = -1;
+  for (let line of text) length += line.length + 1;
+  return length;
 }
-class TreeBuffer {
-  constructor(buffer, length, set, type = NodeType.none) {
-    this.buffer = buffer;
-    this.length = length;
-    this.set = set;
-    this.type = type;
-  }
-  toString() {
-    let result = [];
-    for (let index = 0; index < this.buffer.length; ) {
-      result.push(this.childString(index));
-      index = this.buffer[index + 3];
+function appendText(text, target, from = 0, to = 1e9) {
+  for (let pos = 0, i = 0, first = true; i < text.length && pos <= to; i++) {
+    let line = text[i], end = pos + line.length;
+    if (end >= from) {
+      if (end > to) line = line.slice(0, to - pos);
+      if (pos < from) line = line.slice(from - pos);
+      if (first) {
+        target[target.length - 1] += line;
+        first = false;
+      } else target.push(line);
     }
-    return result.join(",");
+    pos = end + 1;
   }
-  childString(index) {
-    let id = this.buffer[index], endIndex = this.buffer[index + 3];
-    let type = this.set.types[id], result = type.name;
-    if ((/\W/).test(result) && !type.isError) result = JSON.stringify(result);
-    index += 4;
-    if (endIndex == index) return result;
-    let children = [];
-    while (index < endIndex) {
-      children.push(this.childString(index));
-      index = this.buffer[index + 3];
-    }
-    return result + "(" + children.join(",") + ")";
+  return target;
+}
+function sliceText(text, from, to) {
+  return appendText(text, [""], from, to);
+}
+class RawTextCursor {
+  constructor(text, dir = 1) {
+    this.dir = dir;
+    this.done = false;
+    this.lineBreak = false;
+    this.value = "";
+    this.nodes = [text];
+    this.offsets = [dir > 0 ? 0 : text instanceof TextLeaf ? text.text.length : text.children.length];
   }
-  findChild(startIndex, endIndex, dir, after) {
-    let {buffer} = this, pick = -1;
-    for (let i = startIndex; i != endIndex; i = buffer[i + 3]) {
-      if (after != -100000000) {
-        let start = buffer[i + 1], end = buffer[i + 2];
-        if (dir > 0) {
-          if (end > after) pick = i;
-          if (end > after) break;
+  next(skip = 0) {
+    for (; ; ) {
+      let last = this.nodes.length - 1;
+      if (last < 0) {
+        this.done = true;
+        this.value = "";
+        this.lineBreak = false;
+        return this;
+      }
+      let top = this.nodes[last], offset = this.offsets[last];
+      let size = top instanceof TextLeaf ? top.text.length : top.children.length;
+      if (offset == (this.dir > 0 ? size : 0)) {
+        this.nodes.pop();
+        this.offsets.pop();
+      } else if (!this.lineBreak && offset != (this.dir > 0 ? 0 : size)) {
+        this.lineBreak = true;
+        if (skip == 0) {
+          this.value = "\n";
+          return this;
+        }
+        skip--;
+      } else if (top instanceof TextLeaf) {
+        let next = top.text[offset - (this.dir < 0 ? 1 : 0)];
+        this.offsets[last] = offset += this.dir;
+        this.lineBreak = false;
+        if (next.length > Math.max(0, skip)) {
+          this.value = skip == 0 ? next : this.dir > 0 ? next.slice(skip) : next.slice(0, next.length - skip);
+          return this;
+        }
+        skip -= next.length;
+      } else {
+        let next = top.children[this.dir > 0 ? offset : offset - 1];
+        this.offsets[last] = offset + this.dir;
+        this.lineBreak = false;
+        if (skip > next.length) {
+          skip -= next.length;
         } else {
-          if (start < after) pick = i;
-          if (end >= after) break;
-        }
-      } else {
-        pick = i;
-        if (dir > 0) break;
-      }
-    }
-    return pick;
-  }
-}
-class TreeNode {
-  constructor(node, from, index, _parent) {
-    this.node = node;
-    this.from = from;
-    this.index = index;
-    this._parent = _parent;
-  }
-  get type() {
-    return this.node.type;
-  }
-  get name() {
-    return this.node.type.name;
-  }
-  get to() {
-    return this.from + this.node.length;
-  }
-  nextChild(i, dir, after, full = false) {
-    for (let parent = this; ; ) {
-      for (let {children, positions} = parent.node, e = dir > 0 ? children.length : -1; i != e; i += dir) {
-        let next = children[i], start = positions[i] + parent.from;
-        if (after != -100000000 && (dir < 0 ? start >= after : start + next.length <= after)) continue;
-        if (next instanceof TreeBuffer) {
-          let index = next.findChild(0, next.buffer.length, dir, after == -100000000 ? -100000000 : after - start);
-          if (index > -1) return new BufferNode(new BufferContext(parent, next, i, start), null, index);
-        } else if (full || (!next.type.isAnonymous || hasChild(next))) {
-          let inner = new TreeNode(next, start, i, parent);
-          return full || !inner.type.isAnonymous ? inner : inner.nextChild(dir < 0 ? next.children.length - 1 : 0, dir, after);
+          this.nodes.push(next);
+          this.offsets.push(this.dir > 0 ? 0 : next instanceof TextLeaf ? next.text.length : next.children.length);
         }
       }
-      if (full || !parent.type.isAnonymous) return null;
-      i = parent.index + dir;
-      parent = parent._parent;
-      if (!parent) return null;
     }
   }
-  get firstChild() {
-    return this.nextChild(0, 1, -100000000);
-  }
-  get lastChild() {
-    return this.nextChild(this.node.children.length - 1, -1, -100000000);
-  }
-  childAfter(pos) {
-    return this.nextChild(0, 1, pos);
-  }
-  childBefore(pos) {
-    return this.nextChild(this.node.children.length - 1, -1, pos);
-  }
-  nextSignificantParent() {
-    let val = this;
-    while (val.type.isAnonymous && val._parent) val = val._parent;
-    return val;
-  }
-  get parent() {
-    return this._parent ? this._parent.nextSignificantParent() : null;
-  }
-  get nextSibling() {
-    return this._parent ? this._parent.nextChild(this.index + 1, 1, -1) : null;
-  }
-  get prevSibling() {
-    return this._parent ? this._parent.nextChild(this.index - 1, -1, -1) : null;
-  }
-  get cursor() {
-    return new TreeCursor(this);
-  }
-  resolve(pos, side = 0) {
-    return this.cursor.moveTo(pos, side).node;
-  }
-  getChild(type, before = null, after = null) {
-    let r = getChildren(this, type, before, after);
-    return r.length ? r[0] : null;
-  }
-  getChildren(type, before = null, after = null) {
-    return getChildren(this, type, before, after);
-  }
-  toString() {
-    return this.node.toString();
-  }
 }
-function getChildren(node, type, before, after) {
-  let cur = node.cursor, result = [];
-  if (!cur.firstChild()) return result;
-  if (before != null) while (!cur.type.is(before)) if (!cur.nextSibling()) return result;
-  for (; ; ) {
-    if (after != null && cur.type.is(after)) return result;
-    if (cur.type.is(type)) result.push(cur.node);
-    if (!cur.nextSibling()) return after == null ? result : [];
-  }
-}
-class BufferContext {
-  constructor(parent, buffer, index, start) {
-    this.parent = parent;
-    this.buffer = buffer;
-    this.index = index;
-    this.start = start;
-  }
-}
-class BufferNode {
-  constructor(context, _parent, index) {
-    this.context = context;
-    this._parent = _parent;
-    this.index = index;
-    this.type = context.buffer.set.types[context.buffer.buffer[index]];
-  }
-  get name() {
-    return this.type.name;
-  }
-  get from() {
-    return this.context.start + this.context.buffer.buffer[this.index + 1];
-  }
-  get to() {
-    return this.context.start + this.context.buffer.buffer[this.index + 2];
-  }
-  child(dir, after) {
-    let {buffer} = this.context;
-    let index = buffer.findChild(this.index + 4, buffer.buffer[this.index + 3], dir, after == -100000000 ? -100000000 : after - this.context.start);
-    return index < 0 ? null : new BufferNode(this.context, this, index);
-  }
-  get firstChild() {
-    return this.child(1, -100000000);
-  }
-  get lastChild() {
-    return this.child(-1, -100000000);
-  }
-  childAfter(pos) {
-    return this.child(1, pos);
-  }
-  childBefore(pos) {
-    return this.child(-1, pos);
-  }
-  get parent() {
-    return this._parent || this.context.parent.nextSignificantParent();
-  }
-  externalSibling(dir) {
-    return this._parent ? null : this.context.parent.nextChild(this.context.index + dir, dir, -1);
-  }
-  get nextSibling() {
-    let {buffer} = this.context;
-    let after = buffer.buffer[this.index + 3];
-    if (after < (this._parent ? buffer.buffer[this._parent.index + 3] : buffer.buffer.length)) return new BufferNode(this.context, this._parent, after);
-    return this.externalSibling(1);
-  }
-  get prevSibling() {
-    let {buffer} = this.context;
-    let parentStart = this._parent ? this._parent.index + 4 : 0;
-    if (this.index == parentStart) return this.externalSibling(-1);
-    return new BufferNode(this.context, this._parent, buffer.findChild(parentStart, this.index, -1, -100000000));
-  }
-  get cursor() {
-    return new TreeCursor(this);
-  }
-  resolve(pos, side = 0) {
-    return this.cursor.moveTo(pos, side).node;
-  }
-  toString() {
-    return this.context.buffer.childString(this.index);
-  }
-  getChild(type, before = null, after = null) {
-    let r = getChildren(this, type, before, after);
-    return r.length ? r[0] : null;
-  }
-  getChildren(type, before = null, after = null) {
-    return getChildren(this, type, before, after);
-  }
-}
-class TreeCursor {
-  constructor(node, full = false) {
-    this.full = full;
-    this.buffer = null;
-    this.stack = [];
-    this.index = 0;
-    this.bufferNode = null;
-    if (node instanceof TreeNode) {
-      this.yieldNode(node);
+class PartialTextCursor {
+  constructor(text, start, end) {
+    this.value = "";
+    this.cursor = new RawTextCursor(text, start > end ? -1 : 1);
+    if (start > end) {
+      this.skip = text.length - start;
+      this.limit = start - end;
     } else {
-      this._tree = node.context.parent;
-      this.buffer = node.context;
-      for (let n = node._parent; n; n = n._parent) this.stack.unshift(n.index);
-      this.bufferNode = node;
-      this.yieldBuf(node.index);
+      this.skip = start;
+      this.limit = end - start;
     }
   }
-  get name() {
-    return this.type.name;
-  }
-  yieldNode(node) {
-    if (!node) return false;
-    this._tree = node;
-    this.type = node.type;
-    this.from = node.from;
-    this.to = node.to;
-    return true;
-  }
-  yieldBuf(index, type) {
-    this.index = index;
-    let {start, buffer} = this.buffer;
-    this.type = type || buffer.set.types[buffer.buffer[index]];
-    this.from = start + buffer.buffer[index + 1];
-    this.to = start + buffer.buffer[index + 2];
-    return true;
-  }
-  yield(node) {
-    if (!node) return false;
-    if (node instanceof TreeNode) {
-      this.buffer = null;
-      return this.yieldNode(node);
-    }
-    this.buffer = node.context;
-    return this.yieldBuf(node.index, node.type);
-  }
-  toString() {
-    return this.buffer ? this.buffer.buffer.childString(this.index) : this._tree.toString();
-  }
-  enter(dir, after) {
-    if (!this.buffer) return this.yield(this._tree.nextChild(dir < 0 ? this._tree.node.children.length - 1 : 0, dir, after, this.full));
-    let {buffer} = this.buffer;
-    let index = buffer.findChild(this.index + 4, buffer.buffer[this.index + 3], dir, after == -100000000 ? -100000000 : after - this.buffer.start);
-    if (index < 0) return false;
-    this.stack.push(this.index);
-    return this.yieldBuf(index);
-  }
-  firstChild() {
-    return this.enter(1, -100000000);
-  }
-  lastChild() {
-    return this.enter(-1, -100000000);
-  }
-  childAfter(pos) {
-    return this.enter(1, pos);
-  }
-  childBefore(pos) {
-    return this.enter(-1, pos);
-  }
-  parent() {
-    if (!this.buffer) return this.yieldNode(this.full ? this._tree._parent : this._tree.parent);
-    if (this.stack.length) return this.yieldBuf(this.stack.pop());
-    let parent = this.full ? this.buffer.parent : this.buffer.parent.nextSignificantParent();
-    this.buffer = null;
-    return this.yieldNode(parent);
-  }
-  sibling(dir) {
-    if (!this.buffer) return !this._tree._parent ? false : this.yield(this._tree._parent.nextChild(this._tree.index + dir, dir, -100000000, this.full));
-    let {buffer} = this.buffer, d = this.stack.length - 1;
-    if (dir < 0) {
-      let parentStart = d < 0 ? 0 : this.stack[d] + 4;
-      if (this.index != parentStart) return this.yieldBuf(buffer.findChild(parentStart, this.index, -1, -100000000));
+  next(skip = 0) {
+    if (this.limit <= 0) {
+      this.limit = -1;
     } else {
-      let after = buffer.buffer[this.index + 3];
-      if (after < (d < 0 ? buffer.buffer.length : buffer.buffer[this.stack[d] + 3])) return this.yieldBuf(after);
-    }
-    return d < 0 ? this.yield(this.buffer.parent.nextChild(this.buffer.index + dir, dir, -100000000, this.full)) : false;
-  }
-  nextSibling() {
-    return this.sibling(1);
-  }
-  prevSibling() {
-    return this.sibling(-1);
-  }
-  atLastNode(dir) {
-    let index, parent, {buffer} = this;
-    if (buffer) {
-      if (dir > 0) {
-        if (this.index < buffer.buffer.buffer.length) return false;
-      } else {
-        for (let i = 0; i < this.index; i++) if (buffer.buffer.buffer[i + 3] < this.index) return false;
-      }
-      ({index, parent} = buffer);
-    } else {
-      ({index, _parent: parent} = this._tree);
-    }
-    for (; parent; {index, _parent: parent} = parent) {
-      for (let i = index + dir, e = dir < 0 ? -1 : parent.node.children.length; i != e; i += dir) {
-        let child = parent.node.children[i];
-        if (this.full || !child.type.isAnonymous || child instanceof TreeBuffer || hasChild(child)) return false;
-      }
-    }
-    return true;
-  }
-  move(dir) {
-    if (this.enter(dir, -100000000)) return true;
-    for (; ; ) {
-      if (this.sibling(dir)) return true;
-      if (this.atLastNode(dir) || !this.parent()) return false;
-    }
-  }
-  next() {
-    return this.move(1);
-  }
-  prev() {
-    return this.move(-1);
-  }
-  moveTo(pos, side = 0) {
-    while (this.from == this.to || (side < 1 ? this.from >= pos : this.from > pos) || (side > -1 ? this.to <= pos : this.to < pos)) if (!this.parent()) break;
-    for (; ; ) {
-      if (side < 0 ? !this.childBefore(pos) : !this.childAfter(pos)) break;
-      if (this.from == this.to || (side < 1 ? this.from >= pos : this.from > pos) || (side > -1 ? this.to <= pos : this.to < pos)) {
-        this.parent();
-        break;
-      }
+      let {value, lineBreak, done} = this.cursor.next(this.skip + skip);
+      this.skip = 0;
+      this.value = value;
+      let len = lineBreak ? 1 : value.length;
+      if (len > this.limit) this.value = this.cursor.dir > 0 ? value.slice(0, this.limit) : value.slice(len - this.limit);
+      if (done || this.value.length == 0) this.limit = -1; else this.limit -= this.value.length;
     }
     return this;
   }
-  get node() {
-    if (!this.buffer) return this._tree;
-    let cache = this.bufferNode, result = null, depth = 0;
-    if (cache && cache.context == this.buffer) {
-      scan: for (let index = this.index, d = this.stack.length; d >= 0; ) {
-        for (let c = cache; c; c = c._parent) if (c.index == index) {
-          if (index == this.index) return c;
-          result = c;
-          depth = d + 1;
-          break scan;
-        }
-        index = this.stack[--d];
-      }
-    }
-    for (let i = depth; i < this.stack.length; i++) result = new BufferNode(this.buffer, result, this.stack[i]);
-    return this.bufferNode = new BufferNode(this.buffer, result, this.index);
+  get lineBreak() {
+    return this.cursor.lineBreak;
   }
-  get tree() {
-    return this.buffer ? null : this._tree.node;
+  get done() {
+    return this.limit < 0;
   }
 }
-function hasChild(tree) {
-  return tree.children.some(ch => !ch.type.isAnonymous || ch instanceof TreeBuffer || hasChild(ch));
-}
-class FlatBufferCursor {
-  constructor(buffer, index) {
-    this.buffer = buffer;
-    this.index = index;
-  }
-  get id() {
-    return this.buffer[this.index - 4];
-  }
-  get start() {
-    return this.buffer[this.index - 3];
-  }
-  get end() {
-    return this.buffer[this.index - 2];
-  }
-  get size() {
-    return this.buffer[this.index - 1];
-  }
-  get pos() {
-    return this.index;
-  }
-  next() {
-    this.index -= 4;
-  }
-  fork() {
-    return new FlatBufferCursor(this.buffer, this.index);
-  }
-}
-const BalanceBranchFactor = 8;
-function buildTree(data) {
-  var _a;
-  let {buffer, nodeSet, topID = 0, maxBufferLength = DefaultBufferLength, reused = [], minRepeatType = nodeSet.types.length} = data;
-  let cursor = Array.isArray(buffer) ? new FlatBufferCursor(buffer, buffer.length) : buffer;
-  let types = nodeSet.types;
-  let contextHash = 0;
-  function takeNode(parentStart, minPos, children, positions, inRepeat) {
-    let {id, start, end, size} = cursor;
-    let startPos = start - parentStart;
-    if (size < 0) {
-      if (size == -1) {
-        children.push(reused[id]);
-        positions.push(startPos);
-      } else {
-        contextHash = id;
-      }
-      cursor.next();
-      return;
-    }
-    let type = types[id], node, buffer;
-    if (end - start <= maxBufferLength && (buffer = findBufferSize(cursor.pos - minPos, inRepeat))) {
-      let data = new Uint16Array(buffer.size - buffer.skip);
-      let endPos = cursor.pos - buffer.size, index = data.length;
-      while (cursor.pos > endPos) index = copyToBuffer(buffer.start, data, index, inRepeat);
-      node = new TreeBuffer(data, end - buffer.start, nodeSet, inRepeat < 0 ? NodeType.none : types[inRepeat]);
-      startPos = buffer.start - parentStart;
-    } else {
-      let endPos = cursor.pos - size;
-      cursor.next();
-      let localChildren = [], localPositions = [];
-      let localInRepeat = id >= minRepeatType ? id : -1;
-      while (cursor.pos > endPos) {
-        if (cursor.id == localInRepeat) cursor.next(); else takeNode(start, endPos, localChildren, localPositions, localInRepeat);
-      }
-      localChildren.reverse();
-      localPositions.reverse();
-      if (localInRepeat > -1 && localChildren.length > BalanceBranchFactor) node = balanceRange(type, type, localChildren, localPositions, 0, localChildren.length, 0, maxBufferLength, end - start, contextHash); else node = withHash(new Tree(type, localChildren, localPositions, end - start), contextHash);
-    }
-    children.push(node);
-    positions.push(startPos);
-  }
-  function findBufferSize(maxSize, inRepeat) {
-    let fork = cursor.fork();
-    let size = 0, start = 0, skip = 0, minStart = fork.end - maxBufferLength;
-    let result = {
-      size: 0,
-      start: 0,
-      skip: 0
-    };
-    scan: for (let minPos = fork.pos - maxSize; fork.pos > minPos; ) {
-      if (fork.id == inRepeat) {
-        result.size = size;
-        result.start = start;
-        result.skip = skip;
-        skip += 4;
-        size += 4;
-        fork.next();
-        continue;
-      }
-      let nodeSize = fork.size, startPos = fork.pos - nodeSize;
-      if (nodeSize < 0 || startPos < minPos || fork.start < minStart) break;
-      let localSkipped = fork.id >= minRepeatType ? 4 : 0;
-      let nodeStart = fork.start;
-      fork.next();
-      while (fork.pos > startPos) {
-        if (fork.size < 0) break scan;
-        if (fork.id >= minRepeatType) localSkipped += 4;
-        fork.next();
-      }
-      start = nodeStart;
-      size += nodeSize;
-      skip += localSkipped;
-    }
-    if (inRepeat < 0 || size == maxSize) {
-      result.size = size;
-      result.start = start;
-      result.skip = skip;
-    }
-    return result.size > 4 ? result : undefined;
-  }
-  function copyToBuffer(bufferStart, buffer, index, inRepeat) {
-    let {id, start, end, size} = cursor;
-    cursor.next();
-    if (id == inRepeat) return index;
-    let startIndex = index;
-    if (size > 4) {
-      let endPos = cursor.pos - (size - 4);
-      while (cursor.pos > endPos) index = copyToBuffer(bufferStart, buffer, index, inRepeat);
-    }
-    if (id < minRepeatType) {
-      buffer[--index] = startIndex;
-      buffer[--index] = end - bufferStart;
-      buffer[--index] = start - bufferStart;
-      buffer[--index] = id;
-    }
-    return index;
-  }
-  let children = [], positions = [];
-  while (cursor.pos > 0) takeNode(data.start || 0, 0, children, positions, -1);
-  let length = (_a = data.length) !== null && _a !== void 0 ? _a : children.length ? positions[0] + children[0].length : 0;
-  return new Tree(types[topID], children.reverse(), positions.reverse(), length);
-}
-function balanceRange(outerType, innerType, children, positions, from, to, start, maxBufferLength, length, contextHash) {
-  let localChildren = [], localPositions = [];
-  if (length <= maxBufferLength) {
-    for (let i = from; i < to; i++) {
-      localChildren.push(children[i]);
-      localPositions.push(positions[i] - start);
-    }
-  } else {
-    let maxChild = Math.max(maxBufferLength, Math.ceil(length * 1.5 / BalanceBranchFactor));
-    for (let i = from; i < to; ) {
-      let groupFrom = i, groupStart = positions[i];
-      i++;
-      for (; i < to; i++) {
-        let nextEnd = positions[i] + children[i].length;
-        if (nextEnd - groupStart > maxChild) break;
-      }
-      if (i == groupFrom + 1) {
-        let only = children[groupFrom];
-        if (only instanceof Tree && only.type == innerType && only.length > maxChild << 1) {
-          for (let j = 0; j < only.children.length; j++) {
-            localChildren.push(only.children[j]);
-            localPositions.push(only.positions[j] + groupStart - start);
-          }
-          continue;
-        }
-        localChildren.push(only);
-      } else if (i == groupFrom + 1) {
-        localChildren.push(children[groupFrom]);
-      } else {
-        let inner = balanceRange(innerType, innerType, children, positions, groupFrom, i, groupStart, maxBufferLength, positions[i - 1] + children[i - 1].length - groupStart, contextHash);
-        if (innerType != NodeType.none && !containsType(inner.children, innerType)) inner = withHash(new Tree(NodeType.none, inner.children, inner.positions, inner.length), contextHash);
-        localChildren.push(inner);
-      }
-      localPositions.push(groupStart - start);
-    }
-  }
-  return withHash(new Tree(outerType, localChildren, localPositions, length), contextHash);
-}
-function containsType(nodes, type) {
-  for (let elt of nodes) if (elt.type == type) return true;
-  return false;
-}
-class TreeFragment {
-  constructor(from, to, tree, offset, open) {
+class Line {
+  constructor(from, to, number, text) {
     this.from = from;
     this.to = to;
-    this.tree = tree;
-    this.offset = offset;
-    this.open = open;
+    this.number = number;
+    this.text = text;
   }
-  get openStart() {
-    return (this.open & 1) > 0;
-  }
-  get openEnd() {
-    return (this.open & 2) > 0;
-  }
-  static applyChanges(fragments, changes, minGap = 128) {
-    if (!changes.length) return fragments;
-    let result = [];
-    let fI = 1, nextF = fragments.length ? fragments[0] : null;
-    let cI = 0, pos = 0, off = 0;
-    for (; ; ) {
-      let nextC = cI < changes.length ? changes[cI++] : null;
-      let nextPos = nextC ? nextC.fromA : 1e9;
-      if (nextPos - pos >= minGap) while (nextF && nextF.from < nextPos) {
-        let cut = nextF;
-        if (pos >= cut.from || nextPos <= cut.to || off) {
-          let fFrom = Math.max(cut.from, pos) - off, fTo = Math.min(cut.to, nextPos) - off;
-          cut = fFrom >= fTo ? null : new TreeFragment(fFrom, fTo, cut.tree, cut.offset + off, (cI > 0 ? 1 : 0) | (nextC ? 2 : 0));
-        }
-        if (cut) result.push(cut);
-        if (nextF.to > nextPos) break;
-        nextF = fI < fragments.length ? fragments[fI++] : null;
-      }
-      if (!nextC) break;
-      pos = nextC.toA;
-      off = nextC.toA - nextC.toB;
-    }
-    return result;
-  }
-  static addTree(tree, fragments = [], partial = false) {
-    let result = [new TreeFragment(0, tree.length, tree, 0, partial ? 2 : 0)];
-    for (let f of fragments) if (f.to > tree.length) result.push(f);
-    return result;
+  get length() {
+    return this.to - this.from;
   }
 }
-function stringInput(input) {
-  return new StringInput(input);
-}
-class StringInput {
-  constructor(string, length = string.length) {
-    this.string = string;
-    this.length = length;
-  }
-  get(pos) {
-    return pos < 0 || pos >= this.length ? -1 : this.string.charCodeAt(pos);
-  }
-  lineAfter(pos) {
-    if (pos < 0) return "";
-    let end = this.string.indexOf("\n", pos);
-    return this.string.slice(pos, end < 0 ? this.length : Math.min(end, this.length));
-  }
-  read(from, to) {
-    return this.string.slice(from, Math.min(this.length, to));
-  }
-  clip(at) {
-    return new StringInput(this.string, at);
-  }
-}
-exports.DefaultBufferLength = DefaultBufferLength;
-exports.NodeProp = NodeProp;
-exports.NodeSet = NodeSet;
-exports.NodeType = NodeType;
-exports.Tree = Tree;
-exports.TreeBuffer = TreeBuffer;
-exports.TreeCursor = TreeCursor;
-exports.TreeFragment = TreeFragment;
-exports.stringInput = stringInput;
+exports.Line = Line;
+exports.Text = Text;
+exports.codePointAt = codePointAt;
+exports.codePointSize = codePointSize;
+exports.countColumn = countColumn;
+exports.findClusterBreak = findClusterBreak;
+exports.findColumn = findColumn;
+exports.fromCodePoint = fromCodePoint;
 
 },
 
-// node_modules/@codemirror/language/dist/index.js @25
-25: function(__fusereq, exports, module){
+// node_modules/@codemirror/tooltip/dist/index.js @16
+16: function(__fusereq, exports, module){
 exports.__esModule = true;
-var lezer_tree_1 = __fusereq(23);
-var text_1 = __fusereq(26);
-var state_1 = __fusereq(15);
 var view_1 = __fusereq(14);
-const languageDataProp = new lezer_tree_1.NodeProp();
-function defineLanguageFacet(baseData) {
-  return state_1.Facet.define({
-    combine: baseData ? values => values.concat(baseData) : undefined
-  });
-}
-class Language {
-  constructor(data, parser, topNode, extraExtensions = []) {
-    this.data = data;
-    this.topNode = topNode;
-    if (!state_1.EditorState.prototype.hasOwnProperty("tree")) Object.defineProperty(state_1.EditorState.prototype, "tree", {
-      get() {
-        return syntaxTree(this);
-      }
-    });
-    this.parser = parser;
-    this.extension = [language.of(this), state_1.EditorState.languageData.of((state, pos) => state.facet(languageDataFacetAt(state, pos)))].concat(extraExtensions);
-  }
-  isActiveAt(state, pos) {
-    return languageDataFacetAt(state, pos) == this.data;
-  }
-  findRegions(state) {
-    let lang = state.facet(language);
-    if ((lang === null || lang === void 0 ? void 0 : lang.data) == this.data) return [{
-      from: 0,
-      to: state.doc.length
-    }];
-    if (!lang || !lang.allowsNesting) return [];
-    let result = [];
-    syntaxTree(state).iterate({
-      enter: (type, from, to) => {
-        if (type.isTop && type.prop(languageDataProp) == this.data) {
-          result.push({
-            from,
-            to
-          });
-          return false;
-        }
-        return undefined;
-      }
-    });
-    return result;
-  }
-  get allowsNesting() {
-    return true;
-  }
-  parseString(code) {
-    let doc = text_1.Text.of(code.split("\n"));
-    let parse = this.parser.startParse(new DocInput(doc), 0, new EditorParseContext(this.parser, state_1.EditorState.create({
-      doc
-    }), [], lezer_tree_1.Tree.empty, {
-      from: 0,
-      to: code.length
-    }, []));
-    let tree;
-    while (!(tree = parse.advance())) {}
-    return tree;
-  }
-}
-Language.setState = state_1.StateEffect.define();
-function languageDataFacetAt(state, pos) {
-  let topLang = state.facet(language);
-  if (!topLang) return null;
-  if (!topLang.allowsNesting) return topLang.data;
-  let tree = syntaxTree(state);
-  let target = tree.resolve(pos, -1);
-  while (target) {
-    let facet = target.type.prop(languageDataProp);
-    if (facet) return facet;
-    target = target.parent;
-  }
-  return topLang.data;
-}
-class LezerLanguage extends Language {
-  constructor(data, parser) {
-    super(data, parser, parser.topNode);
-    this.parser = parser;
-  }
-  static define(spec) {
-    let data = defineLanguageFacet(spec.languageData);
-    return new LezerLanguage(data, spec.parser.configure({
-      props: [languageDataProp.add(type => type.isTop ? data : undefined)]
-    }));
-  }
-  configure(options) {
-    return new LezerLanguage(this.data, this.parser.configure(options));
-  }
-  get allowsNesting() {
-    return this.parser.hasNested;
-  }
-}
-function syntaxTree(state) {
-  let field = state.field(Language.state, false);
-  return field ? field.tree : lezer_tree_1.Tree.empty;
-}
-function ensureSyntaxTree(state, upto, timeout = 50) {
-  var _a;
-  let parse = (_a = state.field(Language.state, false)) === null || _a === void 0 ? void 0 : _a.context;
-  return !parse ? null : parse.tree.length >= upto || parse.work(timeout, upto) ? parse.tree : null;
-}
-class DocInput {
-  constructor(doc, length = doc.length) {
-    this.doc = doc;
-    this.length = length;
-    this.cursorPos = 0;
-    this.string = "";
-    this.prevString = "";
-    this.cursor = doc.iter();
-  }
-  syncTo(pos) {
-    if (pos < this.cursorPos) {
-      this.cursor = this.doc.iter();
-      this.cursorPos = 0;
-    }
-    this.prevString = pos == this.cursorPos ? this.string : "";
-    this.string = this.cursor.next(pos - this.cursorPos).value;
-    this.cursorPos = pos + this.string.length;
-    return this.cursorPos - this.string.length;
-  }
-  get(pos) {
-    if (pos >= this.length) return -1;
-    let stringStart = this.cursorPos - this.string.length;
-    if (pos < stringStart || pos >= this.cursorPos) {
-      if (pos < stringStart && pos >= stringStart - this.prevString.length) return this.prevString.charCodeAt(pos - (stringStart - this.prevString.length));
-      stringStart = this.syncTo(pos);
-    }
-    return this.string.charCodeAt(pos - stringStart);
-  }
-  lineAfter(pos) {
-    if (pos >= this.length || pos < 0) return "";
-    let stringStart = this.cursorPos - this.string.length;
-    if (pos < stringStart || pos >= this.cursorPos) stringStart = this.syncTo(pos);
-    return this.cursor.lineBreak ? "" : this.string.slice(pos - stringStart);
-  }
-  read(from, to) {
-    let stringStart = this.cursorPos - this.string.length;
-    if (from < stringStart || to >= this.cursorPos) return this.doc.sliceString(from, to); else return this.string.slice(from - stringStart, to - stringStart);
-  }
-  clip(at) {
-    return new DocInput(this.doc, at);
-  }
-}
-class EditorParseContext {
-  constructor(parser, state, fragments = [], tree, viewport, skipped) {
-    this.parser = parser;
-    this.state = state;
-    this.fragments = fragments;
-    this.tree = tree;
-    this.viewport = viewport;
-    this.skipped = skipped;
-    this.parse = null;
-    this.tempSkipped = [];
-  }
-  work(time, upto) {
-    if (this.tree != lezer_tree_1.Tree.empty && (upto == null ? this.tree.length == this.state.doc.length : this.tree.length >= upto)) {
-      this.takeTree();
-      return true;
-    }
-    if (!this.parse) this.parse = this.parser.startParse(new DocInput(this.state.doc), 0, this);
-    let endTime = Date.now() + time;
-    for (; ; ) {
-      let done = this.parse.advance();
-      if (done) {
-        this.fragments = this.withoutTempSkipped(lezer_tree_1.TreeFragment.addTree(done));
-        this.parse = null;
-        this.tree = done;
-        return true;
-      } else if (upto != null && this.parse.pos >= upto) {
-        this.takeTree();
-        return true;
-      }
-      if (Date.now() > endTime) return false;
-    }
-  }
-  takeTree() {
-    if (this.parse && this.parse.pos > this.tree.length) {
-      this.tree = this.parse.forceFinish();
-      this.fragments = this.withoutTempSkipped(lezer_tree_1.TreeFragment.addTree(this.tree, this.fragments, true));
-    }
-  }
-  withoutTempSkipped(fragments) {
-    for (let r; r = this.tempSkipped.pop(); ) fragments = cutFragments(fragments, r.from, r.to);
-    return fragments;
-  }
-  changes(changes, newState) {
-    let {fragments, tree, viewport, skipped} = this;
-    this.takeTree();
-    if (!changes.empty) {
-      let ranges = [];
-      changes.iterChangedRanges((fromA, toA, fromB, toB) => ranges.push({
-        fromA,
-        toA,
-        fromB,
-        toB
-      }));
-      fragments = lezer_tree_1.TreeFragment.applyChanges(fragments, ranges);
-      tree = lezer_tree_1.Tree.empty;
-      viewport = {
-        from: changes.mapPos(viewport.from, -1),
-        to: changes.mapPos(viewport.to, 1)
-      };
-      if (this.skipped.length) {
-        skipped = [];
-        for (let r of this.skipped) {
-          let from = changes.mapPos(r.from, 1), to = changes.mapPos(r.to, -1);
-          if (from < to) skipped.push({
-            from,
-            to
-          });
-        }
-      }
-    }
-    return new EditorParseContext(this.parser, newState, fragments, tree, viewport, skipped);
-  }
-  updateViewport(viewport) {
-    this.viewport = viewport;
-    let startLen = this.skipped.length;
-    for (let i = 0; i < this.skipped.length; i++) {
-      let {from, to} = this.skipped[i];
-      if (from < viewport.to && to > viewport.from) {
-        this.fragments = cutFragments(this.fragments, from, to);
-        this.skipped.splice(i--, 1);
-      }
-    }
-    return this.skipped.length < startLen;
-  }
-  reset() {
-    if (this.parse) {
-      this.takeTree();
-      this.parse = null;
-    }
-  }
-  skipUntilInView(from, to) {
-    this.skipped.push({
-      from,
-      to
-    });
-  }
-  movedPast(pos) {
-    return this.tree.length < pos && this.parse && this.parse.pos >= pos;
-  }
-}
-EditorParseContext.skippingParser = {
-  startParse(input, startPos, context) {
-    return {
-      pos: startPos,
-      advance() {
-        context.tempSkipped.push({
-          from: startPos,
-          to: input.length
-        });
-        this.pos = input.length;
-        return new lezer_tree_1.Tree(lezer_tree_1.NodeType.none, [], [], input.length - startPos);
-      },
-      forceFinish() {
-        return this.advance();
-      }
-    };
-  }
-};
-function cutFragments(fragments, from, to) {
-  return lezer_tree_1.TreeFragment.applyChanges(fragments, [{
-    fromA: from,
-    toA: to,
-    fromB: from,
-    toB: to
-  }]);
-}
-class LanguageState {
-  constructor(context) {
-    this.context = context;
-    this.tree = context.tree;
-  }
-  apply(tr) {
-    if (!tr.docChanged) return this;
-    let newCx = this.context.changes(tr.changes, tr.state);
-    let upto = this.context.tree.length == tr.startState.doc.length ? undefined : Math.max(tr.changes.mapPos(this.context.tree.length), newCx.viewport.to);
-    if (!newCx.work(25, upto)) newCx.takeTree();
-    return new LanguageState(newCx);
-  }
-  static init(state) {
-    let parseState = new EditorParseContext(state.facet(language).parser, state, [], lezer_tree_1.Tree.empty, {
-      from: 0,
-      to: state.doc.length
-    }, []);
-    if (!parseState.work(25)) parseState.takeTree();
-    return new LanguageState(parseState);
-  }
-}
-Language.state = state_1.StateField.define({
-  create: LanguageState.init,
-  update(value, tr) {
-    for (let e of tr.effects) if (e.is(Language.setState)) return e.value;
-    if (tr.startState.facet(language) != tr.state.facet(language)) return LanguageState.init(tr.state);
-    return value.apply(tr);
-  }
-});
-let requestIdle = typeof window != "undefined" && window.requestIdleCallback || ((callback, {timeout}) => setTimeout(callback, timeout));
-let cancelIdle = typeof window != "undefined" && window.cancelIdleCallback || clearTimeout;
-const parseWorker = view_1.ViewPlugin.fromClass(class ParseWorker {
+var state_1 = __fusereq(15);
+const ios = typeof navigator != "undefined" && !(/Edge\/(\d+)/).exec(navigator.userAgent) && (/Apple Computer/).test(navigator.vendor) && ((/Mobile\/\w+/).test(navigator.userAgent) || navigator.maxTouchPoints > 2);
+const Outside = "-10000px";
+const tooltipPlugin = view_1.ViewPlugin.fromClass(class {
   constructor(view) {
     this.view = view;
-    this.working = -1;
-    this.chunkEnd = -1;
-    this.chunkBudget = -1;
-    this.work = this.work.bind(this);
-    this.scheduleWork();
+    this.inView = true;
+    this.measureReq = {
+      read: this.readMeasure.bind(this),
+      write: this.writeMeasure.bind(this),
+      key: this
+    };
+    this.input = view.state.facet(showTooltip);
+    this.tooltips = this.input.filter(t => t);
+    this.tooltipViews = this.tooltips.map(tp => this.createTooltip(tp));
   }
   update(update) {
-    if (update.viewportChanged) {
-      let cx = this.view.state.field(Language.state).context;
-      if (cx.updateViewport(update.view.viewport)) cx.reset();
-      if (this.view.viewport.to > cx.tree.length) this.scheduleWork();
-    }
-    if (update.docChanged) {
-      if (this.view.hasFocus) this.chunkBudget += 50;
-      this.scheduleWork();
+    let input = update.state.facet(showTooltip);
+    if (input == this.input) {
+      for (let t of this.tooltipViews) if (t.update) t.update(update);
+    } else {
+      let tooltips = input.filter(x => x);
+      let views = [];
+      for (let i = 0; i < tooltips.length; i++) {
+        let tip = tooltips[i], known = -1;
+        if (!tip) continue;
+        for (let i = 0; i < this.tooltips.length; i++) {
+          let other = this.tooltips[i];
+          if (other && other.create == tip.create) known = i;
+        }
+        if (known < 0) {
+          views[i] = this.createTooltip(tip);
+        } else {
+          let tooltipView = views[i] = this.tooltipViews[known];
+          if (tooltipView.update) tooltipView.update(update);
+        }
+      }
+      for (let t of this.tooltipViews) if (views.indexOf(t) < 0) t.dom.remove();
+      this.input = input;
+      this.tooltips = tooltips;
+      this.tooltipViews = views;
+      this.maybeMeasure();
     }
   }
-  scheduleWork() {
-    if (this.working > -1) return;
-    let {state} = this.view, field = state.field(Language.state);
-    if (field.tree.length >= state.doc.length) return;
-    this.working = requestIdle(this.work, {
-      timeout: 500
-    });
-  }
-  work(deadline) {
-    this.working = -1;
-    let now = Date.now();
-    if (this.chunkEnd < now && (this.chunkEnd < 0 || this.view.hasFocus)) {
-      this.chunkEnd = now + 30000;
-      this.chunkBudget = 3000;
-    }
-    if (this.chunkBudget <= 0) return;
-    let {state, viewport: {to: vpTo}} = this.view, field = state.field(Language.state);
-    if (field.tree.length >= vpTo + 1000000) return;
-    let time = Math.min(this.chunkBudget, deadline ? Math.max(25, deadline.timeRemaining()) : 100);
-    let done = field.context.work(time, vpTo + 1000000);
-    this.chunkBudget -= Date.now() - now;
-    if (done || this.chunkBudget <= 0 || field.context.movedPast(vpTo)) {
-      field.context.takeTree();
-      this.view.dispatch({
-        effects: Language.setState.of(new LanguageState(field.context))
-      });
-    }
-    if (!done && this.chunkBudget > 0) this.scheduleWork();
+  createTooltip(tooltip) {
+    let tooltipView = tooltip.create(this.view);
+    tooltipView.dom.classList.add("cm-tooltip");
+    if (tooltip.class) tooltipView.dom.classList.add(tooltip.class);
+    tooltipView.dom.style.top = Outside;
+    this.view.dom.appendChild(tooltipView.dom);
+    if (tooltipView.mount) tooltipView.mount(this.view);
+    return tooltipView;
   }
   destroy() {
-    if (this.working >= 0) cancelIdle(this.working);
+    for (let {dom} of this.tooltipViews) dom.remove();
+  }
+  readMeasure() {
+    return {
+      editor: this.view.dom.getBoundingClientRect(),
+      pos: this.tooltips.map(t => this.view.coordsAtPos(t.pos)),
+      size: this.tooltipViews.map(({dom}) => dom.getBoundingClientRect()),
+      innerWidth: window.innerWidth,
+      innerHeight: window.innerHeight
+    };
+  }
+  writeMeasure(measured) {
+    let {editor} = measured;
+    for (let i = 0; i < this.tooltipViews.length; i++) {
+      let tooltip = this.tooltips[i], tView = this.tooltipViews[i], {dom} = tView;
+      let pos = measured.pos[i], size = measured.size[i];
+      if (!pos || pos.bottom <= editor.top || pos.top >= editor.bottom || pos.right <= editor.left || pos.left >= editor.right) {
+        dom.style.top = Outside;
+        continue;
+      }
+      let width = size.right - size.left, height = size.bottom - size.top;
+      let left = this.view.textDirection == view_1.Direction.LTR ? Math.min(pos.left, measured.innerWidth - width) : Math.max(0, pos.left - width);
+      let above = !!tooltip.above;
+      if (!tooltip.strictSide && (above ? pos.top - (size.bottom - size.top) < 0 : pos.bottom + (size.bottom - size.top) > measured.innerHeight)) above = !above;
+      if (ios) {
+        dom.style.top = (above ? pos.top - height : pos.bottom) - editor.top + "px";
+        dom.style.left = left - editor.left + "px";
+        dom.style.position = "absolute";
+      } else {
+        dom.style.top = (above ? pos.top - height : pos.bottom) + "px";
+        dom.style.left = left + "px";
+      }
+      dom.classList.toggle("cm-tooltip-above", above);
+      dom.classList.toggle("cm-tooltip-below", !above);
+      if (tView.positioned) tView.positioned();
+    }
+  }
+  maybeMeasure() {
+    if (this.tooltips.length) {
+      if (this.view.inView || this.inView) this.view.requestMeasure(this.measureReq);
+      this.inView = this.view.inView;
+    }
   }
 }, {
   eventHandlers: {
-    focus() {
-      this.scheduleWork();
+    scroll() {
+      this.maybeMeasure();
     }
   }
 });
-const language = state_1.Facet.define({
-  combine(languages) {
-    return languages.length ? languages[0] : null;
+const baseTheme = view_1.EditorView.baseTheme({
+  ".cm-tooltip": {
+    position: "fixed",
+    zIndex: 100
   },
-  enables: [Language.state, parseWorker]
-});
-class LanguageSupport {
-  constructor(language, support = []) {
-    this.language = language;
-    this.support = support;
-    this.extension = [language, support];
-  }
-}
-class LanguageDescription {
-  constructor(name, alias, extensions, filename, loadFunc) {
-    this.name = name;
-    this.alias = alias;
-    this.extensions = extensions;
-    this.filename = filename;
-    this.loadFunc = loadFunc;
-    this.support = undefined;
-    this.loading = null;
-  }
-  load() {
-    return this.loading || (this.loading = this.loadFunc().then(support => this.support = support, err => {
-      this.loading = null;
-      throw err;
-    }));
-  }
-  static of(spec) {
-    return new LanguageDescription(spec.name, (spec.alias || []).concat(spec.name).map(s => s.toLowerCase()), spec.extensions || [], spec.filename, spec.load);
-  }
-  static matchFilename(descs, filename) {
-    for (let d of descs) if (d.filename && d.filename.test(filename)) return d;
-    let ext = (/\.([^.]+)$/).exec(filename);
-    if (ext) for (let d of descs) if (d.extensions.indexOf(ext[1]) > -1) return d;
-    return null;
-  }
-  static matchLanguageName(descs, name, fuzzy = true) {
-    name = name.toLowerCase();
-    for (let d of descs) if (d.alias.some(a => a == name)) return d;
-    if (fuzzy) for (let d of descs) for (let a of d.alias) {
-      let found = name.indexOf(a);
-      if (found > -1 && (a.length > 2 || !(/\w/).test(name[found - 1]) && !(/\w/).test(name[found + a.length]))) return d;
-    }
-    return null;
-  }
-}
-const indentService = state_1.Facet.define();
-const indentUnit = state_1.Facet.define({
-  combine: values => {
-    if (!values.length) return "  ";
-    if (!(/^(?: +|\t+)$/).test(values[0])) throw new Error("Invalid indent unit: " + JSON.stringify(values[0]));
-    return values[0];
+  "&light .cm-tooltip": {
+    border: "1px solid #ddd",
+    backgroundColor: "#f5f5f5"
+  },
+  "&dark .cm-tooltip": {
+    backgroundColor: "#333338",
+    color: "white"
   }
 });
-function getIndentUnit(state) {
-  let unit = state.facet(indentUnit);
-  return unit.charCodeAt(0) == 9 ? state.tabSize * unit.length : unit.length;
+function tooltips() {
+  return [];
 }
-function indentString(state, cols) {
-  let result = "", ts = state.tabSize;
-  if (state.facet(indentUnit).charCodeAt(0) == 9) while (cols >= ts) {
-    result += "\t";
-    cols -= ts;
+const showTooltip = state_1.Facet.define({
+  enables: [tooltipPlugin, baseTheme]
+});
+const HoverTime = 750, HoverMaxDist = 6;
+class HoverPlugin {
+  constructor(view, source, field, setHover) {
+    this.view = view;
+    this.source = source;
+    this.field = field;
+    this.setHover = setHover;
+    this.lastMouseMove = null;
+    this.hoverTimeout = -1;
+    this.restartTimeout = -1;
+    this.pending = null;
+    this.checkHover = this.checkHover.bind(this);
+    view.dom.addEventListener("mouseleave", this.mouseleave = this.mouseleave.bind(this));
+    view.dom.addEventListener("mousemove", this.mousemove = this.mousemove.bind(this));
   }
-  for (let i = 0; i < cols; i++) result += " ";
-  return result;
-}
-function getIndentation(context, pos) {
-  if (context instanceof state_1.EditorState) context = new IndentContext(context);
-  for (let service of context.state.facet(indentService)) {
-    let result = service(context, pos);
-    if (result != null) return result;
+  update() {
+    if (this.pending) {
+      this.pending = null;
+      clearTimeout(this.restartTimeout);
+      this.restartTimeout = setTimeout(() => this.startHover(), 20);
+    }
   }
-  let tree = syntaxTree(context.state);
-  return tree ? syntaxIndentation(context, tree, pos) : null;
-}
-class IndentContext {
-  constructor(state, options = {}) {
-    this.state = state;
-    this.options = options;
-    this.unit = getIndentUnit(state);
+  get active() {
+    return this.view.state.field(this.field);
   }
-  textAfterPos(pos) {
-    var _a, _b;
-    let sim = (_a = this.options) === null || _a === void 0 ? void 0 : _a.simulateBreak;
-    if (pos == sim && ((_b = this.options) === null || _b === void 0 ? void 0 : _b.simulateDoubleBreak)) return "";
-    return this.state.sliceDoc(pos, Math.min(pos + 100, sim != null && sim > pos ? sim : 1e9, this.state.doc.lineAt(pos).to));
+  checkHover() {
+    this.hoverTimeout = -1;
+    if (this.active) return;
+    let now = Date.now(), lastMove = this.lastMouseMove;
+    if (now - lastMove.timeStamp < HoverTime) this.hoverTimeout = setTimeout(this.checkHover, HoverTime - (now - lastMove.timeStamp)); else this.startHover();
   }
-  column(pos) {
+  startHover() {
     var _a;
-    let line = this.state.doc.lineAt(pos), text = line.text.slice(0, pos - line.from);
-    let result = this.countColumn(text, pos - line.from);
-    let override = ((_a = this.options) === null || _a === void 0 ? void 0 : _a.overrideIndentation) ? this.options.overrideIndentation(line.from) : -1;
-    if (override > -1) result += override - this.countColumn(text, text.search(/\S/));
-    return result;
-  }
-  countColumn(line, pos) {
-    return text_1.countColumn(pos < 0 ? line : line.slice(0, pos), 0, this.state.tabSize);
-  }
-  lineIndent(line) {
-    var _a;
-    let override = (_a = this.options) === null || _a === void 0 ? void 0 : _a.overrideIndentation;
-    if (override) {
-      let overriden = override(line.from);
-      if (overriden > -1) return overriden;
-    }
-    return this.countColumn(line.text, line.text.search(/\S/));
-  }
-}
-const indentNodeProp = new lezer_tree_1.NodeProp();
-function syntaxIndentation(cx, ast, pos) {
-  let tree = ast.resolve(pos);
-  for (let scan = tree, scanPos = pos; ; ) {
-    let last = scan.childBefore(scanPos);
-    if (!last) break;
-    if (last.type.isError && last.from == last.to) {
-      tree = scan;
-      scanPos = last.from;
-    } else {
-      scan = last;
-      scanPos = scan.to + 1;
-    }
-  }
-  return indentFrom(tree, pos, cx);
-}
-function ignoreClosed(cx) {
-  var _a, _b;
-  return cx.pos == ((_a = cx.options) === null || _a === void 0 ? void 0 : _a.simulateBreak) && ((_b = cx.options) === null || _b === void 0 ? void 0 : _b.simulateDoubleBreak);
-}
-function indentStrategy(tree) {
-  let strategy = tree.type.prop(indentNodeProp);
-  if (strategy) return strategy;
-  let first = tree.firstChild, close;
-  if (first && (close = first.type.prop(lezer_tree_1.NodeProp.closedBy))) {
-    let last = tree.lastChild, closed = last && close.indexOf(last.name) > -1;
-    return cx => delimitedStrategy(cx, true, 1, undefined, closed && !ignoreClosed(cx) ? last.from : undefined);
-  }
-  return tree.parent == null ? topIndent : null;
-}
-function indentFrom(node, pos, base) {
-  for (; node; node = node.parent) {
-    let strategy = indentStrategy(node);
-    if (strategy) return strategy(new TreeIndentContext(base, pos, node));
-  }
-  return null;
-}
-function topIndent() {
-  return 0;
-}
-class TreeIndentContext extends IndentContext {
-  constructor(base, pos, node) {
-    super(base.state, base.options);
-    this.base = base;
-    this.pos = pos;
-    this.node = node;
-  }
-  get textAfter() {
-    return this.textAfterPos(this.pos);
-  }
-  get baseIndent() {
-    let line = this.state.doc.lineAt(this.node.from);
-    for (; ; ) {
-      let atBreak = this.node.resolve(line.from);
-      while (atBreak.parent && atBreak.parent.from == atBreak.from) atBreak = atBreak.parent;
-      if (isParent(atBreak, this.node)) break;
-      line = this.state.doc.lineAt(atBreak.from);
-    }
-    return this.lineIndent(line);
-  }
-  continue() {
-    let parent = this.node.parent;
-    return parent ? indentFrom(parent, this.pos, this.base) : 0;
-  }
-}
-function isParent(parent, of) {
-  for (let cur = of; cur; cur = cur.parent) if (parent == cur) return true;
-  return false;
-}
-function bracketedAligned(context) {
-  var _a;
-  let tree = context.node;
-  let openToken = tree.childAfter(tree.from), last = tree.lastChild;
-  if (!openToken) return null;
-  let sim = (_a = context.options) === null || _a === void 0 ? void 0 : _a.simulateBreak;
-  let openLine = context.state.doc.lineAt(openToken.from);
-  let lineEnd = sim == null || sim <= openLine.from ? openLine.to : Math.min(openLine.to, sim);
-  for (let pos = openToken.to; ; ) {
-    let next = tree.childAfter(pos);
-    if (!next || next == last) return null;
-    if (!next.type.isSkipped) return next.from < lineEnd ? openToken : null;
-    pos = next.to;
-  }
-}
-function delimitedIndent({closing, align = true, units = 1}) {
-  return context => delimitedStrategy(context, align, units, closing);
-}
-function delimitedStrategy(context, align, units, closing, closedAt) {
-  let after = context.textAfter, space = after.match(/^\s*/)[0].length;
-  let closed = closing && after.slice(space, space + closing.length) == closing || closedAt == context.pos + space;
-  let aligned = align ? bracketedAligned(context) : null;
-  if (aligned) return closed ? context.column(aligned.from) : context.column(aligned.to);
-  return context.baseIndent + (closed ? 0 : context.unit * units);
-}
-const flatIndent = context => context.baseIndent;
-function continuedIndent({except, units = 1} = {}) {
-  return context => {
-    let matchExcept = except && except.test(context.textAfter);
-    return context.baseIndent + (matchExcept ? 0 : units * context.unit);
-  };
-}
-const DontIndentBeyond = 200;
-function indentOnInput() {
-  return state_1.EditorState.transactionFilter.of(tr => {
-    if (!tr.docChanged || tr.annotation(state_1.Transaction.userEvent) != "input") return tr;
-    let rules = tr.startState.languageDataAt("indentOnInput", tr.startState.selection.main.head);
-    if (!rules.length) return tr;
-    let doc = tr.newDoc, {head} = tr.newSelection.main, line = doc.lineAt(head);
-    if (head > line.from + DontIndentBeyond) return tr;
-    let lineStart = doc.sliceString(line.from, head);
-    if (!rules.some(r => r.test(lineStart))) return tr;
-    let {state} = tr, last = -1, changes = [];
-    for (let {head} of state.selection.ranges) {
-      let line = state.doc.lineAt(head);
-      if (line.from == last) continue;
-      last = line.from;
-      let indent = getIndentation(state, line.from);
-      if (indent == null) continue;
-      let cur = (/^\s*/).exec(line.text)[0];
-      let norm = indentString(state, indent);
-      if (cur != norm) changes.push({
-        from: line.from,
-        to: line.from + cur.length,
-        insert: norm
+    clearTimeout(this.restartTimeout);
+    let lastMove = this.lastMouseMove;
+    let coords = {
+      x: lastMove.clientX,
+      y: lastMove.clientY
+    };
+    let pos = this.view.contentDOM.contains(lastMove.target) ? this.view.posAtCoords(coords) : null;
+    if (pos == null) return;
+    let posCoords = this.view.coordsAtPos(pos);
+    if (posCoords == null || coords.y < posCoords.top || coords.y > posCoords.bottom || coords.x < posCoords.left - this.view.defaultCharacterWidth || coords.x > posCoords.right + this.view.defaultCharacterWidth) return;
+    let bidi = this.view.bidiSpans(this.view.state.doc.lineAt(pos)).find(s => s.from <= pos && s.to >= pos);
+    let rtl = bidi && bidi.dir == view_1.Direction.RTL ? -1 : 1;
+    let open = this.source(this.view, pos, coords.x < posCoords.left ? -rtl : rtl);
+    if ((_a = open) === null || _a === void 0 ? void 0 : _a.then) {
+      let pending = this.pending = {
+        pos
+      };
+      open.then(result => {
+        if (this.pending == pending) {
+          this.pending = null;
+          if (result) this.view.dispatch({
+            effects: this.setHover.of(result)
+          });
+        }
+      }, e => view_1.logException(this.view.state, e, "hover tooltip"));
+    } else if (open) {
+      this.view.dispatch({
+        effects: this.setHover.of(open)
       });
     }
-    return changes.length ? [tr, {
-      changes
-    }] : tr;
-  });
-}
-const foldService = state_1.Facet.define();
-const foldNodeProp = new lezer_tree_1.NodeProp();
-function foldInside(node) {
-  let first = node.firstChild, last = node.lastChild;
-  return first && first.to < last.from ? {
-    from: first.to,
-    to: last.type.isError ? node.to : last.from
-  } : null;
-}
-function syntaxFolding(state, start, end) {
-  let tree = syntaxTree(state);
-  if (tree.length == 0) return null;
-  let inner = tree.resolve(end);
-  let found = null;
-  for (let cur = inner; cur; cur = cur.parent) {
-    if (cur.to <= end || cur.from > end) continue;
-    if (found && cur.from < start) break;
-    let prop = cur.type.prop(foldNodeProp);
-    if (prop) {
-      let value = prop(cur, state);
-      if (value && value.from <= end && value.from >= start && value.to > end) found = value;
+  }
+  mousemove(event) {
+    var _a;
+    this.lastMouseMove = event;
+    if (this.hoverTimeout < 0) this.hoverTimeout = setTimeout(this.checkHover, HoverTime);
+    let tooltip = this.active;
+    if (tooltip && !isInTooltip(event.target) || this.pending) {
+      let {pos} = tooltip || this.pending, end = (_a = tooltip === null || tooltip === void 0 ? void 0 : tooltip.end) !== null && _a !== void 0 ? _a : pos;
+      if (pos == end ? this.view.posAtCoords({
+        x: event.clientX,
+        y: event.clientY
+      }) != pos : !isOverRange(this.view, pos, end, event.clientX, event.clientY, HoverMaxDist)) {
+        this.view.dispatch({
+          effects: this.setHover.of(null)
+        });
+        this.pending = null;
+      }
     }
   }
-  return found;
-}
-function foldable(state, lineStart, lineEnd) {
-  for (let service of state.facet(foldService)) {
-    let result = service(state, lineStart, lineEnd);
-    if (result) return result;
+  mouseleave() {
+    clearTimeout(this.hoverTimeout);
+    this.hoverTimeout = -1;
+    if (this.active) this.view.dispatch({
+      effects: this.setHover.of(null)
+    });
   }
-  return syntaxFolding(state, lineStart, lineEnd);
+  destroy() {
+    clearTimeout(this.hoverTimeout);
+    this.view.dom.removeEventListener("mouseleave", this.mouseleave);
+    this.view.dom.removeEventListener("mousemove", this.mousemove);
+  }
 }
-exports.EditorParseContext = EditorParseContext;
-exports.IndentContext = IndentContext;
-exports.Language = Language;
-exports.LanguageDescription = LanguageDescription;
-exports.LanguageSupport = LanguageSupport;
-exports.LezerLanguage = LezerLanguage;
-exports.TreeIndentContext = TreeIndentContext;
-exports.continuedIndent = continuedIndent;
-exports.defineLanguageFacet = defineLanguageFacet;
-exports.delimitedIndent = delimitedIndent;
-exports.ensureSyntaxTree = ensureSyntaxTree;
-exports.flatIndent = flatIndent;
-exports.foldInside = foldInside;
-exports.foldNodeProp = foldNodeProp;
-exports.foldService = foldService;
-exports.foldable = foldable;
-exports.getIndentUnit = getIndentUnit;
-exports.getIndentation = getIndentation;
-exports.indentNodeProp = indentNodeProp;
-exports.indentOnInput = indentOnInput;
-exports.indentService = indentService;
-exports.indentString = indentString;
-exports.indentUnit = indentUnit;
-exports.language = language;
-exports.languageDataProp = languageDataProp;
-exports.syntaxTree = syntaxTree;
+function isInTooltip(elt) {
+  for (let cur = elt; cur; cur = cur.parentNode) if (cur.nodeType == 1 && cur.classList.contains("cm-tooltip")) return true;
+  return false;
+}
+function isOverRange(view, from, to, x, y, margin) {
+  let range = document.createRange();
+  let fromDOM = view.domAtPos(from), toDOM = view.domAtPos(to);
+  range.setEnd(toDOM.node, toDOM.offset);
+  range.setStart(fromDOM.node, fromDOM.offset);
+  let rects = range.getClientRects();
+  range.detach();
+  for (let i = 0; i < rects.length; i++) {
+    let rect = rects[i];
+    let dist = Math.max(rect.top - y, y - rect.bottom, rect.left - x, x - rect.right);
+    if (dist <= margin) return true;
+  }
+  return false;
+}
+function hoverTooltip(source, options = {}) {
+  const setHover = state_1.StateEffect.define();
+  const hoverState = state_1.StateField.define({
+    create() {
+      return null;
+    },
+    update(value, tr) {
+      if (value && (options.hideOnChange && (tr.docChanged || tr.selection))) return null;
+      for (let effect of tr.effects) if (effect.is(setHover)) return effect.value;
+      if (value && tr.docChanged) {
+        let newPos = tr.changes.mapPos(value.pos, -1, state_1.MapMode.TrackDel);
+        if (newPos == null) return null;
+        let copy = Object.assign(Object.create(null), value);
+        copy.pos = newPos;
+        if (value.end != null) copy.end = tr.changes.mapPos(value.end);
+        return copy;
+      }
+      return value;
+    },
+    provide: f => showTooltip.from(f)
+  });
+  return [hoverState, view_1.ViewPlugin.define(view => new HoverPlugin(view, source, hoverState, setHover))];
+}
+exports.hoverTooltip = hoverTooltip;
+exports.showTooltip = showTooltip;
+exports.tooltips = tooltips;
 
 },
 
@@ -9400,6 +7813,2214 @@ exports.keyName = keyName;
 
 },
 
+// node_modules/crelt/index.es.js @18
+18: function(__fusereq, exports, module){
+exports.__esModule = true;
+function crelt() {
+  var elt = arguments[0];
+  if (typeof elt == "string") elt = document.createElement(elt);
+  var i = 1, next = arguments[1];
+  if (next && typeof next == "object" && next.nodeType == null && !Array.isArray(next)) {
+    for (var name in next) if (Object.prototype.hasOwnProperty.call(next, name)) {
+      var value = next[name];
+      if (typeof value == "string") elt.setAttribute(name, value); else if (value != null) elt[name] = value;
+    }
+    i++;
+  }
+  for (; i < arguments.length; i++) add(elt, arguments[i]);
+  return elt;
+}
+exports.default = crelt;
+function add(elt, child) {
+  if (typeof child == "string") {
+    elt.appendChild(document.createTextNode(child));
+  } else if (child == null) {} else if (child.nodeType != null) {
+    elt.appendChild(child);
+  } else if (Array.isArray(child)) {
+    for (var i = 0; i < child.length; i++) add(elt, child[i]);
+  } else {
+    throw new RangeError("Unsupported child node: " + child);
+  }
+}
+
+},
+
+// node_modules/@codemirror/panel/dist/index.js @17
+17: function(__fusereq, exports, module){
+exports.__esModule = true;
+var view_1 = __fusereq(14);
+var state_1 = __fusereq(15);
+const panelConfig = state_1.Facet.define({
+  combine(configs) {
+    let topContainer, bottomContainer;
+    for (let c of configs) {
+      topContainer = topContainer || c.topContainer;
+      bottomContainer = bottomContainer || c.bottomContainer;
+    }
+    return {
+      topContainer,
+      bottomContainer
+    };
+  }
+});
+function panels(config) {
+  return config ? [panelConfig.of(config)] : [];
+}
+function getPanel(view, panel) {
+  let plugin = view.plugin(panelPlugin);
+  let index = plugin ? plugin.specs.indexOf(panel) : -1;
+  return index > -1 ? plugin.panels[index] : null;
+}
+const panelPlugin = view_1.ViewPlugin.fromClass(class {
+  constructor(view) {
+    this.input = view.state.facet(showPanel);
+    this.specs = this.input.filter(s => s);
+    this.panels = this.specs.map(spec => spec(view));
+    let conf = view.state.facet(panelConfig);
+    this.top = new PanelGroup(view, true, conf.topContainer);
+    this.bottom = new PanelGroup(view, false, conf.bottomContainer);
+    this.top.sync(this.panels.filter(p => p.top));
+    this.bottom.sync(this.panels.filter(p => !p.top));
+    for (let p of this.panels) {
+      p.dom.classList.add("cm-panel");
+      if (p.class) p.dom.classList.add(p.class);
+      if (p.mount) p.mount();
+    }
+  }
+  update(update) {
+    let conf = update.state.facet(panelConfig);
+    if (this.top.container != conf.topContainer) {
+      this.top.sync([]);
+      this.top = new PanelGroup(update.view, true, conf.topContainer);
+    }
+    if (this.bottom.container != conf.bottomContainer) {
+      this.bottom.sync([]);
+      this.bottom = new PanelGroup(update.view, false, conf.bottomContainer);
+    }
+    this.top.syncClasses();
+    this.bottom.syncClasses();
+    let input = update.state.facet(showPanel);
+    if (input != this.input) {
+      let specs = input.filter(x => x);
+      let panels = [], top = [], bottom = [], mount = [];
+      for (let spec of specs) {
+        let known = this.specs.indexOf(spec), panel;
+        if (known < 0) {
+          panel = spec(update.view);
+          mount.push(panel);
+        } else {
+          panel = this.panels[known];
+          if (panel.update) panel.update(update);
+        }
+        panels.push(panel);
+        (panel.top ? top : bottom).push(panel);
+      }
+      this.specs = specs;
+      this.panels = panels;
+      this.top.sync(top);
+      this.bottom.sync(bottom);
+      for (let p of mount) {
+        p.dom.classList.add("cm-panel");
+        if (p.class) p.dom.classList.add(p.class);
+        if (p.mount) p.mount();
+      }
+    } else {
+      for (let p of this.panels) if (p.update) p.update(update);
+    }
+  }
+  destroy() {
+    this.top.sync([]);
+    this.bottom.sync([]);
+  }
+}, {
+  provide: view_1.PluginField.scrollMargins.from(value => ({
+    top: value.top.scrollMargin(),
+    bottom: value.bottom.scrollMargin()
+  }))
+});
+class PanelGroup {
+  constructor(view, top, container) {
+    this.view = view;
+    this.top = top;
+    this.container = container;
+    this.dom = undefined;
+    this.classes = "";
+    this.panels = [];
+    this.syncClasses();
+  }
+  sync(panels) {
+    this.panels = panels;
+    this.syncDOM();
+  }
+  syncDOM() {
+    if (this.panels.length == 0) {
+      if (this.dom) {
+        this.dom.remove();
+        this.dom = undefined;
+      }
+      return;
+    }
+    if (!this.dom) {
+      this.dom = document.createElement("div");
+      this.dom.className = this.top ? "cm-panels cm-panels-top" : "cm-panels cm-panels-bottom";
+      this.dom.style[this.top ? "top" : "bottom"] = "0";
+      let parent = this.container || this.view.dom;
+      parent.insertBefore(this.dom, this.top ? parent.firstChild : null);
+    }
+    let curDOM = this.dom.firstChild;
+    for (let panel of this.panels) {
+      if (panel.dom.parentNode == this.dom) {
+        while (curDOM != panel.dom) curDOM = rm(curDOM);
+        curDOM = curDOM.nextSibling;
+      } else {
+        this.dom.insertBefore(panel.dom, curDOM);
+      }
+    }
+    while (curDOM) curDOM = rm(curDOM);
+  }
+  scrollMargin() {
+    return !this.dom || this.container ? 0 : Math.max(0, this.top ? this.dom.getBoundingClientRect().bottom - this.view.scrollDOM.getBoundingClientRect().top : this.view.scrollDOM.getBoundingClientRect().bottom - this.dom.getBoundingClientRect().top);
+  }
+  syncClasses() {
+    if (!this.container || this.classes == this.view.themeClasses) return;
+    for (let cls of this.classes.split(" ")) if (cls) this.container.classList.remove(cls);
+    for (let cls of (this.classes = this.view.themeClasses).split(" ")) if (cls) this.container.classList.add(cls);
+  }
+}
+function rm(node) {
+  let next = node.nextSibling;
+  node.remove();
+  return next;
+}
+const baseTheme = view_1.EditorView.baseTheme({
+  ".cm-panels": {
+    boxSizing: "border-box",
+    position: "sticky",
+    left: 0,
+    right: 0
+  },
+  "&light .cm-panels": {
+    backgroundColor: "#f5f5f5",
+    color: "black"
+  },
+  "&light .cm-panels-top": {
+    borderBottom: "1px solid #ddd"
+  },
+  "&light .cm-panels-bottom": {
+    borderTop: "1px solid #ddd"
+  },
+  "&dark .cm-panels": {
+    backgroundColor: "#333338",
+    color: "white"
+  }
+});
+const showPanel = state_1.Facet.define({
+  enables: [panelPlugin, baseTheme]
+});
+exports.getPanel = getPanel;
+exports.panels = panels;
+exports.showPanel = showPanel;
+
+},
+
+// node_modules/@codemirror/lint/dist/index.js @5
+5: function(__fusereq, exports, module){
+exports.__esModule = true;
+var view_1 = __fusereq(14);
+var state_1 = __fusereq(15);
+var tooltip_1 = __fusereq(16);
+var panel_1 = __fusereq(17);
+var crelt_1 = __fusereq(18);
+var crelt_1d = __fuse.dt(crelt_1);
+class SelectedDiagnostic {
+  constructor(from, to, diagnostic) {
+    this.from = from;
+    this.to = to;
+    this.diagnostic = diagnostic;
+  }
+}
+class LintState {
+  constructor(diagnostics, panel, selected) {
+    this.diagnostics = diagnostics;
+    this.panel = panel;
+    this.selected = selected;
+  }
+}
+function findDiagnostic(diagnostics, diagnostic = null, after = 0) {
+  let found = null;
+  diagnostics.between(after, 1e9, (from, to, {spec}) => {
+    if (diagnostic && spec.diagnostic != diagnostic) return;
+    found = new SelectedDiagnostic(from, to, spec.diagnostic);
+    return false;
+  });
+  return found;
+}
+function maybeEnableLint(state, effects) {
+  return state.field(lintState, false) ? effects : effects.concat(state_1.StateEffect.appendConfig.of([lintState, view_1.EditorView.decorations.compute([lintState], state => {
+    let {selected, panel} = state.field(lintState);
+    return !selected || !panel || selected.from == selected.to ? view_1.Decoration.none : view_1.Decoration.set([activeMark.range(selected.from, selected.to)]);
+  }), tooltip_1.hoverTooltip(lintTooltip), baseTheme]));
+}
+function setDiagnostics(state, diagnostics) {
+  return {
+    effects: maybeEnableLint(state, [setDiagnosticsEffect.of(diagnostics)])
+  };
+}
+const setDiagnosticsEffect = state_1.StateEffect.define();
+const togglePanel = state_1.StateEffect.define();
+const movePanelSelection = state_1.StateEffect.define();
+const lintState = state_1.StateField.define({
+  create() {
+    return new LintState(view_1.Decoration.none, null, null);
+  },
+  update(value, tr) {
+    if (tr.docChanged) {
+      let mapped = value.diagnostics.map(tr.changes), selected = null;
+      if (value.selected) {
+        let selPos = tr.changes.mapPos(value.selected.from, 1);
+        selected = findDiagnostic(mapped, value.selected.diagnostic, selPos) || findDiagnostic(mapped, null, selPos);
+      }
+      value = new LintState(mapped, value.panel, selected);
+    }
+    for (let effect of tr.effects) {
+      if (effect.is(setDiagnosticsEffect)) {
+        let ranges = view_1.Decoration.set(effect.value.map(d => {
+          return d.from < d.to ? view_1.Decoration.mark({
+            attributes: {
+              class: "cm-lintRange cm-lintRange-" + d.severity
+            },
+            diagnostic: d
+          }).range(d.from, d.to) : view_1.Decoration.widget({
+            widget: new DiagnosticWidget(d),
+            diagnostic: d
+          }).range(d.from);
+        }));
+        value = new LintState(ranges, value.panel, findDiagnostic(ranges));
+      } else if (effect.is(togglePanel)) {
+        value = new LintState(value.diagnostics, effect.value ? LintPanel.open : null, value.selected);
+      } else if (effect.is(movePanelSelection)) {
+        value = new LintState(value.diagnostics, value.panel, effect.value);
+      }
+    }
+    return value;
+  },
+  provide: f => [panel_1.showPanel.from(f, val => val.panel), view_1.EditorView.decorations.from(f, s => s.diagnostics)]
+});
+const activeMark = view_1.Decoration.mark({
+  class: "cm-lintRange cm-lintRange-active"
+});
+function lintTooltip(view, pos, side) {
+  let {diagnostics} = view.state.field(lintState);
+  let found = [], stackStart = 2e8, stackEnd = 0;
+  diagnostics.between(pos - (side < 0 ? 1 : 0), pos + (side > 0 ? 1 : 0), (from, to, {spec}) => {
+    if (pos >= from && pos <= to && (from == to || (pos > from || side > 0) && (pos < to || side < 0))) {
+      found.push(spec.diagnostic);
+      stackStart = Math.min(from, stackStart);
+      stackEnd = Math.max(to, stackEnd);
+    }
+  });
+  if (!found.length) return null;
+  return {
+    pos: stackStart,
+    end: stackEnd,
+    above: view.state.doc.lineAt(stackStart).to < stackEnd,
+    create() {
+      return {
+        dom: crelt_1d.default("ul", {
+          class: "cm-tooltip-lint"
+        }, found.map(d => renderDiagnostic(view, d, false)))
+      };
+    }
+  };
+}
+const openLintPanel = view => {
+  let field = view.state.field(lintState, false);
+  if (!field || !field.panel) view.dispatch({
+    effects: maybeEnableLint(view.state, [togglePanel.of(true)])
+  });
+  let panel = panel_1.getPanel(view, LintPanel.open);
+  if (panel) panel.dom.querySelector(".cm-panel-lint ul").focus();
+  return true;
+};
+const closeLintPanel = view => {
+  let field = view.state.field(lintState, false);
+  if (!field || !field.panel) return false;
+  view.dispatch({
+    effects: togglePanel.of(false)
+  });
+  return true;
+};
+const nextDiagnostic = view => {
+  let field = view.state.field(lintState, false);
+  if (!field) return false;
+  let sel = view.state.selection.main, next = field.diagnostics.iter(sel.to + 1);
+  if (!next.value) {
+    next = field.diagnostics.iter(0);
+    if (!next.value || next.from == sel.from && next.to == sel.to) return false;
+  }
+  view.dispatch({
+    selection: {
+      anchor: next.from,
+      head: next.to
+    },
+    scrollIntoView: true
+  });
+  return true;
+};
+const lintKeymap = [{
+  key: "Mod-Shift-m",
+  run: openLintPanel
+}, {
+  key: "F8",
+  run: nextDiagnostic
+}];
+const LintDelay = 500;
+function linter(source) {
+  return view_1.ViewPlugin.fromClass(class {
+    constructor(view) {
+      this.view = view;
+      this.lintTime = Date.now() + LintDelay;
+      this.set = true;
+      this.run = this.run.bind(this);
+      setTimeout(this.run, LintDelay);
+    }
+    run() {
+      let now = Date.now();
+      if (now < this.lintTime - 10) {
+        setTimeout(this.run, this.lintTime - now);
+      } else {
+        this.set = false;
+        let {state} = this.view;
+        Promise.resolve(source(this.view)).then(annotations => {
+          var _a, _b;
+          if (this.view.state.doc == state.doc && (annotations.length || ((_b = (_a = this.view.state.field(lintState, false)) === null || _a === void 0 ? void 0 : _a.diagnostics) === null || _b === void 0 ? void 0 : _b.size))) this.view.dispatch(setDiagnostics(this.view.state, annotations));
+        }, error => {
+          view_1.logException(this.view.state, error);
+        });
+      }
+    }
+    update(update) {
+      if (update.docChanged) {
+        this.lintTime = Date.now() + LintDelay;
+        if (!this.set) {
+          this.set = true;
+          setTimeout(this.run, LintDelay);
+        }
+      }
+    }
+  });
+}
+function assignKeys(actions) {
+  let assigned = [];
+  if (actions) actions: for (let {name} of actions) {
+    for (let i = 0; i < name.length; i++) {
+      let ch = name[i];
+      if ((/[a-zA-Z]/).test(ch) && !assigned.some(c => c.toLowerCase() == ch.toLowerCase())) {
+        assigned.push(ch);
+        continue actions;
+      }
+    }
+    assigned.push("");
+  }
+  return assigned;
+}
+function renderDiagnostic(view, diagnostic, inPanel) {
+  var _a;
+  let keys = inPanel ? assignKeys(diagnostic.actions) : [];
+  return crelt_1d.default("li", {
+    class: "cm-diagnostic cm-diagnostic-" + diagnostic.severity
+  }, crelt_1d.default("span", {
+    class: "cm-diagnosticText"
+  }, diagnostic.message), (_a = diagnostic.actions) === null || _a === void 0 ? void 0 : _a.map((action, i) => {
+    let click = e => {
+      e.preventDefault();
+      let found = findDiagnostic(view.state.field(lintState).diagnostics, diagnostic);
+      if (found) action.apply(view, found.from, found.to);
+    };
+    let {name} = action, keyIndex = keys[i] ? name.indexOf(keys[i]) : -1;
+    let nameElt = keyIndex < 0 ? name : [name.slice(0, keyIndex), crelt_1d.default("u", name.slice(keyIndex, keyIndex + 1)), name.slice(keyIndex + 1)];
+    return crelt_1d.default("button", {
+      class: "cm-diagnosticAction",
+      onclick: click,
+      onmousedown: click,
+      "aria-label": ` Action: ${name}${keyIndex < 0 ? "" : ` (access key "${keys[i]})"`}.`
+    }, nameElt);
+  }), diagnostic.source && crelt_1d.default("div", {
+    class: "cm-diagnosticSource"
+  }, diagnostic.source));
+}
+class DiagnosticWidget extends view_1.WidgetType {
+  constructor(diagnostic) {
+    super();
+    this.diagnostic = diagnostic;
+  }
+  eq(other) {
+    return other.diagnostic == this.diagnostic;
+  }
+  toDOM() {
+    return crelt_1d.default("span", {
+      class: "cm-lintPoint cm-lintPoint-" + this.diagnostic.severity
+    });
+  }
+}
+class PanelItem {
+  constructor(view, diagnostic) {
+    this.diagnostic = diagnostic;
+    this.id = "item_" + Math.floor(Math.random() * 0xffffffff).toString(16);
+    this.dom = renderDiagnostic(view, diagnostic, true);
+    this.dom.id = this.id;
+    this.dom.setAttribute("role", "option");
+  }
+}
+class LintPanel {
+  constructor(view) {
+    this.view = view;
+    this.items = [];
+    let onkeydown = event => {
+      if (event.keyCode == 27) {
+        closeLintPanel(this.view);
+        this.view.focus();
+      } else if (event.keyCode == 38 || event.keyCode == 33) {
+        this.moveSelection((this.selectedIndex - 1 + this.items.length) % this.items.length);
+      } else if (event.keyCode == 40 || event.keyCode == 34) {
+        this.moveSelection((this.selectedIndex + 1) % this.items.length);
+      } else if (event.keyCode == 36) {
+        this.moveSelection(0);
+      } else if (event.keyCode == 35) {
+        this.moveSelection(this.items.length - 1);
+      } else if (event.keyCode == 13) {
+        this.view.focus();
+      } else if (event.keyCode >= 65 && event.keyCode <= 90 && this.items.length) {
+        let {diagnostic} = this.items[this.selectedIndex], keys = assignKeys(diagnostic.actions);
+        for (let i = 0; i < keys.length; i++) if (keys[i].toUpperCase().charCodeAt(0) == event.keyCode) {
+          let found = findDiagnostic(this.view.state.field(lintState).diagnostics, diagnostic);
+          if (found) diagnostic.actions[i].apply(view, found.from, found.to);
+        }
+      } else {
+        return;
+      }
+      event.preventDefault();
+    };
+    let onclick = event => {
+      for (let i = 0; i < this.items.length; i++) {
+        if (this.items[i].dom.contains(event.target)) this.moveSelection(i);
+      }
+    };
+    this.list = crelt_1d.default("ul", {
+      tabIndex: 0,
+      role: "listbox",
+      "aria-label": this.view.state.phrase("Diagnostics"),
+      onkeydown,
+      onclick
+    });
+    this.dom = crelt_1d.default("div", {
+      class: "cm-panel-lint"
+    }, this.list, crelt_1d.default("button", {
+      name: "close",
+      "aria-label": this.view.state.phrase("close"),
+      onclick: () => closeLintPanel(this.view)
+    }, "×"));
+    this.update();
+  }
+  get selectedIndex() {
+    let selected = this.view.state.field(lintState).selected;
+    if (!selected) return -1;
+    for (let i = 0; i < this.items.length; i++) if (this.items[i].diagnostic == selected.diagnostic) return i;
+    return -1;
+  }
+  update() {
+    let {diagnostics, selected} = this.view.state.field(lintState);
+    let i = 0, needsSync = false, newSelectedItem = null;
+    diagnostics.between(0, this.view.state.doc.length, (_start, _end, {spec}) => {
+      let found = -1, item;
+      for (let j = i; j < this.items.length; j++) if (this.items[j].diagnostic == spec.diagnostic) {
+        found = j;
+        break;
+      }
+      if (found < 0) {
+        item = new PanelItem(this.view, spec.diagnostic);
+        this.items.splice(i, 0, item);
+        needsSync = true;
+      } else {
+        item = this.items[found];
+        if (found > i) {
+          this.items.splice(i, found - i);
+          needsSync = true;
+        }
+      }
+      if (selected && item.diagnostic == selected.diagnostic) {
+        if (!item.dom.hasAttribute("aria-selected")) {
+          item.dom.setAttribute("aria-selected", "true");
+          newSelectedItem = item;
+        }
+      } else if (item.dom.hasAttribute("aria-selected")) {
+        item.dom.removeAttribute("aria-selected");
+      }
+      i++;
+    });
+    while (i < this.items.length && !(this.items.length == 1 && this.items[0].diagnostic.from < 0)) {
+      needsSync = true;
+      this.items.pop();
+    }
+    if (this.items.length == 0) {
+      this.items.push(new PanelItem(this.view, {
+        from: -1,
+        to: -1,
+        severity: "info",
+        message: this.view.state.phrase("No diagnostics")
+      }));
+      needsSync = true;
+    }
+    if (newSelectedItem) {
+      this.list.setAttribute("aria-activedescendant", newSelectedItem.id);
+      this.view.requestMeasure({
+        key: this,
+        read: () => ({
+          sel: newSelectedItem.dom.getBoundingClientRect(),
+          panel: this.list.getBoundingClientRect()
+        }),
+        write: ({sel, panel}) => {
+          if (sel.top < panel.top) this.list.scrollTop -= panel.top - sel.top; else if (sel.bottom > panel.bottom) this.list.scrollTop += sel.bottom - panel.bottom;
+        }
+      });
+    } else if (!this.items.length) {
+      this.list.removeAttribute("aria-activedescendant");
+    }
+    if (needsSync) this.sync();
+  }
+  sync() {
+    let domPos = this.list.firstChild;
+    function rm() {
+      let prev = domPos;
+      domPos = prev.nextSibling;
+      prev.remove();
+    }
+    for (let item of this.items) {
+      if (item.dom.parentNode == this.list) {
+        while (domPos != item.dom) rm();
+        domPos = item.dom.nextSibling;
+      } else {
+        this.list.insertBefore(item.dom, domPos);
+      }
+    }
+    while (domPos) rm();
+    if (!this.list.firstChild) this.list.appendChild(renderDiagnostic(this.view, {
+      severity: "info",
+      message: this.view.state.phrase("No diagnostics")
+    }, true));
+  }
+  moveSelection(selectedIndex) {
+    if (this.items.length == 0) return;
+    let field = this.view.state.field(lintState);
+    let selection = findDiagnostic(field.diagnostics, this.items[selectedIndex].diagnostic);
+    if (!selection) return;
+    this.view.dispatch({
+      selection: {
+        anchor: selection.from,
+        head: selection.to
+      },
+      scrollIntoView: true,
+      effects: movePanelSelection.of(selection)
+    });
+  }
+  static open(view) {
+    return new LintPanel(view);
+  }
+}
+function underline(color) {
+  if (typeof btoa != "function") return "none";
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="6" height="3">
+    <path d="m0 3 l2 -2 l1 0 l2 2 l1 0" stroke="${color}" fill="none" stroke-width=".7"/>
+  </svg>`;
+  return `url('data:image/svg+xml;base64,${btoa(svg)}')`;
+}
+const baseTheme = view_1.EditorView.baseTheme({
+  ".cm-diagnostic": {
+    padding: "3px 6px 3px 8px",
+    marginLeft: "-1px",
+    display: "block"
+  },
+  ".cm-diagnostic-error": {
+    borderLeft: "5px solid #d11"
+  },
+  ".cm-diagnostic-warning": {
+    borderLeft: "5px solid orange"
+  },
+  ".cm-diagnostic-info": {
+    borderLeft: "5px solid #999"
+  },
+  ".cm-diagnosticAction": {
+    font: "inherit",
+    border: "none",
+    padding: "2px 4px",
+    backgroundColor: "#444",
+    color: "white",
+    borderRadius: "3px",
+    marginLeft: "8px"
+  },
+  ".cm-diagnosticSource": {
+    fontSize: "70%",
+    opacity: .7
+  },
+  ".cm-lintRange": {
+    backgroundPosition: "left bottom",
+    backgroundRepeat: "repeat-x"
+  },
+  ".cm-lintRange-error": {
+    backgroundImage: underline("#d11")
+  },
+  ".cm-lintRange-warning": {
+    backgroundImage: underline("orange")
+  },
+  ".cm-lintRange-info": {
+    backgroundImage: underline("#999")
+  },
+  ".cm-lintRange-active": {
+    backgroundColor: "#ffdd9980"
+  },
+  ".cm-lintPoint": {
+    position: "relative",
+    "&:after": {
+      content: '""',
+      position: "absolute",
+      bottom: 0,
+      left: "-2px",
+      borderLeft: "3px solid transparent",
+      borderRight: "3px solid transparent",
+      borderBottom: "4px solid #d11"
+    }
+  },
+  ".cm-lintPoint-warning": {
+    "&:after": {
+      borderBottomColor: "orange"
+    }
+  },
+  ".cm-lintPoint-info": {
+    "&:after": {
+      borderBottomColor: "#999"
+    }
+  },
+  ".cm-panel.cm-panel-lint": {
+    position: "relative",
+    "& ul": {
+      maxHeight: "100px",
+      overflowY: "auto",
+      "& [aria-selected]": {
+        backgroundColor: "#ddd",
+        "& u": {
+          textDecoration: "underline"
+        }
+      },
+      "&:focus [aria-selected]": {
+        background_fallback: "#bdf",
+        backgroundColor: "Highlight",
+        color_fallback: "white",
+        color: "HighlightText"
+      },
+      "& u": {
+        textDecoration: "none"
+      },
+      padding: 0,
+      margin: 0
+    },
+    "& [name=close]": {
+      position: "absolute",
+      top: "0",
+      right: "2px",
+      background: "inherit",
+      border: "none",
+      font: "inherit",
+      padding: 0,
+      margin: 0
+    }
+  },
+  ".cm-tooltip.cm-tooltip-lint": {
+    padding: 0,
+    margin: 0
+  }
+});
+exports.closeLintPanel = closeLintPanel;
+exports.lintKeymap = lintKeymap;
+exports.linter = linter;
+exports.nextDiagnostic = nextDiagnostic;
+exports.openLintPanel = openLintPanel;
+exports.setDiagnostics = setDiagnostics;
+
+},
+
+// node_modules/lezer-tree/dist/tree.es.js @23
+23: function(__fusereq, exports, module){
+exports.__esModule = true;
+const DefaultBufferLength = 1024;
+let nextPropID = 0;
+const CachedNode = new WeakMap();
+class NodeProp {
+  constructor({deserialize} = {}) {
+    this.id = nextPropID++;
+    this.deserialize = deserialize || (() => {
+      throw new Error("This node type doesn't define a deserialize function");
+    });
+  }
+  static string() {
+    return new NodeProp({
+      deserialize: str => str
+    });
+  }
+  static number() {
+    return new NodeProp({
+      deserialize: Number
+    });
+  }
+  static flag() {
+    return new NodeProp({
+      deserialize: () => true
+    });
+  }
+  set(propObj, value) {
+    propObj[this.id] = value;
+    return propObj;
+  }
+  add(match) {
+    if (typeof match != "function") match = NodeType.match(match);
+    return type => {
+      let result = match(type);
+      return result === undefined ? null : [this, result];
+    };
+  }
+}
+NodeProp.closedBy = new NodeProp({
+  deserialize: str => str.split(" ")
+});
+NodeProp.openedBy = new NodeProp({
+  deserialize: str => str.split(" ")
+});
+NodeProp.group = new NodeProp({
+  deserialize: str => str.split(" ")
+});
+const noProps = Object.create(null);
+class NodeType {
+  constructor(name, props, id, flags = 0) {
+    this.name = name;
+    this.props = props;
+    this.id = id;
+    this.flags = flags;
+  }
+  static define(spec) {
+    let props = spec.props && spec.props.length ? Object.create(null) : noProps;
+    let flags = (spec.top ? 1 : 0) | (spec.skipped ? 2 : 0) | (spec.error ? 4 : 0) | (spec.name == null ? 8 : 0);
+    let type = new NodeType(spec.name || "", props, spec.id, flags);
+    if (spec.props) for (let src of spec.props) {
+      if (!Array.isArray(src)) src = src(type);
+      if (src) src[0].set(props, src[1]);
+    }
+    return type;
+  }
+  prop(prop) {
+    return this.props[prop.id];
+  }
+  get isTop() {
+    return (this.flags & 1) > 0;
+  }
+  get isSkipped() {
+    return (this.flags & 2) > 0;
+  }
+  get isError() {
+    return (this.flags & 4) > 0;
+  }
+  get isAnonymous() {
+    return (this.flags & 8) > 0;
+  }
+  is(name) {
+    if (typeof name == 'string') {
+      if (this.name == name) return true;
+      let group = this.prop(NodeProp.group);
+      return group ? group.indexOf(name) > -1 : false;
+    }
+    return this.id == name;
+  }
+  static match(map) {
+    let direct = Object.create(null);
+    for (let prop in map) for (let name of prop.split(" ")) direct[name] = map[prop];
+    return node => {
+      for (let groups = node.prop(NodeProp.group), i = -1; i < (groups ? groups.length : 0); i++) {
+        let found = direct[i < 0 ? node.name : groups[i]];
+        if (found) return found;
+      }
+    };
+  }
+}
+NodeType.none = new NodeType("", Object.create(null), 0, 8);
+class NodeSet {
+  constructor(types) {
+    this.types = types;
+    for (let i = 0; i < types.length; i++) if (types[i].id != i) throw new RangeError("Node type ids should correspond to array positions when creating a node set");
+  }
+  extend(...props) {
+    let newTypes = [];
+    for (let type of this.types) {
+      let newProps = null;
+      for (let source of props) {
+        let add = source(type);
+        if (add) {
+          if (!newProps) newProps = Object.assign({}, type.props);
+          add[0].set(newProps, add[1]);
+        }
+      }
+      newTypes.push(newProps ? new NodeType(type.name, newProps, type.id, type.flags) : type);
+    }
+    return new NodeSet(newTypes);
+  }
+}
+class Tree {
+  constructor(type, children, positions, length) {
+    this.type = type;
+    this.children = children;
+    this.positions = positions;
+    this.length = length;
+  }
+  toString() {
+    let children = this.children.map(c => c.toString()).join();
+    return !this.type.name ? children : ((/\W/).test(this.type.name) && !this.type.isError ? JSON.stringify(this.type.name) : this.type.name) + (children.length ? "(" + children + ")" : "");
+  }
+  cursor(pos, side = 0) {
+    let scope = pos != null && CachedNode.get(this) || this.topNode;
+    let cursor = new TreeCursor(scope);
+    if (pos != null) {
+      cursor.moveTo(pos, side);
+      CachedNode.set(this, cursor._tree);
+    }
+    return cursor;
+  }
+  fullCursor() {
+    return new TreeCursor(this.topNode, true);
+  }
+  get topNode() {
+    return new TreeNode(this, 0, 0, null);
+  }
+  resolve(pos, side = 0) {
+    return this.cursor(pos, side).node;
+  }
+  iterate(spec) {
+    let {enter, leave, from = 0, to = this.length} = spec;
+    for (let c = this.cursor(); ; ) {
+      let mustLeave = false;
+      if (c.from <= to && c.to >= from && (c.type.isAnonymous || enter(c.type, c.from, c.to) !== false)) {
+        if (c.firstChild()) continue;
+        if (!c.type.isAnonymous) mustLeave = true;
+      }
+      for (; ; ) {
+        if (mustLeave && leave) leave(c.type, c.from, c.to);
+        mustLeave = c.type.isAnonymous;
+        if (c.nextSibling()) break;
+        if (!c.parent()) return;
+        mustLeave = true;
+      }
+    }
+  }
+  balance(maxBufferLength = DefaultBufferLength) {
+    return this.children.length <= BalanceBranchFactor ? this : balanceRange(this.type, NodeType.none, this.children, this.positions, 0, this.children.length, 0, maxBufferLength, this.length, 0);
+  }
+  static build(data) {
+    return buildTree(data);
+  }
+}
+Tree.empty = new Tree(NodeType.none, [], [], 0);
+function withHash(tree, hash) {
+  if (hash) tree.contextHash = hash;
+  return tree;
+}
+class TreeBuffer {
+  constructor(buffer, length, set, type = NodeType.none) {
+    this.buffer = buffer;
+    this.length = length;
+    this.set = set;
+    this.type = type;
+  }
+  toString() {
+    let result = [];
+    for (let index = 0; index < this.buffer.length; ) {
+      result.push(this.childString(index));
+      index = this.buffer[index + 3];
+    }
+    return result.join(",");
+  }
+  childString(index) {
+    let id = this.buffer[index], endIndex = this.buffer[index + 3];
+    let type = this.set.types[id], result = type.name;
+    if ((/\W/).test(result) && !type.isError) result = JSON.stringify(result);
+    index += 4;
+    if (endIndex == index) return result;
+    let children = [];
+    while (index < endIndex) {
+      children.push(this.childString(index));
+      index = this.buffer[index + 3];
+    }
+    return result + "(" + children.join(",") + ")";
+  }
+  findChild(startIndex, endIndex, dir, after) {
+    let {buffer} = this, pick = -1;
+    for (let i = startIndex; i != endIndex; i = buffer[i + 3]) {
+      if (after != -100000000) {
+        let start = buffer[i + 1], end = buffer[i + 2];
+        if (dir > 0) {
+          if (end > after) pick = i;
+          if (end > after) break;
+        } else {
+          if (start < after) pick = i;
+          if (end >= after) break;
+        }
+      } else {
+        pick = i;
+        if (dir > 0) break;
+      }
+    }
+    return pick;
+  }
+}
+class TreeNode {
+  constructor(node, from, index, _parent) {
+    this.node = node;
+    this.from = from;
+    this.index = index;
+    this._parent = _parent;
+  }
+  get type() {
+    return this.node.type;
+  }
+  get name() {
+    return this.node.type.name;
+  }
+  get to() {
+    return this.from + this.node.length;
+  }
+  nextChild(i, dir, after, full = false) {
+    for (let parent = this; ; ) {
+      for (let {children, positions} = parent.node, e = dir > 0 ? children.length : -1; i != e; i += dir) {
+        let next = children[i], start = positions[i] + parent.from;
+        if (after != -100000000 && (dir < 0 ? start >= after : start + next.length <= after)) continue;
+        if (next instanceof TreeBuffer) {
+          let index = next.findChild(0, next.buffer.length, dir, after == -100000000 ? -100000000 : after - start);
+          if (index > -1) return new BufferNode(new BufferContext(parent, next, i, start), null, index);
+        } else if (full || (!next.type.isAnonymous || hasChild(next))) {
+          let inner = new TreeNode(next, start, i, parent);
+          return full || !inner.type.isAnonymous ? inner : inner.nextChild(dir < 0 ? next.children.length - 1 : 0, dir, after);
+        }
+      }
+      if (full || !parent.type.isAnonymous) return null;
+      i = parent.index + dir;
+      parent = parent._parent;
+      if (!parent) return null;
+    }
+  }
+  get firstChild() {
+    return this.nextChild(0, 1, -100000000);
+  }
+  get lastChild() {
+    return this.nextChild(this.node.children.length - 1, -1, -100000000);
+  }
+  childAfter(pos) {
+    return this.nextChild(0, 1, pos);
+  }
+  childBefore(pos) {
+    return this.nextChild(this.node.children.length - 1, -1, pos);
+  }
+  nextSignificantParent() {
+    let val = this;
+    while (val.type.isAnonymous && val._parent) val = val._parent;
+    return val;
+  }
+  get parent() {
+    return this._parent ? this._parent.nextSignificantParent() : null;
+  }
+  get nextSibling() {
+    return this._parent ? this._parent.nextChild(this.index + 1, 1, -1) : null;
+  }
+  get prevSibling() {
+    return this._parent ? this._parent.nextChild(this.index - 1, -1, -1) : null;
+  }
+  get cursor() {
+    return new TreeCursor(this);
+  }
+  resolve(pos, side = 0) {
+    return this.cursor.moveTo(pos, side).node;
+  }
+  getChild(type, before = null, after = null) {
+    let r = getChildren(this, type, before, after);
+    return r.length ? r[0] : null;
+  }
+  getChildren(type, before = null, after = null) {
+    return getChildren(this, type, before, after);
+  }
+  toString() {
+    return this.node.toString();
+  }
+}
+function getChildren(node, type, before, after) {
+  let cur = node.cursor, result = [];
+  if (!cur.firstChild()) return result;
+  if (before != null) while (!cur.type.is(before)) if (!cur.nextSibling()) return result;
+  for (; ; ) {
+    if (after != null && cur.type.is(after)) return result;
+    if (cur.type.is(type)) result.push(cur.node);
+    if (!cur.nextSibling()) return after == null ? result : [];
+  }
+}
+class BufferContext {
+  constructor(parent, buffer, index, start) {
+    this.parent = parent;
+    this.buffer = buffer;
+    this.index = index;
+    this.start = start;
+  }
+}
+class BufferNode {
+  constructor(context, _parent, index) {
+    this.context = context;
+    this._parent = _parent;
+    this.index = index;
+    this.type = context.buffer.set.types[context.buffer.buffer[index]];
+  }
+  get name() {
+    return this.type.name;
+  }
+  get from() {
+    return this.context.start + this.context.buffer.buffer[this.index + 1];
+  }
+  get to() {
+    return this.context.start + this.context.buffer.buffer[this.index + 2];
+  }
+  child(dir, after) {
+    let {buffer} = this.context;
+    let index = buffer.findChild(this.index + 4, buffer.buffer[this.index + 3], dir, after == -100000000 ? -100000000 : after - this.context.start);
+    return index < 0 ? null : new BufferNode(this.context, this, index);
+  }
+  get firstChild() {
+    return this.child(1, -100000000);
+  }
+  get lastChild() {
+    return this.child(-1, -100000000);
+  }
+  childAfter(pos) {
+    return this.child(1, pos);
+  }
+  childBefore(pos) {
+    return this.child(-1, pos);
+  }
+  get parent() {
+    return this._parent || this.context.parent.nextSignificantParent();
+  }
+  externalSibling(dir) {
+    return this._parent ? null : this.context.parent.nextChild(this.context.index + dir, dir, -1);
+  }
+  get nextSibling() {
+    let {buffer} = this.context;
+    let after = buffer.buffer[this.index + 3];
+    if (after < (this._parent ? buffer.buffer[this._parent.index + 3] : buffer.buffer.length)) return new BufferNode(this.context, this._parent, after);
+    return this.externalSibling(1);
+  }
+  get prevSibling() {
+    let {buffer} = this.context;
+    let parentStart = this._parent ? this._parent.index + 4 : 0;
+    if (this.index == parentStart) return this.externalSibling(-1);
+    return new BufferNode(this.context, this._parent, buffer.findChild(parentStart, this.index, -1, -100000000));
+  }
+  get cursor() {
+    return new TreeCursor(this);
+  }
+  resolve(pos, side = 0) {
+    return this.cursor.moveTo(pos, side).node;
+  }
+  toString() {
+    return this.context.buffer.childString(this.index);
+  }
+  getChild(type, before = null, after = null) {
+    let r = getChildren(this, type, before, after);
+    return r.length ? r[0] : null;
+  }
+  getChildren(type, before = null, after = null) {
+    return getChildren(this, type, before, after);
+  }
+}
+class TreeCursor {
+  constructor(node, full = false) {
+    this.full = full;
+    this.buffer = null;
+    this.stack = [];
+    this.index = 0;
+    this.bufferNode = null;
+    if (node instanceof TreeNode) {
+      this.yieldNode(node);
+    } else {
+      this._tree = node.context.parent;
+      this.buffer = node.context;
+      for (let n = node._parent; n; n = n._parent) this.stack.unshift(n.index);
+      this.bufferNode = node;
+      this.yieldBuf(node.index);
+    }
+  }
+  get name() {
+    return this.type.name;
+  }
+  yieldNode(node) {
+    if (!node) return false;
+    this._tree = node;
+    this.type = node.type;
+    this.from = node.from;
+    this.to = node.to;
+    return true;
+  }
+  yieldBuf(index, type) {
+    this.index = index;
+    let {start, buffer} = this.buffer;
+    this.type = type || buffer.set.types[buffer.buffer[index]];
+    this.from = start + buffer.buffer[index + 1];
+    this.to = start + buffer.buffer[index + 2];
+    return true;
+  }
+  yield(node) {
+    if (!node) return false;
+    if (node instanceof TreeNode) {
+      this.buffer = null;
+      return this.yieldNode(node);
+    }
+    this.buffer = node.context;
+    return this.yieldBuf(node.index, node.type);
+  }
+  toString() {
+    return this.buffer ? this.buffer.buffer.childString(this.index) : this._tree.toString();
+  }
+  enter(dir, after) {
+    if (!this.buffer) return this.yield(this._tree.nextChild(dir < 0 ? this._tree.node.children.length - 1 : 0, dir, after, this.full));
+    let {buffer} = this.buffer;
+    let index = buffer.findChild(this.index + 4, buffer.buffer[this.index + 3], dir, after == -100000000 ? -100000000 : after - this.buffer.start);
+    if (index < 0) return false;
+    this.stack.push(this.index);
+    return this.yieldBuf(index);
+  }
+  firstChild() {
+    return this.enter(1, -100000000);
+  }
+  lastChild() {
+    return this.enter(-1, -100000000);
+  }
+  childAfter(pos) {
+    return this.enter(1, pos);
+  }
+  childBefore(pos) {
+    return this.enter(-1, pos);
+  }
+  parent() {
+    if (!this.buffer) return this.yieldNode(this.full ? this._tree._parent : this._tree.parent);
+    if (this.stack.length) return this.yieldBuf(this.stack.pop());
+    let parent = this.full ? this.buffer.parent : this.buffer.parent.nextSignificantParent();
+    this.buffer = null;
+    return this.yieldNode(parent);
+  }
+  sibling(dir) {
+    if (!this.buffer) return !this._tree._parent ? false : this.yield(this._tree._parent.nextChild(this._tree.index + dir, dir, -100000000, this.full));
+    let {buffer} = this.buffer, d = this.stack.length - 1;
+    if (dir < 0) {
+      let parentStart = d < 0 ? 0 : this.stack[d] + 4;
+      if (this.index != parentStart) return this.yieldBuf(buffer.findChild(parentStart, this.index, -1, -100000000));
+    } else {
+      let after = buffer.buffer[this.index + 3];
+      if (after < (d < 0 ? buffer.buffer.length : buffer.buffer[this.stack[d] + 3])) return this.yieldBuf(after);
+    }
+    return d < 0 ? this.yield(this.buffer.parent.nextChild(this.buffer.index + dir, dir, -100000000, this.full)) : false;
+  }
+  nextSibling() {
+    return this.sibling(1);
+  }
+  prevSibling() {
+    return this.sibling(-1);
+  }
+  atLastNode(dir) {
+    let index, parent, {buffer} = this;
+    if (buffer) {
+      if (dir > 0) {
+        if (this.index < buffer.buffer.buffer.length) return false;
+      } else {
+        for (let i = 0; i < this.index; i++) if (buffer.buffer.buffer[i + 3] < this.index) return false;
+      }
+      ({index, parent} = buffer);
+    } else {
+      ({index, _parent: parent} = this._tree);
+    }
+    for (; parent; {index, _parent: parent} = parent) {
+      for (let i = index + dir, e = dir < 0 ? -1 : parent.node.children.length; i != e; i += dir) {
+        let child = parent.node.children[i];
+        if (this.full || !child.type.isAnonymous || child instanceof TreeBuffer || hasChild(child)) return false;
+      }
+    }
+    return true;
+  }
+  move(dir) {
+    if (this.enter(dir, -100000000)) return true;
+    for (; ; ) {
+      if (this.sibling(dir)) return true;
+      if (this.atLastNode(dir) || !this.parent()) return false;
+    }
+  }
+  next() {
+    return this.move(1);
+  }
+  prev() {
+    return this.move(-1);
+  }
+  moveTo(pos, side = 0) {
+    while (this.from == this.to || (side < 1 ? this.from >= pos : this.from > pos) || (side > -1 ? this.to <= pos : this.to < pos)) if (!this.parent()) break;
+    for (; ; ) {
+      if (side < 0 ? !this.childBefore(pos) : !this.childAfter(pos)) break;
+      if (this.from == this.to || (side < 1 ? this.from >= pos : this.from > pos) || (side > -1 ? this.to <= pos : this.to < pos)) {
+        this.parent();
+        break;
+      }
+    }
+    return this;
+  }
+  get node() {
+    if (!this.buffer) return this._tree;
+    let cache = this.bufferNode, result = null, depth = 0;
+    if (cache && cache.context == this.buffer) {
+      scan: for (let index = this.index, d = this.stack.length; d >= 0; ) {
+        for (let c = cache; c; c = c._parent) if (c.index == index) {
+          if (index == this.index) return c;
+          result = c;
+          depth = d + 1;
+          break scan;
+        }
+        index = this.stack[--d];
+      }
+    }
+    for (let i = depth; i < this.stack.length; i++) result = new BufferNode(this.buffer, result, this.stack[i]);
+    return this.bufferNode = new BufferNode(this.buffer, result, this.index);
+  }
+  get tree() {
+    return this.buffer ? null : this._tree.node;
+  }
+}
+function hasChild(tree) {
+  return tree.children.some(ch => !ch.type.isAnonymous || ch instanceof TreeBuffer || hasChild(ch));
+}
+class FlatBufferCursor {
+  constructor(buffer, index) {
+    this.buffer = buffer;
+    this.index = index;
+  }
+  get id() {
+    return this.buffer[this.index - 4];
+  }
+  get start() {
+    return this.buffer[this.index - 3];
+  }
+  get end() {
+    return this.buffer[this.index - 2];
+  }
+  get size() {
+    return this.buffer[this.index - 1];
+  }
+  get pos() {
+    return this.index;
+  }
+  next() {
+    this.index -= 4;
+  }
+  fork() {
+    return new FlatBufferCursor(this.buffer, this.index);
+  }
+}
+const BalanceBranchFactor = 8;
+function buildTree(data) {
+  var _a;
+  let {buffer, nodeSet, topID = 0, maxBufferLength = DefaultBufferLength, reused = [], minRepeatType = nodeSet.types.length} = data;
+  let cursor = Array.isArray(buffer) ? new FlatBufferCursor(buffer, buffer.length) : buffer;
+  let types = nodeSet.types;
+  let contextHash = 0;
+  function takeNode(parentStart, minPos, children, positions, inRepeat) {
+    let {id, start, end, size} = cursor;
+    let startPos = start - parentStart;
+    if (size < 0) {
+      if (size == -1) {
+        children.push(reused[id]);
+        positions.push(startPos);
+      } else {
+        contextHash = id;
+      }
+      cursor.next();
+      return;
+    }
+    let type = types[id], node, buffer;
+    if (end - start <= maxBufferLength && (buffer = findBufferSize(cursor.pos - minPos, inRepeat))) {
+      let data = new Uint16Array(buffer.size - buffer.skip);
+      let endPos = cursor.pos - buffer.size, index = data.length;
+      while (cursor.pos > endPos) index = copyToBuffer(buffer.start, data, index, inRepeat);
+      node = new TreeBuffer(data, end - buffer.start, nodeSet, inRepeat < 0 ? NodeType.none : types[inRepeat]);
+      startPos = buffer.start - parentStart;
+    } else {
+      let endPos = cursor.pos - size;
+      cursor.next();
+      let localChildren = [], localPositions = [];
+      let localInRepeat = id >= minRepeatType ? id : -1;
+      while (cursor.pos > endPos) {
+        if (cursor.id == localInRepeat) cursor.next(); else takeNode(start, endPos, localChildren, localPositions, localInRepeat);
+      }
+      localChildren.reverse();
+      localPositions.reverse();
+      if (localInRepeat > -1 && localChildren.length > BalanceBranchFactor) node = balanceRange(type, type, localChildren, localPositions, 0, localChildren.length, 0, maxBufferLength, end - start, contextHash); else node = withHash(new Tree(type, localChildren, localPositions, end - start), contextHash);
+    }
+    children.push(node);
+    positions.push(startPos);
+  }
+  function findBufferSize(maxSize, inRepeat) {
+    let fork = cursor.fork();
+    let size = 0, start = 0, skip = 0, minStart = fork.end - maxBufferLength;
+    let result = {
+      size: 0,
+      start: 0,
+      skip: 0
+    };
+    scan: for (let minPos = fork.pos - maxSize; fork.pos > minPos; ) {
+      if (fork.id == inRepeat) {
+        result.size = size;
+        result.start = start;
+        result.skip = skip;
+        skip += 4;
+        size += 4;
+        fork.next();
+        continue;
+      }
+      let nodeSize = fork.size, startPos = fork.pos - nodeSize;
+      if (nodeSize < 0 || startPos < minPos || fork.start < minStart) break;
+      let localSkipped = fork.id >= minRepeatType ? 4 : 0;
+      let nodeStart = fork.start;
+      fork.next();
+      while (fork.pos > startPos) {
+        if (fork.size < 0) break scan;
+        if (fork.id >= minRepeatType) localSkipped += 4;
+        fork.next();
+      }
+      start = nodeStart;
+      size += nodeSize;
+      skip += localSkipped;
+    }
+    if (inRepeat < 0 || size == maxSize) {
+      result.size = size;
+      result.start = start;
+      result.skip = skip;
+    }
+    return result.size > 4 ? result : undefined;
+  }
+  function copyToBuffer(bufferStart, buffer, index, inRepeat) {
+    let {id, start, end, size} = cursor;
+    cursor.next();
+    if (id == inRepeat) return index;
+    let startIndex = index;
+    if (size > 4) {
+      let endPos = cursor.pos - (size - 4);
+      while (cursor.pos > endPos) index = copyToBuffer(bufferStart, buffer, index, inRepeat);
+    }
+    if (id < minRepeatType) {
+      buffer[--index] = startIndex;
+      buffer[--index] = end - bufferStart;
+      buffer[--index] = start - bufferStart;
+      buffer[--index] = id;
+    }
+    return index;
+  }
+  let children = [], positions = [];
+  while (cursor.pos > 0) takeNode(data.start || 0, 0, children, positions, -1);
+  let length = (_a = data.length) !== null && _a !== void 0 ? _a : children.length ? positions[0] + children[0].length : 0;
+  return new Tree(types[topID], children.reverse(), positions.reverse(), length);
+}
+function balanceRange(outerType, innerType, children, positions, from, to, start, maxBufferLength, length, contextHash) {
+  let localChildren = [], localPositions = [];
+  if (length <= maxBufferLength) {
+    for (let i = from; i < to; i++) {
+      localChildren.push(children[i]);
+      localPositions.push(positions[i] - start);
+    }
+  } else {
+    let maxChild = Math.max(maxBufferLength, Math.ceil(length * 1.5 / BalanceBranchFactor));
+    for (let i = from; i < to; ) {
+      let groupFrom = i, groupStart = positions[i];
+      i++;
+      for (; i < to; i++) {
+        let nextEnd = positions[i] + children[i].length;
+        if (nextEnd - groupStart > maxChild) break;
+      }
+      if (i == groupFrom + 1) {
+        let only = children[groupFrom];
+        if (only instanceof Tree && only.type == innerType && only.length > maxChild << 1) {
+          for (let j = 0; j < only.children.length; j++) {
+            localChildren.push(only.children[j]);
+            localPositions.push(only.positions[j] + groupStart - start);
+          }
+          continue;
+        }
+        localChildren.push(only);
+      } else if (i == groupFrom + 1) {
+        localChildren.push(children[groupFrom]);
+      } else {
+        let inner = balanceRange(innerType, innerType, children, positions, groupFrom, i, groupStart, maxBufferLength, positions[i - 1] + children[i - 1].length - groupStart, contextHash);
+        if (innerType != NodeType.none && !containsType(inner.children, innerType)) inner = withHash(new Tree(NodeType.none, inner.children, inner.positions, inner.length), contextHash);
+        localChildren.push(inner);
+      }
+      localPositions.push(groupStart - start);
+    }
+  }
+  return withHash(new Tree(outerType, localChildren, localPositions, length), contextHash);
+}
+function containsType(nodes, type) {
+  for (let elt of nodes) if (elt.type == type) return true;
+  return false;
+}
+class TreeFragment {
+  constructor(from, to, tree, offset, open) {
+    this.from = from;
+    this.to = to;
+    this.tree = tree;
+    this.offset = offset;
+    this.open = open;
+  }
+  get openStart() {
+    return (this.open & 1) > 0;
+  }
+  get openEnd() {
+    return (this.open & 2) > 0;
+  }
+  static applyChanges(fragments, changes, minGap = 128) {
+    if (!changes.length) return fragments;
+    let result = [];
+    let fI = 1, nextF = fragments.length ? fragments[0] : null;
+    let cI = 0, pos = 0, off = 0;
+    for (; ; ) {
+      let nextC = cI < changes.length ? changes[cI++] : null;
+      let nextPos = nextC ? nextC.fromA : 1e9;
+      if (nextPos - pos >= minGap) while (nextF && nextF.from < nextPos) {
+        let cut = nextF;
+        if (pos >= cut.from || nextPos <= cut.to || off) {
+          let fFrom = Math.max(cut.from, pos) - off, fTo = Math.min(cut.to, nextPos) - off;
+          cut = fFrom >= fTo ? null : new TreeFragment(fFrom, fTo, cut.tree, cut.offset + off, (cI > 0 ? 1 : 0) | (nextC ? 2 : 0));
+        }
+        if (cut) result.push(cut);
+        if (nextF.to > nextPos) break;
+        nextF = fI < fragments.length ? fragments[fI++] : null;
+      }
+      if (!nextC) break;
+      pos = nextC.toA;
+      off = nextC.toA - nextC.toB;
+    }
+    return result;
+  }
+  static addTree(tree, fragments = [], partial = false) {
+    let result = [new TreeFragment(0, tree.length, tree, 0, partial ? 2 : 0)];
+    for (let f of fragments) if (f.to > tree.length) result.push(f);
+    return result;
+  }
+}
+function stringInput(input) {
+  return new StringInput(input);
+}
+class StringInput {
+  constructor(string, length = string.length) {
+    this.string = string;
+    this.length = length;
+  }
+  get(pos) {
+    return pos < 0 || pos >= this.length ? -1 : this.string.charCodeAt(pos);
+  }
+  lineAfter(pos) {
+    if (pos < 0) return "";
+    let end = this.string.indexOf("\n", pos);
+    return this.string.slice(pos, end < 0 ? this.length : Math.min(end, this.length));
+  }
+  read(from, to) {
+    return this.string.slice(from, Math.min(this.length, to));
+  }
+  clip(at) {
+    return new StringInput(this.string, at);
+  }
+}
+exports.DefaultBufferLength = DefaultBufferLength;
+exports.NodeProp = NodeProp;
+exports.NodeSet = NodeSet;
+exports.NodeType = NodeType;
+exports.Tree = Tree;
+exports.TreeBuffer = TreeBuffer;
+exports.TreeCursor = TreeCursor;
+exports.TreeFragment = TreeFragment;
+exports.stringInput = stringInput;
+
+},
+
+// node_modules/@codemirror/language/dist/index.js @25
+25: function(__fusereq, exports, module){
+exports.__esModule = true;
+var lezer_tree_1 = __fusereq(23);
+var text_1 = __fusereq(26);
+var state_1 = __fusereq(15);
+var view_1 = __fusereq(14);
+const languageDataProp = new lezer_tree_1.NodeProp();
+function defineLanguageFacet(baseData) {
+  return state_1.Facet.define({
+    combine: baseData ? values => values.concat(baseData) : undefined
+  });
+}
+class Language {
+  constructor(data, parser, topNode, extraExtensions = []) {
+    this.data = data;
+    this.topNode = topNode;
+    if (!state_1.EditorState.prototype.hasOwnProperty("tree")) Object.defineProperty(state_1.EditorState.prototype, "tree", {
+      get() {
+        return syntaxTree(this);
+      }
+    });
+    this.parser = parser;
+    this.extension = [language.of(this), state_1.EditorState.languageData.of((state, pos) => state.facet(languageDataFacetAt(state, pos)))].concat(extraExtensions);
+  }
+  isActiveAt(state, pos) {
+    return languageDataFacetAt(state, pos) == this.data;
+  }
+  findRegions(state) {
+    let lang = state.facet(language);
+    if ((lang === null || lang === void 0 ? void 0 : lang.data) == this.data) return [{
+      from: 0,
+      to: state.doc.length
+    }];
+    if (!lang || !lang.allowsNesting) return [];
+    let result = [];
+    syntaxTree(state).iterate({
+      enter: (type, from, to) => {
+        if (type.isTop && type.prop(languageDataProp) == this.data) {
+          result.push({
+            from,
+            to
+          });
+          return false;
+        }
+        return undefined;
+      }
+    });
+    return result;
+  }
+  get allowsNesting() {
+    return true;
+  }
+  parseString(code) {
+    let doc = text_1.Text.of(code.split("\n"));
+    let parse = this.parser.startParse(new DocInput(doc), 0, new EditorParseContext(this.parser, state_1.EditorState.create({
+      doc
+    }), [], lezer_tree_1.Tree.empty, {
+      from: 0,
+      to: code.length
+    }, []));
+    let tree;
+    while (!(tree = parse.advance())) {}
+    return tree;
+  }
+}
+Language.setState = state_1.StateEffect.define();
+function languageDataFacetAt(state, pos) {
+  let topLang = state.facet(language);
+  if (!topLang) return null;
+  if (!topLang.allowsNesting) return topLang.data;
+  let tree = syntaxTree(state);
+  let target = tree.resolve(pos, -1);
+  while (target) {
+    let facet = target.type.prop(languageDataProp);
+    if (facet) return facet;
+    target = target.parent;
+  }
+  return topLang.data;
+}
+class LezerLanguage extends Language {
+  constructor(data, parser) {
+    super(data, parser, parser.topNode);
+    this.parser = parser;
+  }
+  static define(spec) {
+    let data = defineLanguageFacet(spec.languageData);
+    return new LezerLanguage(data, spec.parser.configure({
+      props: [languageDataProp.add(type => type.isTop ? data : undefined)]
+    }));
+  }
+  configure(options) {
+    return new LezerLanguage(this.data, this.parser.configure(options));
+  }
+  get allowsNesting() {
+    return this.parser.hasNested;
+  }
+}
+function syntaxTree(state) {
+  let field = state.field(Language.state, false);
+  return field ? field.tree : lezer_tree_1.Tree.empty;
+}
+function ensureSyntaxTree(state, upto, timeout = 50) {
+  var _a;
+  let parse = (_a = state.field(Language.state, false)) === null || _a === void 0 ? void 0 : _a.context;
+  return !parse ? null : parse.tree.length >= upto || parse.work(timeout, upto) ? parse.tree : null;
+}
+class DocInput {
+  constructor(doc, length = doc.length) {
+    this.doc = doc;
+    this.length = length;
+    this.cursorPos = 0;
+    this.string = "";
+    this.prevString = "";
+    this.cursor = doc.iter();
+  }
+  syncTo(pos) {
+    if (pos < this.cursorPos) {
+      this.cursor = this.doc.iter();
+      this.cursorPos = 0;
+    }
+    this.prevString = pos == this.cursorPos ? this.string : "";
+    this.string = this.cursor.next(pos - this.cursorPos).value;
+    this.cursorPos = pos + this.string.length;
+    return this.cursorPos - this.string.length;
+  }
+  get(pos) {
+    if (pos >= this.length) return -1;
+    let stringStart = this.cursorPos - this.string.length;
+    if (pos < stringStart || pos >= this.cursorPos) {
+      if (pos < stringStart && pos >= stringStart - this.prevString.length) return this.prevString.charCodeAt(pos - (stringStart - this.prevString.length));
+      stringStart = this.syncTo(pos);
+    }
+    return this.string.charCodeAt(pos - stringStart);
+  }
+  lineAfter(pos) {
+    if (pos >= this.length || pos < 0) return "";
+    let stringStart = this.cursorPos - this.string.length;
+    if (pos < stringStart || pos >= this.cursorPos) stringStart = this.syncTo(pos);
+    return this.cursor.lineBreak ? "" : this.string.slice(pos - stringStart);
+  }
+  read(from, to) {
+    let stringStart = this.cursorPos - this.string.length;
+    if (from < stringStart || to >= this.cursorPos) return this.doc.sliceString(from, to); else return this.string.slice(from - stringStart, to - stringStart);
+  }
+  clip(at) {
+    return new DocInput(this.doc, at);
+  }
+}
+class EditorParseContext {
+  constructor(parser, state, fragments = [], tree, viewport, skipped) {
+    this.parser = parser;
+    this.state = state;
+    this.fragments = fragments;
+    this.tree = tree;
+    this.viewport = viewport;
+    this.skipped = skipped;
+    this.parse = null;
+    this.tempSkipped = [];
+  }
+  work(time, upto) {
+    if (this.tree != lezer_tree_1.Tree.empty && (upto == null ? this.tree.length == this.state.doc.length : this.tree.length >= upto)) {
+      this.takeTree();
+      return true;
+    }
+    if (!this.parse) this.parse = this.parser.startParse(new DocInput(this.state.doc), 0, this);
+    let endTime = Date.now() + time;
+    for (; ; ) {
+      let done = this.parse.advance();
+      if (done) {
+        this.fragments = this.withoutTempSkipped(lezer_tree_1.TreeFragment.addTree(done));
+        this.parse = null;
+        this.tree = done;
+        return true;
+      } else if (upto != null && this.parse.pos >= upto) {
+        this.takeTree();
+        return true;
+      }
+      if (Date.now() > endTime) return false;
+    }
+  }
+  takeTree() {
+    if (this.parse && this.parse.pos > this.tree.length) {
+      this.tree = this.parse.forceFinish();
+      this.fragments = this.withoutTempSkipped(lezer_tree_1.TreeFragment.addTree(this.tree, this.fragments, true));
+    }
+  }
+  withoutTempSkipped(fragments) {
+    for (let r; r = this.tempSkipped.pop(); ) fragments = cutFragments(fragments, r.from, r.to);
+    return fragments;
+  }
+  changes(changes, newState) {
+    let {fragments, tree, viewport, skipped} = this;
+    this.takeTree();
+    if (!changes.empty) {
+      let ranges = [];
+      changes.iterChangedRanges((fromA, toA, fromB, toB) => ranges.push({
+        fromA,
+        toA,
+        fromB,
+        toB
+      }));
+      fragments = lezer_tree_1.TreeFragment.applyChanges(fragments, ranges);
+      tree = lezer_tree_1.Tree.empty;
+      viewport = {
+        from: changes.mapPos(viewport.from, -1),
+        to: changes.mapPos(viewport.to, 1)
+      };
+      if (this.skipped.length) {
+        skipped = [];
+        for (let r of this.skipped) {
+          let from = changes.mapPos(r.from, 1), to = changes.mapPos(r.to, -1);
+          if (from < to) skipped.push({
+            from,
+            to
+          });
+        }
+      }
+    }
+    return new EditorParseContext(this.parser, newState, fragments, tree, viewport, skipped);
+  }
+  updateViewport(viewport) {
+    this.viewport = viewport;
+    let startLen = this.skipped.length;
+    for (let i = 0; i < this.skipped.length; i++) {
+      let {from, to} = this.skipped[i];
+      if (from < viewport.to && to > viewport.from) {
+        this.fragments = cutFragments(this.fragments, from, to);
+        this.skipped.splice(i--, 1);
+      }
+    }
+    return this.skipped.length < startLen;
+  }
+  reset() {
+    if (this.parse) {
+      this.takeTree();
+      this.parse = null;
+    }
+  }
+  skipUntilInView(from, to) {
+    this.skipped.push({
+      from,
+      to
+    });
+  }
+  movedPast(pos) {
+    return this.tree.length < pos && this.parse && this.parse.pos >= pos;
+  }
+}
+EditorParseContext.skippingParser = {
+  startParse(input, startPos, context) {
+    return {
+      pos: startPos,
+      advance() {
+        context.tempSkipped.push({
+          from: startPos,
+          to: input.length
+        });
+        this.pos = input.length;
+        return new lezer_tree_1.Tree(lezer_tree_1.NodeType.none, [], [], input.length - startPos);
+      },
+      forceFinish() {
+        return this.advance();
+      }
+    };
+  }
+};
+function cutFragments(fragments, from, to) {
+  return lezer_tree_1.TreeFragment.applyChanges(fragments, [{
+    fromA: from,
+    toA: to,
+    fromB: from,
+    toB: to
+  }]);
+}
+class LanguageState {
+  constructor(context) {
+    this.context = context;
+    this.tree = context.tree;
+  }
+  apply(tr) {
+    if (!tr.docChanged) return this;
+    let newCx = this.context.changes(tr.changes, tr.state);
+    let upto = this.context.tree.length == tr.startState.doc.length ? undefined : Math.max(tr.changes.mapPos(this.context.tree.length), newCx.viewport.to);
+    if (!newCx.work(25, upto)) newCx.takeTree();
+    return new LanguageState(newCx);
+  }
+  static init(state) {
+    let parseState = new EditorParseContext(state.facet(language).parser, state, [], lezer_tree_1.Tree.empty, {
+      from: 0,
+      to: state.doc.length
+    }, []);
+    if (!parseState.work(25)) parseState.takeTree();
+    return new LanguageState(parseState);
+  }
+}
+Language.state = state_1.StateField.define({
+  create: LanguageState.init,
+  update(value, tr) {
+    for (let e of tr.effects) if (e.is(Language.setState)) return e.value;
+    if (tr.startState.facet(language) != tr.state.facet(language)) return LanguageState.init(tr.state);
+    return value.apply(tr);
+  }
+});
+let requestIdle = typeof window != "undefined" && window.requestIdleCallback || ((callback, {timeout}) => setTimeout(callback, timeout));
+let cancelIdle = typeof window != "undefined" && window.cancelIdleCallback || clearTimeout;
+const parseWorker = view_1.ViewPlugin.fromClass(class ParseWorker {
+  constructor(view) {
+    this.view = view;
+    this.working = -1;
+    this.chunkEnd = -1;
+    this.chunkBudget = -1;
+    this.work = this.work.bind(this);
+    this.scheduleWork();
+  }
+  update(update) {
+    if (update.viewportChanged) {
+      let cx = this.view.state.field(Language.state).context;
+      if (cx.updateViewport(update.view.viewport)) cx.reset();
+      if (this.view.viewport.to > cx.tree.length) this.scheduleWork();
+    }
+    if (update.docChanged) {
+      if (this.view.hasFocus) this.chunkBudget += 50;
+      this.scheduleWork();
+    }
+  }
+  scheduleWork() {
+    if (this.working > -1) return;
+    let {state} = this.view, field = state.field(Language.state);
+    if (field.tree.length >= state.doc.length) return;
+    this.working = requestIdle(this.work, {
+      timeout: 500
+    });
+  }
+  work(deadline) {
+    this.working = -1;
+    let now = Date.now();
+    if (this.chunkEnd < now && (this.chunkEnd < 0 || this.view.hasFocus)) {
+      this.chunkEnd = now + 30000;
+      this.chunkBudget = 3000;
+    }
+    if (this.chunkBudget <= 0) return;
+    let {state, viewport: {to: vpTo}} = this.view, field = state.field(Language.state);
+    if (field.tree.length >= vpTo + 1000000) return;
+    let time = Math.min(this.chunkBudget, deadline ? Math.max(25, deadline.timeRemaining()) : 100);
+    let done = field.context.work(time, vpTo + 1000000);
+    this.chunkBudget -= Date.now() - now;
+    if (done || this.chunkBudget <= 0 || field.context.movedPast(vpTo)) {
+      field.context.takeTree();
+      this.view.dispatch({
+        effects: Language.setState.of(new LanguageState(field.context))
+      });
+    }
+    if (!done && this.chunkBudget > 0) this.scheduleWork();
+  }
+  destroy() {
+    if (this.working >= 0) cancelIdle(this.working);
+  }
+}, {
+  eventHandlers: {
+    focus() {
+      this.scheduleWork();
+    }
+  }
+});
+const language = state_1.Facet.define({
+  combine(languages) {
+    return languages.length ? languages[0] : null;
+  },
+  enables: [Language.state, parseWorker]
+});
+class LanguageSupport {
+  constructor(language, support = []) {
+    this.language = language;
+    this.support = support;
+    this.extension = [language, support];
+  }
+}
+class LanguageDescription {
+  constructor(name, alias, extensions, filename, loadFunc) {
+    this.name = name;
+    this.alias = alias;
+    this.extensions = extensions;
+    this.filename = filename;
+    this.loadFunc = loadFunc;
+    this.support = undefined;
+    this.loading = null;
+  }
+  load() {
+    return this.loading || (this.loading = this.loadFunc().then(support => this.support = support, err => {
+      this.loading = null;
+      throw err;
+    }));
+  }
+  static of(spec) {
+    return new LanguageDescription(spec.name, (spec.alias || []).concat(spec.name).map(s => s.toLowerCase()), spec.extensions || [], spec.filename, spec.load);
+  }
+  static matchFilename(descs, filename) {
+    for (let d of descs) if (d.filename && d.filename.test(filename)) return d;
+    let ext = (/\.([^.]+)$/).exec(filename);
+    if (ext) for (let d of descs) if (d.extensions.indexOf(ext[1]) > -1) return d;
+    return null;
+  }
+  static matchLanguageName(descs, name, fuzzy = true) {
+    name = name.toLowerCase();
+    for (let d of descs) if (d.alias.some(a => a == name)) return d;
+    if (fuzzy) for (let d of descs) for (let a of d.alias) {
+      let found = name.indexOf(a);
+      if (found > -1 && (a.length > 2 || !(/\w/).test(name[found - 1]) && !(/\w/).test(name[found + a.length]))) return d;
+    }
+    return null;
+  }
+}
+const indentService = state_1.Facet.define();
+const indentUnit = state_1.Facet.define({
+  combine: values => {
+    if (!values.length) return "  ";
+    if (!(/^(?: +|\t+)$/).test(values[0])) throw new Error("Invalid indent unit: " + JSON.stringify(values[0]));
+    return values[0];
+  }
+});
+function getIndentUnit(state) {
+  let unit = state.facet(indentUnit);
+  return unit.charCodeAt(0) == 9 ? state.tabSize * unit.length : unit.length;
+}
+function indentString(state, cols) {
+  let result = "", ts = state.tabSize;
+  if (state.facet(indentUnit).charCodeAt(0) == 9) while (cols >= ts) {
+    result += "\t";
+    cols -= ts;
+  }
+  for (let i = 0; i < cols; i++) result += " ";
+  return result;
+}
+function getIndentation(context, pos) {
+  if (context instanceof state_1.EditorState) context = new IndentContext(context);
+  for (let service of context.state.facet(indentService)) {
+    let result = service(context, pos);
+    if (result != null) return result;
+  }
+  let tree = syntaxTree(context.state);
+  return tree ? syntaxIndentation(context, tree, pos) : null;
+}
+class IndentContext {
+  constructor(state, options = {}) {
+    this.state = state;
+    this.options = options;
+    this.unit = getIndentUnit(state);
+  }
+  textAfterPos(pos) {
+    var _a, _b;
+    let sim = (_a = this.options) === null || _a === void 0 ? void 0 : _a.simulateBreak;
+    if (pos == sim && ((_b = this.options) === null || _b === void 0 ? void 0 : _b.simulateDoubleBreak)) return "";
+    return this.state.sliceDoc(pos, Math.min(pos + 100, sim != null && sim > pos ? sim : 1e9, this.state.doc.lineAt(pos).to));
+  }
+  column(pos) {
+    var _a;
+    let line = this.state.doc.lineAt(pos), text = line.text.slice(0, pos - line.from);
+    let result = this.countColumn(text, pos - line.from);
+    let override = ((_a = this.options) === null || _a === void 0 ? void 0 : _a.overrideIndentation) ? this.options.overrideIndentation(line.from) : -1;
+    if (override > -1) result += override - this.countColumn(text, text.search(/\S/));
+    return result;
+  }
+  countColumn(line, pos) {
+    return text_1.countColumn(pos < 0 ? line : line.slice(0, pos), 0, this.state.tabSize);
+  }
+  lineIndent(line) {
+    var _a;
+    let override = (_a = this.options) === null || _a === void 0 ? void 0 : _a.overrideIndentation;
+    if (override) {
+      let overriden = override(line.from);
+      if (overriden > -1) return overriden;
+    }
+    return this.countColumn(line.text, line.text.search(/\S/));
+  }
+}
+const indentNodeProp = new lezer_tree_1.NodeProp();
+function syntaxIndentation(cx, ast, pos) {
+  let tree = ast.resolve(pos);
+  for (let scan = tree, scanPos = pos; ; ) {
+    let last = scan.childBefore(scanPos);
+    if (!last) break;
+    if (last.type.isError && last.from == last.to) {
+      tree = scan;
+      scanPos = last.from;
+    } else {
+      scan = last;
+      scanPos = scan.to + 1;
+    }
+  }
+  return indentFrom(tree, pos, cx);
+}
+function ignoreClosed(cx) {
+  var _a, _b;
+  return cx.pos == ((_a = cx.options) === null || _a === void 0 ? void 0 : _a.simulateBreak) && ((_b = cx.options) === null || _b === void 0 ? void 0 : _b.simulateDoubleBreak);
+}
+function indentStrategy(tree) {
+  let strategy = tree.type.prop(indentNodeProp);
+  if (strategy) return strategy;
+  let first = tree.firstChild, close;
+  if (first && (close = first.type.prop(lezer_tree_1.NodeProp.closedBy))) {
+    let last = tree.lastChild, closed = last && close.indexOf(last.name) > -1;
+    return cx => delimitedStrategy(cx, true, 1, undefined, closed && !ignoreClosed(cx) ? last.from : undefined);
+  }
+  return tree.parent == null ? topIndent : null;
+}
+function indentFrom(node, pos, base) {
+  for (; node; node = node.parent) {
+    let strategy = indentStrategy(node);
+    if (strategy) return strategy(new TreeIndentContext(base, pos, node));
+  }
+  return null;
+}
+function topIndent() {
+  return 0;
+}
+class TreeIndentContext extends IndentContext {
+  constructor(base, pos, node) {
+    super(base.state, base.options);
+    this.base = base;
+    this.pos = pos;
+    this.node = node;
+  }
+  get textAfter() {
+    return this.textAfterPos(this.pos);
+  }
+  get baseIndent() {
+    let line = this.state.doc.lineAt(this.node.from);
+    for (; ; ) {
+      let atBreak = this.node.resolve(line.from);
+      while (atBreak.parent && atBreak.parent.from == atBreak.from) atBreak = atBreak.parent;
+      if (isParent(atBreak, this.node)) break;
+      line = this.state.doc.lineAt(atBreak.from);
+    }
+    return this.lineIndent(line);
+  }
+  continue() {
+    let parent = this.node.parent;
+    return parent ? indentFrom(parent, this.pos, this.base) : 0;
+  }
+}
+function isParent(parent, of) {
+  for (let cur = of; cur; cur = cur.parent) if (parent == cur) return true;
+  return false;
+}
+function bracketedAligned(context) {
+  var _a;
+  let tree = context.node;
+  let openToken = tree.childAfter(tree.from), last = tree.lastChild;
+  if (!openToken) return null;
+  let sim = (_a = context.options) === null || _a === void 0 ? void 0 : _a.simulateBreak;
+  let openLine = context.state.doc.lineAt(openToken.from);
+  let lineEnd = sim == null || sim <= openLine.from ? openLine.to : Math.min(openLine.to, sim);
+  for (let pos = openToken.to; ; ) {
+    let next = tree.childAfter(pos);
+    if (!next || next == last) return null;
+    if (!next.type.isSkipped) return next.from < lineEnd ? openToken : null;
+    pos = next.to;
+  }
+}
+function delimitedIndent({closing, align = true, units = 1}) {
+  return context => delimitedStrategy(context, align, units, closing);
+}
+function delimitedStrategy(context, align, units, closing, closedAt) {
+  let after = context.textAfter, space = after.match(/^\s*/)[0].length;
+  let closed = closing && after.slice(space, space + closing.length) == closing || closedAt == context.pos + space;
+  let aligned = align ? bracketedAligned(context) : null;
+  if (aligned) return closed ? context.column(aligned.from) : context.column(aligned.to);
+  return context.baseIndent + (closed ? 0 : context.unit * units);
+}
+const flatIndent = context => context.baseIndent;
+function continuedIndent({except, units = 1} = {}) {
+  return context => {
+    let matchExcept = except && except.test(context.textAfter);
+    return context.baseIndent + (matchExcept ? 0 : units * context.unit);
+  };
+}
+const DontIndentBeyond = 200;
+function indentOnInput() {
+  return state_1.EditorState.transactionFilter.of(tr => {
+    if (!tr.docChanged || tr.annotation(state_1.Transaction.userEvent) != "input") return tr;
+    let rules = tr.startState.languageDataAt("indentOnInput", tr.startState.selection.main.head);
+    if (!rules.length) return tr;
+    let doc = tr.newDoc, {head} = tr.newSelection.main, line = doc.lineAt(head);
+    if (head > line.from + DontIndentBeyond) return tr;
+    let lineStart = doc.sliceString(line.from, head);
+    if (!rules.some(r => r.test(lineStart))) return tr;
+    let {state} = tr, last = -1, changes = [];
+    for (let {head} of state.selection.ranges) {
+      let line = state.doc.lineAt(head);
+      if (line.from == last) continue;
+      last = line.from;
+      let indent = getIndentation(state, line.from);
+      if (indent == null) continue;
+      let cur = (/^\s*/).exec(line.text)[0];
+      let norm = indentString(state, indent);
+      if (cur != norm) changes.push({
+        from: line.from,
+        to: line.from + cur.length,
+        insert: norm
+      });
+    }
+    return changes.length ? [tr, {
+      changes
+    }] : tr;
+  });
+}
+const foldService = state_1.Facet.define();
+const foldNodeProp = new lezer_tree_1.NodeProp();
+function foldInside(node) {
+  let first = node.firstChild, last = node.lastChild;
+  return first && first.to < last.from ? {
+    from: first.to,
+    to: last.type.isError ? node.to : last.from
+  } : null;
+}
+function syntaxFolding(state, start, end) {
+  let tree = syntaxTree(state);
+  if (tree.length == 0) return null;
+  let inner = tree.resolve(end);
+  let found = null;
+  for (let cur = inner; cur; cur = cur.parent) {
+    if (cur.to <= end || cur.from > end) continue;
+    if (found && cur.from < start) break;
+    let prop = cur.type.prop(foldNodeProp);
+    if (prop) {
+      let value = prop(cur, state);
+      if (value && value.from <= end && value.from >= start && value.to > end) found = value;
+    }
+  }
+  return found;
+}
+function foldable(state, lineStart, lineEnd) {
+  for (let service of state.facet(foldService)) {
+    let result = service(state, lineStart, lineEnd);
+    if (result) return result;
+  }
+  return syntaxFolding(state, lineStart, lineEnd);
+}
+exports.EditorParseContext = EditorParseContext;
+exports.IndentContext = IndentContext;
+exports.Language = Language;
+exports.LanguageDescription = LanguageDescription;
+exports.LanguageSupport = LanguageSupport;
+exports.LezerLanguage = LezerLanguage;
+exports.TreeIndentContext = TreeIndentContext;
+exports.continuedIndent = continuedIndent;
+exports.defineLanguageFacet = defineLanguageFacet;
+exports.delimitedIndent = delimitedIndent;
+exports.ensureSyntaxTree = ensureSyntaxTree;
+exports.flatIndent = flatIndent;
+exports.foldInside = foldInside;
+exports.foldNodeProp = foldNodeProp;
+exports.foldService = foldService;
+exports.foldable = foldable;
+exports.getIndentUnit = getIndentUnit;
+exports.getIndentation = getIndentation;
+exports.indentNodeProp = indentNodeProp;
+exports.indentOnInput = indentOnInput;
+exports.indentService = indentService;
+exports.indentString = indentString;
+exports.indentUnit = indentUnit;
+exports.language = language;
+exports.languageDataProp = languageDataProp;
+exports.syntaxTree = syntaxTree;
+
+},
+
 // node_modules/@codemirror/highlight/dist/index.js @24
 24: function(__fusereq, exports, module){
 exports.__esModule = true;
@@ -10233,309 +10854,6 @@ exports.StringStream = StringStream;
 
 },
 
-// node_modules/@codemirror/fold/dist/index.js @28
-28: function(__fusereq, exports, module){
-exports.__esModule = true;
-var state_1 = __fusereq(15);
-var view_1 = __fusereq(14);
-var language_1 = __fusereq(25);
-var gutter_1 = __fusereq(31);
-var rangeset_1 = __fusereq(42);
-function mapRange(range, mapping) {
-  let from = mapping.mapPos(range.from, 1), to = mapping.mapPos(range.to, -1);
-  return from >= to ? undefined : {
-    from,
-    to
-  };
-}
-const foldEffect = state_1.StateEffect.define({
-  map: mapRange
-});
-const unfoldEffect = state_1.StateEffect.define({
-  map: mapRange
-});
-function selectedLines(view) {
-  let lines = [];
-  for (let {head} of view.state.selection.ranges) {
-    if (lines.some(l => l.from <= head && l.to >= head)) continue;
-    lines.push(view.visualLineAt(head));
-  }
-  return lines;
-}
-const foldState = state_1.StateField.define({
-  create() {
-    return view_1.Decoration.none;
-  },
-  update(folded, tr) {
-    folded = folded.map(tr.changes);
-    for (let e of tr.effects) {
-      if (e.is(foldEffect) && !foldExists(folded, e.value.from, e.value.to)) folded = folded.update({
-        add: [foldWidget.range(e.value.from, e.value.to)]
-      }); else if (e.is(unfoldEffect)) {
-        folded = folded.update({
-          filter: (from, to) => e.value.from != from || e.value.to != to,
-          filterFrom: e.value.from,
-          filterTo: e.value.to
-        });
-      }
-    }
-    if (tr.selection) {
-      let onSelection = false, {head} = tr.selection.main;
-      folded.between(head, head, (a, b) => {
-        if (a < head && b > head) onSelection = true;
-      });
-      if (onSelection) folded = folded.update({
-        filterFrom: head,
-        filterTo: head,
-        filter: (a, b) => b <= head || a >= head
-      });
-    }
-    return folded;
-  },
-  provide: f => view_1.EditorView.decorations.compute([f], s => s.field(f))
-});
-function foldInside(state, from, to) {
-  var _a;
-  let found = null;
-  (_a = state.field(foldState, false)) === null || _a === void 0 ? void 0 : _a.between(from, to, (from, to) => {
-    if (!found || found.from > from) found = {
-      from,
-      to
-    };
-  });
-  return found;
-}
-function foldExists(folded, from, to) {
-  let found = false;
-  folded.between(from, from, (a, b) => {
-    if (a == from && b == to) found = true;
-  });
-  return found;
-}
-function maybeEnable(state, other) {
-  return state.field(foldState, false) ? other : other.concat(state_1.StateEffect.appendConfig.of(codeFolding()));
-}
-const foldCode = view => {
-  for (let line of selectedLines(view)) {
-    let range = language_1.foldable(view.state, line.from, line.to);
-    if (range) {
-      view.dispatch({
-        effects: maybeEnable(view.state, [foldEffect.of(range), announceFold(view, range)])
-      });
-      return true;
-    }
-  }
-  return false;
-};
-const unfoldCode = view => {
-  if (!view.state.field(foldState, false)) return false;
-  let effects = [];
-  for (let line of selectedLines(view)) {
-    let folded = foldInside(view.state, line.from, line.to);
-    if (folded) effects.push(unfoldEffect.of(folded), announceFold(view, folded, false));
-  }
-  if (effects.length) view.dispatch({
-    effects
-  });
-  return effects.length > 0;
-};
-function announceFold(view, range, fold = true) {
-  let lineFrom = view.state.doc.lineAt(range.from).number, lineTo = view.state.doc.lineAt(range.to).number;
-  return view_1.EditorView.announce.of(`${view.state.phrase(fold ? "Folded lines" : "Unfolded lines")} ${lineFrom} ${view.state.phrase("to")} ${lineTo}.`);
-}
-const foldAll = view => {
-  let {state} = view, effects = [];
-  for (let pos = 0; pos < state.doc.length; ) {
-    let line = view.visualLineAt(pos), range = language_1.foldable(state, line.from, line.to);
-    if (range) effects.push(foldEffect.of(range));
-    pos = (range ? view.visualLineAt(range.to) : line).to + 1;
-  }
-  if (effects.length) view.dispatch({
-    effects: maybeEnable(view.state, effects)
-  });
-  return !!effects.length;
-};
-const unfoldAll = view => {
-  let field = view.state.field(foldState, false);
-  if (!field || !field.size) return false;
-  let effects = [];
-  field.between(0, view.state.doc.length, (from, to) => {
-    effects.push(unfoldEffect.of({
-      from,
-      to
-    }));
-  });
-  view.dispatch({
-    effects
-  });
-  return true;
-};
-const foldKeymap = [{
-  key: "Ctrl-Shift-[",
-  mac: "Cmd-Alt-[",
-  run: foldCode
-}, {
-  key: "Ctrl-Shift-]",
-  mac: "Cmd-Alt-]",
-  run: unfoldCode
-}, {
-  key: "Ctrl-Alt-[",
-  run: foldAll
-}, {
-  key: "Ctrl-Alt-]",
-  run: unfoldAll
-}];
-const defaultConfig = {
-  placeholderDOM: null,
-  placeholderText: "…"
-};
-const foldConfig = state_1.Facet.define({
-  combine(values) {
-    return state_1.combineConfig(values, defaultConfig);
-  }
-});
-function codeFolding(config) {
-  let result = [foldState, baseTheme];
-  if (config) result.push(foldConfig.of(config));
-  return result;
-}
-const foldWidget = view_1.Decoration.replace({
-  widget: new (class extends view_1.WidgetType {
-    ignoreEvents() {
-      return false;
-    }
-    toDOM(view) {
-      let {state} = view, conf = state.facet(foldConfig);
-      if (conf.placeholderDOM) return conf.placeholderDOM();
-      let element = document.createElement("span");
-      element.textContent = conf.placeholderText;
-      element.setAttribute("aria-label", state.phrase("folded code"));
-      element.title = state.phrase("unfold");
-      element.className = "cm-foldPlaceholder";
-      element.onclick = event => {
-        let line = view.visualLineAt(view.posAtDOM(event.target));
-        let folded = foldInside(view.state, line.from, line.to);
-        if (folded) view.dispatch({
-          effects: unfoldEffect.of(folded)
-        });
-        event.preventDefault();
-      };
-      return element;
-    }
-  })()
-});
-const foldGutterDefaults = {
-  openText: "⌄",
-  closedText: "›"
-};
-class FoldMarker extends gutter_1.GutterMarker {
-  constructor(config, open) {
-    super();
-    this.config = config;
-    this.open = open;
-  }
-  eq(other) {
-    return this.config == other.config && this.open == other.open;
-  }
-  toDOM(view) {
-    let span = document.createElement("span");
-    span.textContent = this.open ? this.config.openText : this.config.closedText;
-    span.title = view.state.phrase(this.open ? "Fold line" : "Unfold line");
-    return span;
-  }
-}
-function foldGutter(config = {}) {
-  let fullConfig = Object.assign(Object.assign({}, foldGutterDefaults), config);
-  let canFold = new FoldMarker(fullConfig, true), canUnfold = new FoldMarker(fullConfig, false);
-  let markers = view_1.ViewPlugin.fromClass(class {
-    constructor(view) {
-      this.from = view.viewport.from;
-      this.markers = rangeset_1.RangeSet.of(this.buildMarkers(view));
-    }
-    update(update) {
-      let firstChange = -1;
-      update.changes.iterChangedRanges(from => {
-        if (firstChange < 0) firstChange = from;
-      });
-      let foldChange = update.startState.field(foldState, false) != update.state.field(foldState, false);
-      if (!foldChange && update.docChanged && update.view.viewport.from == this.from && firstChange > this.from) {
-        let start = update.view.visualLineAt(firstChange).from;
-        this.markers = this.markers.update({
-          filter: () => false,
-          filterFrom: start,
-          add: this.buildMarkers(update.view, start)
-        });
-      } else if (foldChange || update.docChanged || update.viewportChanged) {
-        this.from = update.view.viewport.from;
-        this.markers = rangeset_1.RangeSet.of(this.buildMarkers(update.view));
-      }
-    }
-    buildMarkers(view, from = 0) {
-      let ranges = [];
-      view.viewportLines(line => {
-        if (line.from >= from) {
-          let mark = foldInside(view.state, line.from, line.to) ? canUnfold : language_1.foldable(view.state, line.from, line.to) ? canFold : null;
-          if (mark) ranges.push(mark.range(line.from));
-        }
-      });
-      return ranges;
-    }
-  });
-  return [markers, gutter_1.gutter({
-    class: "cm-foldGutter",
-    markers(view) {
-      var _a;
-      return ((_a = view.plugin(markers)) === null || _a === void 0 ? void 0 : _a.markers) || rangeset_1.RangeSet.empty;
-    },
-    initialSpacer() {
-      return new FoldMarker(fullConfig, false);
-    },
-    domEventHandlers: {
-      click: (view, line) => {
-        let folded = foldInside(view.state, line.from, line.to);
-        if (folded) {
-          view.dispatch({
-            effects: unfoldEffect.of(folded)
-          });
-          return true;
-        }
-        let range = language_1.foldable(view.state, line.from, line.to);
-        if (range) {
-          view.dispatch({
-            effects: foldEffect.of(range)
-          });
-          return true;
-        }
-        return false;
-      }
-    }
-  }), codeFolding()];
-}
-const baseTheme = view_1.EditorView.baseTheme({
-  ".cm-foldPlaceholder": {
-    backgroundColor: "#eee",
-    border: "1px solid #ddd",
-    color: "#888",
-    borderRadius: ".2em",
-    margin: "0 1px",
-    padding: "0 1px",
-    cursor: "pointer"
-  },
-  ".cm-foldGutter .cm-gutterElement": {
-    padding: "0 1px",
-    cursor: "pointer"
-  }
-});
-exports.codeFolding = codeFolding;
-exports.foldAll = foldAll;
-exports.foldCode = foldCode;
-exports.foldGutter = foldGutter;
-exports.foldKeymap = foldKeymap;
-exports.unfoldAll = unfoldAll;
-exports.unfoldCode = unfoldCode;
-
-},
-
 // node_modules/@codemirror/gutter/dist/index.js @31
 31: function(__fusereq, exports, module){
 exports.__esModule = true;
@@ -10852,1008 +11170,5350 @@ exports.lineNumbers = lineNumbers;
 
 },
 
-// node_modules/@codemirror/lint/dist/index.js @5
-5: function(__fusereq, exports, module){
+// node_modules/@codemirror/fold/dist/index.js @28
+28: function(__fusereq, exports, module){
 exports.__esModule = true;
-var view_1 = __fusereq(14);
 var state_1 = __fusereq(15);
-var tooltip_1 = __fusereq(16);
-var panel_1 = __fusereq(17);
-var crelt_1 = __fusereq(18);
-var crelt_1d = __fuse.dt(crelt_1);
-class SelectedDiagnostic {
-  constructor(from, to, diagnostic) {
-    this.from = from;
-    this.to = to;
-    this.diagnostic = diagnostic;
-  }
+var view_1 = __fusereq(14);
+var language_1 = __fusereq(25);
+var gutter_1 = __fusereq(31);
+var rangeset_1 = __fusereq(42);
+function mapRange(range, mapping) {
+  let from = mapping.mapPos(range.from, 1), to = mapping.mapPos(range.to, -1);
+  return from >= to ? undefined : {
+    from,
+    to
+  };
 }
-class LintState {
-  constructor(diagnostics, panel, selected) {
-    this.diagnostics = diagnostics;
-    this.panel = panel;
-    this.selected = selected;
+const foldEffect = state_1.StateEffect.define({
+  map: mapRange
+});
+const unfoldEffect = state_1.StateEffect.define({
+  map: mapRange
+});
+function selectedLines(view) {
+  let lines = [];
+  for (let {head} of view.state.selection.ranges) {
+    if (lines.some(l => l.from <= head && l.to >= head)) continue;
+    lines.push(view.visualLineAt(head));
   }
+  return lines;
 }
-function findDiagnostic(diagnostics, diagnostic = null, after = 0) {
+const foldState = state_1.StateField.define({
+  create() {
+    return view_1.Decoration.none;
+  },
+  update(folded, tr) {
+    folded = folded.map(tr.changes);
+    for (let e of tr.effects) {
+      if (e.is(foldEffect) && !foldExists(folded, e.value.from, e.value.to)) folded = folded.update({
+        add: [foldWidget.range(e.value.from, e.value.to)]
+      }); else if (e.is(unfoldEffect)) {
+        folded = folded.update({
+          filter: (from, to) => e.value.from != from || e.value.to != to,
+          filterFrom: e.value.from,
+          filterTo: e.value.to
+        });
+      }
+    }
+    if (tr.selection) {
+      let onSelection = false, {head} = tr.selection.main;
+      folded.between(head, head, (a, b) => {
+        if (a < head && b > head) onSelection = true;
+      });
+      if (onSelection) folded = folded.update({
+        filterFrom: head,
+        filterTo: head,
+        filter: (a, b) => b <= head || a >= head
+      });
+    }
+    return folded;
+  },
+  provide: f => view_1.EditorView.decorations.compute([f], s => s.field(f))
+});
+function foldInside(state, from, to) {
+  var _a;
   let found = null;
-  diagnostics.between(after, 1e9, (from, to, {spec}) => {
-    if (diagnostic && spec.diagnostic != diagnostic) return;
-    found = new SelectedDiagnostic(from, to, spec.diagnostic);
-    return false;
+  (_a = state.field(foldState, false)) === null || _a === void 0 ? void 0 : _a.between(from, to, (from, to) => {
+    if (!found || found.from > from) found = {
+      from,
+      to
+    };
   });
   return found;
 }
-function maybeEnableLint(state, effects) {
-  return state.field(lintState, false) ? effects : effects.concat(state_1.StateEffect.appendConfig.of([lintState, view_1.EditorView.decorations.compute([lintState], state => {
-    let {selected, panel} = state.field(lintState);
-    return !selected || !panel || selected.from == selected.to ? view_1.Decoration.none : view_1.Decoration.set([activeMark.range(selected.from, selected.to)]);
-  }), tooltip_1.hoverTooltip(lintTooltip), baseTheme]));
-}
-function setDiagnostics(state, diagnostics) {
-  return {
-    effects: maybeEnableLint(state, [setDiagnosticsEffect.of(diagnostics)])
-  };
-}
-const setDiagnosticsEffect = state_1.StateEffect.define();
-const togglePanel = state_1.StateEffect.define();
-const movePanelSelection = state_1.StateEffect.define();
-const lintState = state_1.StateField.define({
-  create() {
-    return new LintState(view_1.Decoration.none, null, null);
-  },
-  update(value, tr) {
-    if (tr.docChanged) {
-      let mapped = value.diagnostics.map(tr.changes), selected = null;
-      if (value.selected) {
-        let selPos = tr.changes.mapPos(value.selected.from, 1);
-        selected = findDiagnostic(mapped, value.selected.diagnostic, selPos) || findDiagnostic(mapped, null, selPos);
-      }
-      value = new LintState(mapped, value.panel, selected);
-    }
-    for (let effect of tr.effects) {
-      if (effect.is(setDiagnosticsEffect)) {
-        let ranges = view_1.Decoration.set(effect.value.map(d => {
-          return d.from < d.to ? view_1.Decoration.mark({
-            attributes: {
-              class: "cm-lintRange cm-lintRange-" + d.severity
-            },
-            diagnostic: d
-          }).range(d.from, d.to) : view_1.Decoration.widget({
-            widget: new DiagnosticWidget(d),
-            diagnostic: d
-          }).range(d.from);
-        }));
-        value = new LintState(ranges, value.panel, findDiagnostic(ranges));
-      } else if (effect.is(togglePanel)) {
-        value = new LintState(value.diagnostics, effect.value ? LintPanel.open : null, value.selected);
-      } else if (effect.is(movePanelSelection)) {
-        value = new LintState(value.diagnostics, value.panel, effect.value);
-      }
-    }
-    return value;
-  },
-  provide: f => [panel_1.showPanel.from(f, val => val.panel), view_1.EditorView.decorations.from(f, s => s.diagnostics)]
-});
-const activeMark = view_1.Decoration.mark({
-  class: "cm-lintRange cm-lintRange-active"
-});
-function lintTooltip(view, pos, side) {
-  let {diagnostics} = view.state.field(lintState);
-  let found = [], stackStart = 2e8, stackEnd = 0;
-  diagnostics.between(pos - (side < 0 ? 1 : 0), pos + (side > 0 ? 1 : 0), (from, to, {spec}) => {
-    if (pos >= from && pos <= to && (from == to || (pos > from || side > 0) && (pos < to || side < 0))) {
-      found.push(spec.diagnostic);
-      stackStart = Math.min(from, stackStart);
-      stackEnd = Math.max(to, stackEnd);
-    }
+function foldExists(folded, from, to) {
+  let found = false;
+  folded.between(from, from, (a, b) => {
+    if (a == from && b == to) found = true;
   });
-  if (!found.length) return null;
-  return {
-    pos: stackStart,
-    end: stackEnd,
-    above: view.state.doc.lineAt(stackStart).to < stackEnd,
-    create() {
-      return {
-        dom: crelt_1d.default("ul", {
-          class: "cm-tooltip-lint"
-        }, found.map(d => renderDiagnostic(view, d, false)))
-      };
-    }
-  };
+  return found;
 }
-const openLintPanel = view => {
-  let field = view.state.field(lintState, false);
-  if (!field || !field.panel) view.dispatch({
-    effects: maybeEnableLint(view.state, [togglePanel.of(true)])
-  });
-  let panel = panel_1.getPanel(view, LintPanel.open);
-  if (panel) panel.dom.querySelector(".cm-panel-lint ul").focus();
-  return true;
-};
-const closeLintPanel = view => {
-  let field = view.state.field(lintState, false);
-  if (!field || !field.panel) return false;
-  view.dispatch({
-    effects: togglePanel.of(false)
-  });
-  return true;
-};
-const nextDiagnostic = view => {
-  let field = view.state.field(lintState, false);
-  if (!field) return false;
-  let sel = view.state.selection.main, next = field.diagnostics.iter(sel.to + 1);
-  if (!next.value) {
-    next = field.diagnostics.iter(0);
-    if (!next.value || next.from == sel.from && next.to == sel.to) return false;
+function maybeEnable(state, other) {
+  return state.field(foldState, false) ? other : other.concat(state_1.StateEffect.appendConfig.of(codeFolding()));
+}
+const foldCode = view => {
+  for (let line of selectedLines(view)) {
+    let range = language_1.foldable(view.state, line.from, line.to);
+    if (range) {
+      view.dispatch({
+        effects: maybeEnable(view.state, [foldEffect.of(range), announceFold(view, range)])
+      });
+      return true;
+    }
   }
+  return false;
+};
+const unfoldCode = view => {
+  if (!view.state.field(foldState, false)) return false;
+  let effects = [];
+  for (let line of selectedLines(view)) {
+    let folded = foldInside(view.state, line.from, line.to);
+    if (folded) effects.push(unfoldEffect.of(folded), announceFold(view, folded, false));
+  }
+  if (effects.length) view.dispatch({
+    effects
+  });
+  return effects.length > 0;
+};
+function announceFold(view, range, fold = true) {
+  let lineFrom = view.state.doc.lineAt(range.from).number, lineTo = view.state.doc.lineAt(range.to).number;
+  return view_1.EditorView.announce.of(`${view.state.phrase(fold ? "Folded lines" : "Unfolded lines")} ${lineFrom} ${view.state.phrase("to")} ${lineTo}.`);
+}
+const foldAll = view => {
+  let {state} = view, effects = [];
+  for (let pos = 0; pos < state.doc.length; ) {
+    let line = view.visualLineAt(pos), range = language_1.foldable(state, line.from, line.to);
+    if (range) effects.push(foldEffect.of(range));
+    pos = (range ? view.visualLineAt(range.to) : line).to + 1;
+  }
+  if (effects.length) view.dispatch({
+    effects: maybeEnable(view.state, effects)
+  });
+  return !!effects.length;
+};
+const unfoldAll = view => {
+  let field = view.state.field(foldState, false);
+  if (!field || !field.size) return false;
+  let effects = [];
+  field.between(0, view.state.doc.length, (from, to) => {
+    effects.push(unfoldEffect.of({
+      from,
+      to
+    }));
+  });
   view.dispatch({
-    selection: {
-      anchor: next.from,
-      head: next.to
-    },
-    scrollIntoView: true
+    effects
   });
   return true;
 };
-const lintKeymap = [{
-  key: "Mod-Shift-m",
-  run: openLintPanel
+const foldKeymap = [{
+  key: "Ctrl-Shift-[",
+  mac: "Cmd-Alt-[",
+  run: foldCode
 }, {
-  key: "F8",
-  run: nextDiagnostic
+  key: "Ctrl-Shift-]",
+  mac: "Cmd-Alt-]",
+  run: unfoldCode
+}, {
+  key: "Ctrl-Alt-[",
+  run: foldAll
+}, {
+  key: "Ctrl-Alt-]",
+  run: unfoldAll
 }];
-const LintDelay = 500;
-function linter(source) {
-  return view_1.ViewPlugin.fromClass(class {
-    constructor(view) {
-      this.view = view;
-      this.lintTime = Date.now() + LintDelay;
-      this.set = true;
-      this.run = this.run.bind(this);
-      setTimeout(this.run, LintDelay);
-    }
-    run() {
-      let now = Date.now();
-      if (now < this.lintTime - 10) {
-        setTimeout(this.run, this.lintTime - now);
-      } else {
-        this.set = false;
-        let {state} = this.view;
-        Promise.resolve(source(this.view)).then(annotations => {
-          var _a, _b;
-          if (this.view.state.doc == state.doc && (annotations.length || ((_b = (_a = this.view.state.field(lintState, false)) === null || _a === void 0 ? void 0 : _a.diagnostics) === null || _b === void 0 ? void 0 : _b.size))) this.view.dispatch(setDiagnostics(this.view.state, annotations));
-        }, error => {
-          view_1.logException(this.view.state, error);
-        });
-      }
-    }
-    update(update) {
-      if (update.docChanged) {
-        this.lintTime = Date.now() + LintDelay;
-        if (!this.set) {
-          this.set = true;
-          setTimeout(this.run, LintDelay);
-        }
-      }
-    }
-  });
-}
-function assignKeys(actions) {
-  let assigned = [];
-  if (actions) actions: for (let {name} of actions) {
-    for (let i = 0; i < name.length; i++) {
-      let ch = name[i];
-      if ((/[a-zA-Z]/).test(ch) && !assigned.some(c => c.toLowerCase() == ch.toLowerCase())) {
-        assigned.push(ch);
-        continue actions;
-      }
-    }
-    assigned.push("");
+const defaultConfig = {
+  placeholderDOM: null,
+  placeholderText: "…"
+};
+const foldConfig = state_1.Facet.define({
+  combine(values) {
+    return state_1.combineConfig(values, defaultConfig);
   }
-  return assigned;
+});
+function codeFolding(config) {
+  let result = [foldState, baseTheme];
+  if (config) result.push(foldConfig.of(config));
+  return result;
 }
-function renderDiagnostic(view, diagnostic, inPanel) {
-  var _a;
-  let keys = inPanel ? assignKeys(diagnostic.actions) : [];
-  return crelt_1d.default("li", {
-    class: "cm-diagnostic cm-diagnostic-" + diagnostic.severity
-  }, crelt_1d.default("span", {
-    class: "cm-diagnosticText"
-  }, diagnostic.message), (_a = diagnostic.actions) === null || _a === void 0 ? void 0 : _a.map((action, i) => {
-    let click = e => {
-      e.preventDefault();
-      let found = findDiagnostic(view.state.field(lintState).diagnostics, diagnostic);
-      if (found) action.apply(view, found.from, found.to);
-    };
-    let {name} = action, keyIndex = keys[i] ? name.indexOf(keys[i]) : -1;
-    let nameElt = keyIndex < 0 ? name : [name.slice(0, keyIndex), crelt_1d.default("u", name.slice(keyIndex, keyIndex + 1)), name.slice(keyIndex + 1)];
-    return crelt_1d.default("button", {
-      class: "cm-diagnosticAction",
-      onclick: click,
-      onmousedown: click,
-      "aria-label": ` Action: ${name}${keyIndex < 0 ? "" : ` (access key "${keys[i]})"`}.`
-    }, nameElt);
-  }), diagnostic.source && crelt_1d.default("div", {
-    class: "cm-diagnosticSource"
-  }, diagnostic.source));
-}
-class DiagnosticWidget extends view_1.WidgetType {
-  constructor(diagnostic) {
+const foldWidget = view_1.Decoration.replace({
+  widget: new (class extends view_1.WidgetType {
+    ignoreEvents() {
+      return false;
+    }
+    toDOM(view) {
+      let {state} = view, conf = state.facet(foldConfig);
+      if (conf.placeholderDOM) return conf.placeholderDOM();
+      let element = document.createElement("span");
+      element.textContent = conf.placeholderText;
+      element.setAttribute("aria-label", state.phrase("folded code"));
+      element.title = state.phrase("unfold");
+      element.className = "cm-foldPlaceholder";
+      element.onclick = event => {
+        let line = view.visualLineAt(view.posAtDOM(event.target));
+        let folded = foldInside(view.state, line.from, line.to);
+        if (folded) view.dispatch({
+          effects: unfoldEffect.of(folded)
+        });
+        event.preventDefault();
+      };
+      return element;
+    }
+  })()
+});
+const foldGutterDefaults = {
+  openText: "⌄",
+  closedText: "›"
+};
+class FoldMarker extends gutter_1.GutterMarker {
+  constructor(config, open) {
     super();
-    this.diagnostic = diagnostic;
+    this.config = config;
+    this.open = open;
   }
   eq(other) {
-    return other.diagnostic == this.diagnostic;
+    return this.config == other.config && this.open == other.open;
   }
-  toDOM() {
-    return crelt_1d.default("span", {
-      class: "cm-lintPoint cm-lintPoint-" + this.diagnostic.severity
-    });
-  }
-}
-class PanelItem {
-  constructor(view, diagnostic) {
-    this.diagnostic = diagnostic;
-    this.id = "item_" + Math.floor(Math.random() * 0xffffffff).toString(16);
-    this.dom = renderDiagnostic(view, diagnostic, true);
-    this.dom.id = this.id;
-    this.dom.setAttribute("role", "option");
+  toDOM(view) {
+    let span = document.createElement("span");
+    span.textContent = this.open ? this.config.openText : this.config.closedText;
+    span.title = view.state.phrase(this.open ? "Fold line" : "Unfold line");
+    return span;
   }
 }
-class LintPanel {
-  constructor(view) {
-    this.view = view;
-    this.items = [];
-    let onkeydown = event => {
-      if (event.keyCode == 27) {
-        closeLintPanel(this.view);
-        this.view.focus();
-      } else if (event.keyCode == 38 || event.keyCode == 33) {
-        this.moveSelection((this.selectedIndex - 1 + this.items.length) % this.items.length);
-      } else if (event.keyCode == 40 || event.keyCode == 34) {
-        this.moveSelection((this.selectedIndex + 1) % this.items.length);
-      } else if (event.keyCode == 36) {
-        this.moveSelection(0);
-      } else if (event.keyCode == 35) {
-        this.moveSelection(this.items.length - 1);
-      } else if (event.keyCode == 13) {
-        this.view.focus();
-      } else if (event.keyCode >= 65 && event.keyCode <= 90 && this.items.length) {
-        let {diagnostic} = this.items[this.selectedIndex], keys = assignKeys(diagnostic.actions);
-        for (let i = 0; i < keys.length; i++) if (keys[i].toUpperCase().charCodeAt(0) == event.keyCode) {
-          let found = findDiagnostic(this.view.state.field(lintState).diagnostics, diagnostic);
-          if (found) diagnostic.actions[i].apply(view, found.from, found.to);
-        }
-      } else {
-        return;
-      }
-      event.preventDefault();
-    };
-    let onclick = event => {
-      for (let i = 0; i < this.items.length; i++) {
-        if (this.items[i].dom.contains(event.target)) this.moveSelection(i);
-      }
-    };
-    this.list = crelt_1d.default("ul", {
-      tabIndex: 0,
-      role: "listbox",
-      "aria-label": this.view.state.phrase("Diagnostics"),
-      onkeydown,
-      onclick
-    });
-    this.dom = crelt_1d.default("div", {
-      class: "cm-panel-lint"
-    }, this.list, crelt_1d.default("button", {
-      name: "close",
-      "aria-label": this.view.state.phrase("close"),
-      onclick: () => closeLintPanel(this.view)
-    }, "×"));
-    this.update();
-  }
-  get selectedIndex() {
-    let selected = this.view.state.field(lintState).selected;
-    if (!selected) return -1;
-    for (let i = 0; i < this.items.length; i++) if (this.items[i].diagnostic == selected.diagnostic) return i;
-    return -1;
-  }
-  update() {
-    let {diagnostics, selected} = this.view.state.field(lintState);
-    let i = 0, needsSync = false, newSelectedItem = null;
-    diagnostics.between(0, this.view.state.doc.length, (_start, _end, {spec}) => {
-      let found = -1, item;
-      for (let j = i; j < this.items.length; j++) if (this.items[j].diagnostic == spec.diagnostic) {
-        found = j;
-        break;
-      }
-      if (found < 0) {
-        item = new PanelItem(this.view, spec.diagnostic);
-        this.items.splice(i, 0, item);
-        needsSync = true;
-      } else {
-        item = this.items[found];
-        if (found > i) {
-          this.items.splice(i, found - i);
-          needsSync = true;
-        }
-      }
-      if (selected && item.diagnostic == selected.diagnostic) {
-        if (!item.dom.hasAttribute("aria-selected")) {
-          item.dom.setAttribute("aria-selected", "true");
-          newSelectedItem = item;
-        }
-      } else if (item.dom.hasAttribute("aria-selected")) {
-        item.dom.removeAttribute("aria-selected");
-      }
-      i++;
-    });
-    while (i < this.items.length && !(this.items.length == 1 && this.items[0].diagnostic.from < 0)) {
-      needsSync = true;
-      this.items.pop();
+function foldGutter(config = {}) {
+  let fullConfig = Object.assign(Object.assign({}, foldGutterDefaults), config);
+  let canFold = new FoldMarker(fullConfig, true), canUnfold = new FoldMarker(fullConfig, false);
+  let markers = view_1.ViewPlugin.fromClass(class {
+    constructor(view) {
+      this.from = view.viewport.from;
+      this.markers = rangeset_1.RangeSet.of(this.buildMarkers(view));
     }
-    if (this.items.length == 0) {
-      this.items.push(new PanelItem(this.view, {
-        from: -1,
-        to: -1,
-        severity: "info",
-        message: this.view.state.phrase("No diagnostics")
-      }));
-      needsSync = true;
-    }
-    if (newSelectedItem) {
-      this.list.setAttribute("aria-activedescendant", newSelectedItem.id);
-      this.view.requestMeasure({
-        key: this,
-        read: () => ({
-          sel: newSelectedItem.dom.getBoundingClientRect(),
-          panel: this.list.getBoundingClientRect()
-        }),
-        write: ({sel, panel}) => {
-          if (sel.top < panel.top) this.list.scrollTop -= panel.top - sel.top; else if (sel.bottom > panel.bottom) this.list.scrollTop += sel.bottom - panel.bottom;
-        }
+    update(update) {
+      let firstChange = -1;
+      update.changes.iterChangedRanges(from => {
+        if (firstChange < 0) firstChange = from;
       });
-    } else if (!this.items.length) {
-      this.list.removeAttribute("aria-activedescendant");
-    }
-    if (needsSync) this.sync();
-  }
-  sync() {
-    let domPos = this.list.firstChild;
-    function rm() {
-      let prev = domPos;
-      domPos = prev.nextSibling;
-      prev.remove();
-    }
-    for (let item of this.items) {
-      if (item.dom.parentNode == this.list) {
-        while (domPos != item.dom) rm();
-        domPos = item.dom.nextSibling;
-      } else {
-        this.list.insertBefore(item.dom, domPos);
-      }
-    }
-    while (domPos) rm();
-    if (!this.list.firstChild) this.list.appendChild(renderDiagnostic(this.view, {
-      severity: "info",
-      message: this.view.state.phrase("No diagnostics")
-    }, true));
-  }
-  moveSelection(selectedIndex) {
-    if (this.items.length == 0) return;
-    let field = this.view.state.field(lintState);
-    let selection = findDiagnostic(field.diagnostics, this.items[selectedIndex].diagnostic);
-    if (!selection) return;
-    this.view.dispatch({
-      selection: {
-        anchor: selection.from,
-        head: selection.to
-      },
-      scrollIntoView: true,
-      effects: movePanelSelection.of(selection)
-    });
-  }
-  static open(view) {
-    return new LintPanel(view);
-  }
-}
-function underline(color) {
-  if (typeof btoa != "function") return "none";
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="6" height="3">
-    <path d="m0 3 l2 -2 l1 0 l2 2 l1 0" stroke="${color}" fill="none" stroke-width=".7"/>
-  </svg>`;
-  return `url('data:image/svg+xml;base64,${btoa(svg)}')`;
-}
-const baseTheme = view_1.EditorView.baseTheme({
-  ".cm-diagnostic": {
-    padding: "3px 6px 3px 8px",
-    marginLeft: "-1px",
-    display: "block"
-  },
-  ".cm-diagnostic-error": {
-    borderLeft: "5px solid #d11"
-  },
-  ".cm-diagnostic-warning": {
-    borderLeft: "5px solid orange"
-  },
-  ".cm-diagnostic-info": {
-    borderLeft: "5px solid #999"
-  },
-  ".cm-diagnosticAction": {
-    font: "inherit",
-    border: "none",
-    padding: "2px 4px",
-    backgroundColor: "#444",
-    color: "white",
-    borderRadius: "3px",
-    marginLeft: "8px"
-  },
-  ".cm-diagnosticSource": {
-    fontSize: "70%",
-    opacity: .7
-  },
-  ".cm-lintRange": {
-    backgroundPosition: "left bottom",
-    backgroundRepeat: "repeat-x"
-  },
-  ".cm-lintRange-error": {
-    backgroundImage: underline("#d11")
-  },
-  ".cm-lintRange-warning": {
-    backgroundImage: underline("orange")
-  },
-  ".cm-lintRange-info": {
-    backgroundImage: underline("#999")
-  },
-  ".cm-lintRange-active": {
-    backgroundColor: "#ffdd9980"
-  },
-  ".cm-lintPoint": {
-    position: "relative",
-    "&:after": {
-      content: '""',
-      position: "absolute",
-      bottom: 0,
-      left: "-2px",
-      borderLeft: "3px solid transparent",
-      borderRight: "3px solid transparent",
-      borderBottom: "4px solid #d11"
-    }
-  },
-  ".cm-lintPoint-warning": {
-    "&:after": {
-      borderBottomColor: "orange"
-    }
-  },
-  ".cm-lintPoint-info": {
-    "&:after": {
-      borderBottomColor: "#999"
-    }
-  },
-  ".cm-panel.cm-panel-lint": {
-    position: "relative",
-    "& ul": {
-      maxHeight: "100px",
-      overflowY: "auto",
-      "& [aria-selected]": {
-        backgroundColor: "#ddd",
-        "& u": {
-          textDecoration: "underline"
-        }
-      },
-      "&:focus [aria-selected]": {
-        background_fallback: "#bdf",
-        backgroundColor: "Highlight",
-        color_fallback: "white",
-        color: "HighlightText"
-      },
-      "& u": {
-        textDecoration: "none"
-      },
-      padding: 0,
-      margin: 0
-    },
-    "& [name=close]": {
-      position: "absolute",
-      top: "0",
-      right: "2px",
-      background: "inherit",
-      border: "none",
-      font: "inherit",
-      padding: 0,
-      margin: 0
-    }
-  },
-  ".cm-tooltip.cm-tooltip-lint": {
-    padding: 0,
-    margin: 0
-  }
-});
-exports.closeLintPanel = closeLintPanel;
-exports.lintKeymap = lintKeymap;
-exports.linter = linter;
-exports.nextDiagnostic = nextDiagnostic;
-exports.openLintPanel = openLintPanel;
-exports.setDiagnostics = setDiagnostics;
-
-},
-
-// node_modules/@codemirror/tooltip/dist/index.js @16
-16: function(__fusereq, exports, module){
-exports.__esModule = true;
-var view_1 = __fusereq(14);
-var state_1 = __fusereq(15);
-const ios = typeof navigator != "undefined" && !(/Edge\/(\d+)/).exec(navigator.userAgent) && (/Apple Computer/).test(navigator.vendor) && ((/Mobile\/\w+/).test(navigator.userAgent) || navigator.maxTouchPoints > 2);
-const Outside = "-10000px";
-const tooltipPlugin = view_1.ViewPlugin.fromClass(class {
-  constructor(view) {
-    this.view = view;
-    this.inView = true;
-    this.measureReq = {
-      read: this.readMeasure.bind(this),
-      write: this.writeMeasure.bind(this),
-      key: this
-    };
-    this.input = view.state.facet(showTooltip);
-    this.tooltips = this.input.filter(t => t);
-    this.tooltipViews = this.tooltips.map(tp => this.createTooltip(tp));
-  }
-  update(update) {
-    let input = update.state.facet(showTooltip);
-    if (input == this.input) {
-      for (let t of this.tooltipViews) if (t.update) t.update(update);
-    } else {
-      let tooltips = input.filter(x => x);
-      let views = [];
-      for (let i = 0; i < tooltips.length; i++) {
-        let tip = tooltips[i], known = -1;
-        if (!tip) continue;
-        for (let i = 0; i < this.tooltips.length; i++) {
-          let other = this.tooltips[i];
-          if (other && other.create == tip.create) known = i;
-        }
-        if (known < 0) {
-          views[i] = this.createTooltip(tip);
-        } else {
-          let tooltipView = views[i] = this.tooltipViews[known];
-          if (tooltipView.update) tooltipView.update(update);
-        }
-      }
-      for (let t of this.tooltipViews) if (views.indexOf(t) < 0) t.dom.remove();
-      this.input = input;
-      this.tooltips = tooltips;
-      this.tooltipViews = views;
-      this.maybeMeasure();
-    }
-  }
-  createTooltip(tooltip) {
-    let tooltipView = tooltip.create(this.view);
-    tooltipView.dom.classList.add("cm-tooltip");
-    if (tooltip.class) tooltipView.dom.classList.add(tooltip.class);
-    tooltipView.dom.style.top = Outside;
-    this.view.dom.appendChild(tooltipView.dom);
-    if (tooltipView.mount) tooltipView.mount(this.view);
-    return tooltipView;
-  }
-  destroy() {
-    for (let {dom} of this.tooltipViews) dom.remove();
-  }
-  readMeasure() {
-    return {
-      editor: this.view.dom.getBoundingClientRect(),
-      pos: this.tooltips.map(t => this.view.coordsAtPos(t.pos)),
-      size: this.tooltipViews.map(({dom}) => dom.getBoundingClientRect()),
-      innerWidth: window.innerWidth,
-      innerHeight: window.innerHeight
-    };
-  }
-  writeMeasure(measured) {
-    let {editor} = measured;
-    for (let i = 0; i < this.tooltipViews.length; i++) {
-      let tooltip = this.tooltips[i], tView = this.tooltipViews[i], {dom} = tView;
-      let pos = measured.pos[i], size = measured.size[i];
-      if (!pos || pos.bottom <= editor.top || pos.top >= editor.bottom || pos.right <= editor.left || pos.left >= editor.right) {
-        dom.style.top = Outside;
-        continue;
-      }
-      let width = size.right - size.left, height = size.bottom - size.top;
-      let left = this.view.textDirection == view_1.Direction.LTR ? Math.min(pos.left, measured.innerWidth - width) : Math.max(0, pos.left - width);
-      let above = !!tooltip.above;
-      if (!tooltip.strictSide && (above ? pos.top - (size.bottom - size.top) < 0 : pos.bottom + (size.bottom - size.top) > measured.innerHeight)) above = !above;
-      if (ios) {
-        dom.style.top = (above ? pos.top - height : pos.bottom) - editor.top + "px";
-        dom.style.left = left - editor.left + "px";
-        dom.style.position = "absolute";
-      } else {
-        dom.style.top = (above ? pos.top - height : pos.bottom) + "px";
-        dom.style.left = left + "px";
-      }
-      dom.classList.toggle("cm-tooltip-above", above);
-      dom.classList.toggle("cm-tooltip-below", !above);
-      if (tView.positioned) tView.positioned();
-    }
-  }
-  maybeMeasure() {
-    if (this.tooltips.length) {
-      if (this.view.inView || this.inView) this.view.requestMeasure(this.measureReq);
-      this.inView = this.view.inView;
-    }
-  }
-}, {
-  eventHandlers: {
-    scroll() {
-      this.maybeMeasure();
-    }
-  }
-});
-const baseTheme = view_1.EditorView.baseTheme({
-  ".cm-tooltip": {
-    position: "fixed",
-    zIndex: 100
-  },
-  "&light .cm-tooltip": {
-    border: "1px solid #ddd",
-    backgroundColor: "#f5f5f5"
-  },
-  "&dark .cm-tooltip": {
-    backgroundColor: "#333338",
-    color: "white"
-  }
-});
-function tooltips() {
-  return [];
-}
-const showTooltip = state_1.Facet.define({
-  enables: [tooltipPlugin, baseTheme]
-});
-const HoverTime = 750, HoverMaxDist = 6;
-class HoverPlugin {
-  constructor(view, source, field, setHover) {
-    this.view = view;
-    this.source = source;
-    this.field = field;
-    this.setHover = setHover;
-    this.lastMouseMove = null;
-    this.hoverTimeout = -1;
-    this.restartTimeout = -1;
-    this.pending = null;
-    this.checkHover = this.checkHover.bind(this);
-    view.dom.addEventListener("mouseleave", this.mouseleave = this.mouseleave.bind(this));
-    view.dom.addEventListener("mousemove", this.mousemove = this.mousemove.bind(this));
-  }
-  update() {
-    if (this.pending) {
-      this.pending = null;
-      clearTimeout(this.restartTimeout);
-      this.restartTimeout = setTimeout(() => this.startHover(), 20);
-    }
-  }
-  get active() {
-    return this.view.state.field(this.field);
-  }
-  checkHover() {
-    this.hoverTimeout = -1;
-    if (this.active) return;
-    let now = Date.now(), lastMove = this.lastMouseMove;
-    if (now - lastMove.timeStamp < HoverTime) this.hoverTimeout = setTimeout(this.checkHover, HoverTime - (now - lastMove.timeStamp)); else this.startHover();
-  }
-  startHover() {
-    var _a;
-    clearTimeout(this.restartTimeout);
-    let lastMove = this.lastMouseMove;
-    let coords = {
-      x: lastMove.clientX,
-      y: lastMove.clientY
-    };
-    let pos = this.view.contentDOM.contains(lastMove.target) ? this.view.posAtCoords(coords) : null;
-    if (pos == null) return;
-    let posCoords = this.view.coordsAtPos(pos);
-    if (posCoords == null || coords.y < posCoords.top || coords.y > posCoords.bottom || coords.x < posCoords.left - this.view.defaultCharacterWidth || coords.x > posCoords.right + this.view.defaultCharacterWidth) return;
-    let bidi = this.view.bidiSpans(this.view.state.doc.lineAt(pos)).find(s => s.from <= pos && s.to >= pos);
-    let rtl = bidi && bidi.dir == view_1.Direction.RTL ? -1 : 1;
-    let open = this.source(this.view, pos, coords.x < posCoords.left ? -rtl : rtl);
-    if ((_a = open) === null || _a === void 0 ? void 0 : _a.then) {
-      let pending = this.pending = {
-        pos
-      };
-      open.then(result => {
-        if (this.pending == pending) {
-          this.pending = null;
-          if (result) this.view.dispatch({
-            effects: this.setHover.of(result)
-          });
-        }
-      }, e => view_1.logException(this.view.state, e, "hover tooltip"));
-    } else if (open) {
-      this.view.dispatch({
-        effects: this.setHover.of(open)
-      });
-    }
-  }
-  mousemove(event) {
-    var _a;
-    this.lastMouseMove = event;
-    if (this.hoverTimeout < 0) this.hoverTimeout = setTimeout(this.checkHover, HoverTime);
-    let tooltip = this.active;
-    if (tooltip && !isInTooltip(event.target) || this.pending) {
-      let {pos} = tooltip || this.pending, end = (_a = tooltip === null || tooltip === void 0 ? void 0 : tooltip.end) !== null && _a !== void 0 ? _a : pos;
-      if (pos == end ? this.view.posAtCoords({
-        x: event.clientX,
-        y: event.clientY
-      }) != pos : !isOverRange(this.view, pos, end, event.clientX, event.clientY, HoverMaxDist)) {
-        this.view.dispatch({
-          effects: this.setHover.of(null)
+      let foldChange = update.startState.field(foldState, false) != update.state.field(foldState, false);
+      if (!foldChange && update.docChanged && update.view.viewport.from == this.from && firstChange > this.from) {
+        let start = update.view.visualLineAt(firstChange).from;
+        this.markers = this.markers.update({
+          filter: () => false,
+          filterFrom: start,
+          add: this.buildMarkers(update.view, start)
         });
-        this.pending = null;
+      } else if (foldChange || update.docChanged || update.viewportChanged) {
+        this.from = update.view.viewport.from;
+        this.markers = rangeset_1.RangeSet.of(this.buildMarkers(update.view));
       }
     }
+    buildMarkers(view, from = 0) {
+      let ranges = [];
+      view.viewportLines(line => {
+        if (line.from >= from) {
+          let mark = foldInside(view.state, line.from, line.to) ? canUnfold : language_1.foldable(view.state, line.from, line.to) ? canFold : null;
+          if (mark) ranges.push(mark.range(line.from));
+        }
+      });
+      return ranges;
+    }
+  });
+  return [markers, gutter_1.gutter({
+    class: "cm-foldGutter",
+    markers(view) {
+      var _a;
+      return ((_a = view.plugin(markers)) === null || _a === void 0 ? void 0 : _a.markers) || rangeset_1.RangeSet.empty;
+    },
+    initialSpacer() {
+      return new FoldMarker(fullConfig, false);
+    },
+    domEventHandlers: {
+      click: (view, line) => {
+        let folded = foldInside(view.state, line.from, line.to);
+        if (folded) {
+          view.dispatch({
+            effects: unfoldEffect.of(folded)
+          });
+          return true;
+        }
+        let range = language_1.foldable(view.state, line.from, line.to);
+        if (range) {
+          view.dispatch({
+            effects: foldEffect.of(range)
+          });
+          return true;
+        }
+        return false;
+      }
+    }
+  }), codeFolding()];
+}
+const baseTheme = view_1.EditorView.baseTheme({
+  ".cm-foldPlaceholder": {
+    backgroundColor: "#eee",
+    border: "1px solid #ddd",
+    color: "#888",
+    borderRadius: ".2em",
+    margin: "0 1px",
+    padding: "0 1px",
+    cursor: "pointer"
+  },
+  ".cm-foldGutter .cm-gutterElement": {
+    padding: "0 1px",
+    cursor: "pointer"
   }
-  mouseleave() {
-    clearTimeout(this.hoverTimeout);
-    this.hoverTimeout = -1;
-    if (this.active) this.view.dispatch({
-      effects: this.setHover.of(null)
+});
+exports.codeFolding = codeFolding;
+exports.foldAll = foldAll;
+exports.foldCode = foldCode;
+exports.foldGutter = foldGutter;
+exports.foldKeymap = foldKeymap;
+exports.unfoldAll = unfoldAll;
+exports.unfoldCode = unfoldCode;
+
+},
+
+// node_modules/d3-hierarchy/src/index.js @46
+46: function(__fusereq, exports, module){
+exports.__esModule = true;
+var cluster_js_1 = __fusereq(50);
+var cluster_js_1d = __fuse.dt(cluster_js_1);
+exports.cluster = cluster_js_1d.default;
+var index_js_1 = __fusereq(51);
+var index_js_1d = __fuse.dt(index_js_1);
+exports.hierarchy = index_js_1d.default;
+var index_js_2 = __fusereq(52);
+var index_js_2d = __fuse.dt(index_js_2);
+exports.pack = index_js_2d.default;
+var siblings_js_1 = __fusereq(53);
+var siblings_js_1d = __fuse.dt(siblings_js_1);
+exports.packSiblings = siblings_js_1d.default;
+var enclose_js_1 = __fusereq(54);
+var enclose_js_1d = __fuse.dt(enclose_js_1);
+exports.packEnclose = enclose_js_1d.default;
+var partition_js_1 = __fusereq(55);
+var partition_js_1d = __fuse.dt(partition_js_1);
+exports.partition = partition_js_1d.default;
+var stratify_js_1 = __fusereq(56);
+var stratify_js_1d = __fuse.dt(stratify_js_1);
+exports.stratify = stratify_js_1d.default;
+var tree_js_1 = __fusereq(57);
+var tree_js_1d = __fuse.dt(tree_js_1);
+exports.tree = tree_js_1d.default;
+var index_js_3 = __fusereq(58);
+var index_js_3d = __fuse.dt(index_js_3);
+exports.treemap = index_js_3d.default;
+var binary_js_1 = __fusereq(59);
+var binary_js_1d = __fuse.dt(binary_js_1);
+exports.treemapBinary = binary_js_1d.default;
+var dice_js_1 = __fusereq(60);
+var dice_js_1d = __fuse.dt(dice_js_1);
+exports.treemapDice = dice_js_1d.default;
+var slice_js_1 = __fusereq(61);
+var slice_js_1d = __fuse.dt(slice_js_1);
+exports.treemapSlice = slice_js_1d.default;
+var sliceDice_js_1 = __fusereq(62);
+var sliceDice_js_1d = __fuse.dt(sliceDice_js_1);
+exports.treemapSliceDice = sliceDice_js_1d.default;
+var squarify_js_1 = __fusereq(63);
+var squarify_js_1d = __fuse.dt(squarify_js_1);
+exports.treemapSquarify = squarify_js_1d.default;
+var resquarify_js_1 = __fusereq(64);
+var resquarify_js_1d = __fuse.dt(resquarify_js_1);
+exports.treemapResquarify = resquarify_js_1d.default;
+
+},
+
+// node_modules/d3-hierarchy/src/cluster.js @50
+50: function(__fusereq, exports, module){
+exports.__esModule = true;
+function defaultSeparation(a, b) {
+  return a.parent === b.parent ? 1 : 2;
+}
+function meanX(children) {
+  return children.reduce(meanXReduce, 0) / children.length;
+}
+function meanXReduce(x, c) {
+  return x + c.x;
+}
+function maxY(children) {
+  return 1 + children.reduce(maxYReduce, 0);
+}
+function maxYReduce(y, c) {
+  return Math.max(y, c.y);
+}
+function leafLeft(node) {
+  var children;
+  while (children = node.children) node = children[0];
+  return node;
+}
+function leafRight(node) {
+  var children;
+  while (children = node.children) node = children[children.length - 1];
+  return node;
+}
+function __DefaultExport__() {
+  var separation = defaultSeparation, dx = 1, dy = 1, nodeSize = false;
+  function cluster(root) {
+    var previousNode, x = 0;
+    root.eachAfter(function (node) {
+      var children = node.children;
+      if (children) {
+        node.x = meanX(children);
+        node.y = maxY(children);
+      } else {
+        node.x = previousNode ? x += separation(node, previousNode) : 0;
+        node.y = 0;
+        previousNode = node;
+      }
+    });
+    var left = leafLeft(root), right = leafRight(root), x0 = left.x - separation(left, right) / 2, x1 = right.x + separation(right, left) / 2;
+    return root.eachAfter(nodeSize ? function (node) {
+      node.x = (node.x - root.x) * dx;
+      node.y = (root.y - node.y) * dy;
+    } : function (node) {
+      node.x = (node.x - x0) / (x1 - x0) * dx;
+      node.y = (1 - (root.y ? node.y / root.y : 1)) * dy;
     });
   }
-  destroy() {
-    clearTimeout(this.hoverTimeout);
-    this.view.dom.removeEventListener("mouseleave", this.mouseleave);
-    this.view.dom.removeEventListener("mousemove", this.mousemove);
+  cluster.separation = function (x) {
+    return arguments.length ? (separation = x, cluster) : separation;
+  };
+  cluster.size = function (x) {
+    return arguments.length ? (nodeSize = false, dx = +x[0], dy = +x[1], cluster) : nodeSize ? null : [dx, dy];
+  };
+  cluster.nodeSize = function (x) {
+    return arguments.length ? (nodeSize = true, dx = +x[0], dy = +x[1], cluster) : nodeSize ? [dx, dy] : null;
+  };
+  return cluster;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/index.js @51
+51: function(__fusereq, exports, module){
+exports.__esModule = true;
+var count_js_1 = __fusereq(125);
+var count_js_1d = __fuse.dt(count_js_1);
+var each_js_1 = __fusereq(126);
+var each_js_1d = __fuse.dt(each_js_1);
+var eachBefore_js_1 = __fusereq(127);
+var eachBefore_js_1d = __fuse.dt(eachBefore_js_1);
+var eachAfter_js_1 = __fusereq(128);
+var eachAfter_js_1d = __fuse.dt(eachAfter_js_1);
+var find_js_1 = __fusereq(129);
+var find_js_1d = __fuse.dt(find_js_1);
+var sum_js_1 = __fusereq(130);
+var sum_js_1d = __fuse.dt(sum_js_1);
+var sort_js_1 = __fusereq(131);
+var sort_js_1d = __fuse.dt(sort_js_1);
+var path_js_1 = __fusereq(132);
+var path_js_1d = __fuse.dt(path_js_1);
+var ancestors_js_1 = __fusereq(133);
+var ancestors_js_1d = __fuse.dt(ancestors_js_1);
+var descendants_js_1 = __fusereq(134);
+var descendants_js_1d = __fuse.dt(descendants_js_1);
+var leaves_js_1 = __fusereq(135);
+var leaves_js_1d = __fuse.dt(leaves_js_1);
+var links_js_1 = __fusereq(136);
+var links_js_1d = __fuse.dt(links_js_1);
+var iterator_js_1 = __fusereq(137);
+var iterator_js_1d = __fuse.dt(iterator_js_1);
+function hierarchy(data, children) {
+  if (data instanceof Map) {
+    data = [undefined, data];
+    if (children === undefined) children = mapChildren;
+  } else if (children === undefined) {
+    children = objectChildren;
   }
-}
-function isInTooltip(elt) {
-  for (let cur = elt; cur; cur = cur.parentNode) if (cur.nodeType == 1 && cur.classList.contains("cm-tooltip")) return true;
-  return false;
-}
-function isOverRange(view, from, to, x, y, margin) {
-  let range = document.createRange();
-  let fromDOM = view.domAtPos(from), toDOM = view.domAtPos(to);
-  range.setEnd(toDOM.node, toDOM.offset);
-  range.setStart(fromDOM.node, fromDOM.offset);
-  let rects = range.getClientRects();
-  range.detach();
-  for (let i = 0; i < rects.length; i++) {
-    let rect = rects[i];
-    let dist = Math.max(rect.top - y, y - rect.bottom, rect.left - x, x - rect.right);
-    if (dist <= margin) return true;
-  }
-  return false;
-}
-function hoverTooltip(source, options = {}) {
-  const setHover = state_1.StateEffect.define();
-  const hoverState = state_1.StateField.define({
-    create() {
-      return null;
-    },
-    update(value, tr) {
-      if (value && (options.hideOnChange && (tr.docChanged || tr.selection))) return null;
-      for (let effect of tr.effects) if (effect.is(setHover)) return effect.value;
-      if (value && tr.docChanged) {
-        let newPos = tr.changes.mapPos(value.pos, -1, state_1.MapMode.TrackDel);
-        if (newPos == null) return null;
-        let copy = Object.assign(Object.create(null), value);
-        copy.pos = newPos;
-        if (value.end != null) copy.end = tr.changes.mapPos(value.end);
-        return copy;
+  var root = new Node(data), node, nodes = [root], child, childs, i, n;
+  while (node = nodes.pop()) {
+    if ((childs = children(node.data)) && (n = (childs = Array.from(childs)).length)) {
+      node.children = childs;
+      for (i = n - 1; i >= 0; --i) {
+        nodes.push(child = childs[i] = new Node(childs[i]));
+        child.parent = node;
+        child.depth = node.depth + 1;
       }
-      return value;
-    },
-    provide: f => showTooltip.from(f)
-  });
-  return [hoverState, view_1.ViewPlugin.define(view => new HoverPlugin(view, source, hoverState, setHover))];
+    }
+  }
+  return root.eachBefore(computeHeight);
 }
-exports.hoverTooltip = hoverTooltip;
-exports.showTooltip = showTooltip;
-exports.tooltips = tooltips;
+exports.default = hierarchy;
+function node_copy() {
+  return hierarchy(this).eachBefore(copyData);
+}
+function objectChildren(d) {
+  return d.children;
+}
+function mapChildren(d) {
+  return Array.isArray(d) ? d[1] : null;
+}
+function copyData(node) {
+  if (node.data.value !== undefined) node.value = node.data.value;
+  node.data = node.data.data;
+}
+function computeHeight(node) {
+  var height = 0;
+  do node.height = height; while ((node = node.parent) && node.height < ++height);
+}
+exports.computeHeight = computeHeight;
+function Node(data) {
+  this.data = data;
+  this.depth = this.height = 0;
+  this.parent = null;
+}
+exports.Node = Node;
+Node.prototype = hierarchy.prototype = {
+  constructor: Node,
+  count: count_js_1d.default,
+  each: each_js_1d.default,
+  eachAfter: eachAfter_js_1d.default,
+  eachBefore: eachBefore_js_1d.default,
+  find: find_js_1d.default,
+  sum: sum_js_1d.default,
+  sort: sort_js_1d.default,
+  path: path_js_1d.default,
+  ancestors: ancestors_js_1d.default,
+  descendants: descendants_js_1d.default,
+  leaves: leaves_js_1d.default,
+  links: links_js_1d.default,
+  copy: node_copy,
+  [Symbol.iterator]: iterator_js_1d.default
+};
 
 },
 
-// node_modules/crelt/index.es.js @18
-18: function(__fusereq, exports, module){
+// node_modules/d3-hierarchy/src/pack/index.js @52
+52: function(__fusereq, exports, module){
 exports.__esModule = true;
-function crelt() {
-  var elt = arguments[0];
-  if (typeof elt == "string") elt = document.createElement(elt);
-  var i = 1, next = arguments[1];
-  if (next && typeof next == "object" && next.nodeType == null && !Array.isArray(next)) {
-    for (var name in next) if (Object.prototype.hasOwnProperty.call(next, name)) {
-      var value = next[name];
-      if (typeof value == "string") elt.setAttribute(name, value); else if (value != null) elt[name] = value;
-    }
-    i++;
-  }
-  for (; i < arguments.length; i++) add(elt, arguments[i]);
-  return elt;
+var siblings_js_1 = __fusereq(53);
+var accessors_js_1 = __fusereq(138);
+var constant_js_1 = __fusereq(140);
+var constant_js_1d = __fuse.dt(constant_js_1);
+function defaultRadius(d) {
+  return Math.sqrt(d.value);
 }
-exports.default = crelt;
-function add(elt, child) {
-  if (typeof child == "string") {
-    elt.appendChild(document.createTextNode(child));
-  } else if (child == null) {} else if (child.nodeType != null) {
-    elt.appendChild(child);
-  } else if (Array.isArray(child)) {
-    for (var i = 0; i < child.length; i++) add(elt, child[i]);
+function __DefaultExport__() {
+  var radius = null, dx = 1, dy = 1, padding = constant_js_1.constantZero;
+  function pack(root) {
+    (root.x = dx / 2, root.y = dy / 2);
+    if (radius) {
+      root.eachBefore(radiusLeaf(radius)).eachAfter(packChildren(padding, 0.5)).eachBefore(translateChild(1));
+    } else {
+      root.eachBefore(radiusLeaf(defaultRadius)).eachAfter(packChildren(constant_js_1.constantZero, 1)).eachAfter(packChildren(padding, root.r / Math.min(dx, dy))).eachBefore(translateChild(Math.min(dx, dy) / (2 * root.r)));
+    }
+    return root;
+  }
+  pack.radius = function (x) {
+    return arguments.length ? (radius = accessors_js_1.optional(x), pack) : radius;
+  };
+  pack.size = function (x) {
+    return arguments.length ? (dx = +x[0], dy = +x[1], pack) : [dx, dy];
+  };
+  pack.padding = function (x) {
+    return arguments.length ? (padding = typeof x === "function" ? x : constant_js_1d.default(+x), pack) : padding;
+  };
+  return pack;
+}
+exports.default = __DefaultExport__;
+function radiusLeaf(radius) {
+  return function (node) {
+    if (!node.children) {
+      node.r = Math.max(0, +radius(node) || 0);
+    }
+  };
+}
+function packChildren(padding, k) {
+  return function (node) {
+    if (children = node.children) {
+      var children, i, n = children.length, r = padding(node) * k || 0, e;
+      if (r) for (i = 0; i < n; ++i) children[i].r += r;
+      e = siblings_js_1.packEnclose(children);
+      if (r) for (i = 0; i < n; ++i) children[i].r -= r;
+      node.r = e + r;
+    }
+  };
+}
+function translateChild(k) {
+  return function (node) {
+    var parent = node.parent;
+    node.r *= k;
+    if (parent) {
+      node.x = parent.x + k * node.x;
+      node.y = parent.y + k * node.y;
+    }
+  };
+}
+
+},
+
+// node_modules/d3-hierarchy/src/pack/siblings.js @53
+53: function(__fusereq, exports, module){
+exports.__esModule = true;
+var array_js_1 = __fusereq(139);
+var array_js_1d = __fuse.dt(array_js_1);
+var enclose_js_1 = __fusereq(54);
+var enclose_js_1d = __fuse.dt(enclose_js_1);
+function place(b, a, c) {
+  var dx = b.x - a.x, x, a2, dy = b.y - a.y, y, b2, d2 = dx * dx + dy * dy;
+  if (d2) {
+    (a2 = a.r + c.r, a2 *= a2);
+    (b2 = b.r + c.r, b2 *= b2);
+    if (a2 > b2) {
+      x = (d2 + b2 - a2) / (2 * d2);
+      y = Math.sqrt(Math.max(0, b2 / d2 - x * x));
+      c.x = b.x - x * dx - y * dy;
+      c.y = b.y - x * dy + y * dx;
+    } else {
+      x = (d2 + a2 - b2) / (2 * d2);
+      y = Math.sqrt(Math.max(0, a2 / d2 - x * x));
+      c.x = a.x + x * dx - y * dy;
+      c.y = a.y + x * dy + y * dx;
+    }
   } else {
-    throw new RangeError("Unsupported child node: " + child);
+    c.x = a.x + c.r;
+    c.y = a.y;
   }
+}
+function intersects(a, b) {
+  var dr = a.r + b.r - 1e-6, dx = b.x - a.x, dy = b.y - a.y;
+  return dr > 0 && dr * dr > dx * dx + dy * dy;
+}
+function score(node) {
+  var a = node._, b = node.next._, ab = a.r + b.r, dx = (a.x * b.r + b.x * a.r) / ab, dy = (a.y * b.r + b.y * a.r) / ab;
+  return dx * dx + dy * dy;
+}
+function Node(circle) {
+  this._ = circle;
+  this.next = null;
+  this.previous = null;
+}
+function packEnclose(circles) {
+  if (!(n = (circles = array_js_1d.default(circles)).length)) return 0;
+  var a, b, c, n, aa, ca, i, j, k, sj, sk;
+  (a = circles[0], a.x = 0, a.y = 0);
+  if (!(n > 1)) return a.r;
+  (b = circles[1], a.x = -b.r, b.x = a.r, b.y = 0);
+  if (!(n > 2)) return a.r + b.r;
+  place(b, a, c = circles[2]);
+  (a = new Node(a), b = new Node(b), c = new Node(c));
+  a.next = c.previous = b;
+  b.next = a.previous = c;
+  c.next = b.previous = a;
+  pack: for (i = 3; i < n; ++i) {
+    (place(a._, b._, c = circles[i]), c = new Node(c));
+    (j = b.next, k = a.previous, sj = b._.r, sk = a._.r);
+    do {
+      if (sj <= sk) {
+        if (intersects(j._, c._)) {
+          (b = j, a.next = b, b.previous = a, --i);
+          continue pack;
+        }
+        (sj += j._.r, j = j.next);
+      } else {
+        if (intersects(k._, c._)) {
+          (a = k, a.next = b, b.previous = a, --i);
+          continue pack;
+        }
+        (sk += k._.r, k = k.previous);
+      }
+    } while (j !== k.next);
+    (c.previous = a, c.next = b, a.next = b.previous = b = c);
+    aa = score(a);
+    while ((c = c.next) !== b) {
+      if ((ca = score(c)) < aa) {
+        (a = c, aa = ca);
+      }
+    }
+    b = a.next;
+  }
+  (a = [b._], c = b);
+  while ((c = c.next) !== b) a.push(c._);
+  c = enclose_js_1d.default(a);
+  for (i = 0; i < n; ++i) (a = circles[i], a.x -= c.x, a.y -= c.y);
+  return c.r;
+}
+exports.packEnclose = packEnclose;
+function __DefaultExport__(circles) {
+  packEnclose(circles);
+  return circles;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/pack/enclose.js @54
+54: function(__fusereq, exports, module){
+exports.__esModule = true;
+var array_js_1 = __fusereq(139);
+function __DefaultExport__(circles) {
+  var i = 0, n = (circles = array_js_1.shuffle(Array.from(circles))).length, B = [], p, e;
+  while (i < n) {
+    p = circles[i];
+    if (e && enclosesWeak(e, p)) ++i; else (e = encloseBasis(B = extendBasis(B, p)), i = 0);
+  }
+  return e;
+}
+exports.default = __DefaultExport__;
+function extendBasis(B, p) {
+  var i, j;
+  if (enclosesWeakAll(p, B)) return [p];
+  for (i = 0; i < B.length; ++i) {
+    if (enclosesNot(p, B[i]) && enclosesWeakAll(encloseBasis2(B[i], p), B)) {
+      return [B[i], p];
+    }
+  }
+  for (i = 0; i < B.length - 1; ++i) {
+    for (j = i + 1; j < B.length; ++j) {
+      if (enclosesNot(encloseBasis2(B[i], B[j]), p) && enclosesNot(encloseBasis2(B[i], p), B[j]) && enclosesNot(encloseBasis2(B[j], p), B[i]) && enclosesWeakAll(encloseBasis3(B[i], B[j], p), B)) {
+        return [B[i], B[j], p];
+      }
+    }
+  }
+  throw new Error();
+}
+function enclosesNot(a, b) {
+  var dr = a.r - b.r, dx = b.x - a.x, dy = b.y - a.y;
+  return dr < 0 || dr * dr < dx * dx + dy * dy;
+}
+function enclosesWeak(a, b) {
+  var dr = a.r - b.r + Math.max(a.r, b.r, 1) * 1e-9, dx = b.x - a.x, dy = b.y - a.y;
+  return dr > 0 && dr * dr > dx * dx + dy * dy;
+}
+function enclosesWeakAll(a, B) {
+  for (var i = 0; i < B.length; ++i) {
+    if (!enclosesWeak(a, B[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+function encloseBasis(B) {
+  switch (B.length) {
+    case 1:
+      return encloseBasis1(B[0]);
+    case 2:
+      return encloseBasis2(B[0], B[1]);
+    case 3:
+      return encloseBasis3(B[0], B[1], B[2]);
+  }
+}
+function encloseBasis1(a) {
+  return {
+    x: a.x,
+    y: a.y,
+    r: a.r
+  };
+}
+function encloseBasis2(a, b) {
+  var x1 = a.x, y1 = a.y, r1 = a.r, x2 = b.x, y2 = b.y, r2 = b.r, x21 = x2 - x1, y21 = y2 - y1, r21 = r2 - r1, l = Math.sqrt(x21 * x21 + y21 * y21);
+  return {
+    x: (x1 + x2 + x21 / l * r21) / 2,
+    y: (y1 + y2 + y21 / l * r21) / 2,
+    r: (l + r1 + r2) / 2
+  };
+}
+function encloseBasis3(a, b, c) {
+  var x1 = a.x, y1 = a.y, r1 = a.r, x2 = b.x, y2 = b.y, r2 = b.r, x3 = c.x, y3 = c.y, r3 = c.r, a2 = x1 - x2, a3 = x1 - x3, b2 = y1 - y2, b3 = y1 - y3, c2 = r2 - r1, c3 = r3 - r1, d1 = x1 * x1 + y1 * y1 - r1 * r1, d2 = d1 - x2 * x2 - y2 * y2 + r2 * r2, d3 = d1 - x3 * x3 - y3 * y3 + r3 * r3, ab = a3 * b2 - a2 * b3, xa = (b2 * d3 - b3 * d2) / (ab * 2) - x1, xb = (b3 * c2 - b2 * c3) / ab, ya = (a3 * d2 - a2 * d3) / (ab * 2) - y1, yb = (a2 * c3 - a3 * c2) / ab, A = xb * xb + yb * yb - 1, B = 2 * (r1 + xa * xb + ya * yb), C = xa * xa + ya * ya - r1 * r1, r = -(A ? (B + Math.sqrt(B * B - 4 * A * C)) / (2 * A) : C / B);
+  return {
+    x: x1 + xa + xb * r,
+    y: y1 + ya + yb * r,
+    r: r
+  };
 }
 
 },
 
-// node_modules/@codemirror/panel/dist/index.js @17
-17: function(__fusereq, exports, module){
+// node_modules/d3-hierarchy/src/partition.js @55
+55: function(__fusereq, exports, module){
 exports.__esModule = true;
-var view_1 = __fusereq(14);
-var state_1 = __fusereq(15);
-const panelConfig = state_1.Facet.define({
-  combine(configs) {
-    let topContainer, bottomContainer;
-    for (let c of configs) {
-      topContainer = topContainer || c.topContainer;
-      bottomContainer = bottomContainer || c.bottomContainer;
-    }
-    return {
-      topContainer,
-      bottomContainer
+var round_js_1 = __fusereq(141);
+var round_js_1d = __fuse.dt(round_js_1);
+var dice_js_1 = __fusereq(60);
+var dice_js_1d = __fuse.dt(dice_js_1);
+function __DefaultExport__() {
+  var dx = 1, dy = 1, padding = 0, round = false;
+  function partition(root) {
+    var n = root.height + 1;
+    root.x0 = root.y0 = padding;
+    root.x1 = dx;
+    root.y1 = dy / n;
+    root.eachBefore(positionNode(dy, n));
+    if (round) root.eachBefore(round_js_1d.default);
+    return root;
+  }
+  function positionNode(dy, n) {
+    return function (node) {
+      if (node.children) {
+        dice_js_1d.default(node, node.x0, dy * (node.depth + 1) / n, node.x1, dy * (node.depth + 2) / n);
+      }
+      var x0 = node.x0, y0 = node.y0, x1 = node.x1 - padding, y1 = node.y1 - padding;
+      if (x1 < x0) x0 = x1 = (x0 + x1) / 2;
+      if (y1 < y0) y0 = y1 = (y0 + y1) / 2;
+      node.x0 = x0;
+      node.y0 = y0;
+      node.x1 = x1;
+      node.y1 = y1;
     };
   }
-});
-function panels(config) {
-  return config ? [panelConfig.of(config)] : [];
+  partition.round = function (x) {
+    return arguments.length ? (round = !!x, partition) : round;
+  };
+  partition.size = function (x) {
+    return arguments.length ? (dx = +x[0], dy = +x[1], partition) : [dx, dy];
+  };
+  partition.padding = function (x) {
+    return arguments.length ? (padding = +x, partition) : padding;
+  };
+  return partition;
 }
-function getPanel(view, panel) {
-  let plugin = view.plugin(panelPlugin);
-  let index = plugin ? plugin.specs.indexOf(panel) : -1;
-  return index > -1 ? plugin.panels[index] : null;
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/stratify.js @56
+56: function(__fusereq, exports, module){
+exports.__esModule = true;
+var accessors_js_1 = __fusereq(138);
+var index_js_1 = __fusereq(51);
+var preroot = {
+  depth: -1
+}, ambiguous = {};
+function defaultId(d) {
+  return d.id;
 }
-const panelPlugin = view_1.ViewPlugin.fromClass(class {
-  constructor(view) {
-    this.input = view.state.facet(showPanel);
-    this.specs = this.input.filter(s => s);
-    this.panels = this.specs.map(spec => spec(view));
-    let conf = view.state.facet(panelConfig);
-    this.top = new PanelGroup(view, true, conf.topContainer);
-    this.bottom = new PanelGroup(view, false, conf.bottomContainer);
-    this.top.sync(this.panels.filter(p => p.top));
-    this.bottom.sync(this.panels.filter(p => !p.top));
-    for (let p of this.panels) {
-      p.dom.classList.add("cm-panel");
-      if (p.class) p.dom.classList.add(p.class);
-      if (p.mount) p.mount();
+function defaultParentId(d) {
+  return d.parentId;
+}
+function __DefaultExport__() {
+  var id = defaultId, parentId = defaultParentId;
+  function stratify(data) {
+    var nodes = Array.from(data), n = nodes.length, d, i, root, parent, node, nodeId, nodeKey, nodeByKey = new Map();
+    for (i = 0; i < n; ++i) {
+      (d = nodes[i], node = nodes[i] = new index_js_1.Node(d));
+      if ((nodeId = id(d, i, data)) != null && (nodeId += "")) {
+        nodeKey = node.id = nodeId;
+        nodeByKey.set(nodeKey, nodeByKey.has(nodeKey) ? ambiguous : node);
+      }
+      if ((nodeId = parentId(d, i, data)) != null && (nodeId += "")) {
+        node.parent = nodeId;
+      }
+    }
+    for (i = 0; i < n; ++i) {
+      node = nodes[i];
+      if (nodeId = node.parent) {
+        parent = nodeByKey.get(nodeId);
+        if (!parent) throw new Error("missing: " + nodeId);
+        if (parent === ambiguous) throw new Error("ambiguous: " + nodeId);
+        if (parent.children) parent.children.push(node); else parent.children = [node];
+        node.parent = parent;
+      } else {
+        if (root) throw new Error("multiple roots");
+        root = node;
+      }
+    }
+    if (!root) throw new Error("no root");
+    root.parent = preroot;
+    root.eachBefore(function (node) {
+      node.depth = node.parent.depth + 1;
+      --n;
+    }).eachBefore(index_js_1.computeHeight);
+    root.parent = null;
+    if (n > 0) throw new Error("cycle");
+    return root;
+  }
+  stratify.id = function (x) {
+    return arguments.length ? (id = accessors_js_1.required(x), stratify) : id;
+  };
+  stratify.parentId = function (x) {
+    return arguments.length ? (parentId = accessors_js_1.required(x), stratify) : parentId;
+  };
+  return stratify;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/tree.js @57
+57: function(__fusereq, exports, module){
+exports.__esModule = true;
+var index_js_1 = __fusereq(51);
+function defaultSeparation(a, b) {
+  return a.parent === b.parent ? 1 : 2;
+}
+function nextLeft(v) {
+  var children = v.children;
+  return children ? children[0] : v.t;
+}
+function nextRight(v) {
+  var children = v.children;
+  return children ? children[children.length - 1] : v.t;
+}
+function moveSubtree(wm, wp, shift) {
+  var change = shift / (wp.i - wm.i);
+  wp.c -= change;
+  wp.s += shift;
+  wm.c += change;
+  wp.z += shift;
+  wp.m += shift;
+}
+function executeShifts(v) {
+  var shift = 0, change = 0, children = v.children, i = children.length, w;
+  while (--i >= 0) {
+    w = children[i];
+    w.z += shift;
+    w.m += shift;
+    shift += w.s + (change += w.c);
+  }
+}
+function nextAncestor(vim, v, ancestor) {
+  return vim.a.parent === v.parent ? vim.a : ancestor;
+}
+function TreeNode(node, i) {
+  this._ = node;
+  this.parent = null;
+  this.children = null;
+  this.A = null;
+  this.a = this;
+  this.z = 0;
+  this.m = 0;
+  this.c = 0;
+  this.s = 0;
+  this.t = null;
+  this.i = i;
+}
+TreeNode.prototype = Object.create(index_js_1.Node.prototype);
+function treeRoot(root) {
+  var tree = new TreeNode(root, 0), node, nodes = [tree], child, children, i, n;
+  while (node = nodes.pop()) {
+    if (children = node._.children) {
+      node.children = new Array(n = children.length);
+      for (i = n - 1; i >= 0; --i) {
+        nodes.push(child = node.children[i] = new TreeNode(children[i], i));
+        child.parent = node;
+      }
     }
   }
-  update(update) {
-    let conf = update.state.facet(panelConfig);
-    if (this.top.container != conf.topContainer) {
-      this.top.sync([]);
-      this.top = new PanelGroup(update.view, true, conf.topContainer);
+  (tree.parent = new TreeNode(null, 0)).children = [tree];
+  return tree;
+}
+function __DefaultExport__() {
+  var separation = defaultSeparation, dx = 1, dy = 1, nodeSize = null;
+  function tree(root) {
+    var t = treeRoot(root);
+    (t.eachAfter(firstWalk), t.parent.m = -t.z);
+    t.eachBefore(secondWalk);
+    if (nodeSize) root.eachBefore(sizeNode); else {
+      var left = root, right = root, bottom = root;
+      root.eachBefore(function (node) {
+        if (node.x < left.x) left = node;
+        if (node.x > right.x) right = node;
+        if (node.depth > bottom.depth) bottom = node;
+      });
+      var s = left === right ? 1 : separation(left, right) / 2, tx = s - left.x, kx = dx / (right.x + s + tx), ky = dy / (bottom.depth || 1);
+      root.eachBefore(function (node) {
+        node.x = (node.x + tx) * kx;
+        node.y = node.depth * ky;
+      });
     }
-    if (this.bottom.container != conf.bottomContainer) {
-      this.bottom.sync([]);
-      this.bottom = new PanelGroup(update.view, false, conf.bottomContainer);
+    return root;
+  }
+  function firstWalk(v) {
+    var children = v.children, siblings = v.parent.children, w = v.i ? siblings[v.i - 1] : null;
+    if (children) {
+      executeShifts(v);
+      var midpoint = (children[0].z + children[children.length - 1].z) / 2;
+      if (w) {
+        v.z = w.z + separation(v._, w._);
+        v.m = v.z - midpoint;
+      } else {
+        v.z = midpoint;
+      }
+    } else if (w) {
+      v.z = w.z + separation(v._, w._);
     }
-    this.top.syncClasses();
-    this.bottom.syncClasses();
-    let input = update.state.facet(showPanel);
-    if (input != this.input) {
-      let specs = input.filter(x => x);
-      let panels = [], top = [], bottom = [], mount = [];
-      for (let spec of specs) {
-        let known = this.specs.indexOf(spec), panel;
-        if (known < 0) {
-          panel = spec(update.view);
-          mount.push(panel);
-        } else {
-          panel = this.panels[known];
-          if (panel.update) panel.update(update);
+    v.parent.A = apportion(v, w, v.parent.A || siblings[0]);
+  }
+  function secondWalk(v) {
+    v._.x = v.z + v.parent.m;
+    v.m += v.parent.m;
+  }
+  function apportion(v, w, ancestor) {
+    if (w) {
+      var vip = v, vop = v, vim = w, vom = vip.parent.children[0], sip = vip.m, sop = vop.m, sim = vim.m, som = vom.m, shift;
+      while ((vim = nextRight(vim), vip = nextLeft(vip), vim && vip)) {
+        vom = nextLeft(vom);
+        vop = nextRight(vop);
+        vop.a = v;
+        shift = vim.z + sim - vip.z - sip + separation(vim._, vip._);
+        if (shift > 0) {
+          moveSubtree(nextAncestor(vim, v, ancestor), v, shift);
+          sip += shift;
+          sop += shift;
         }
-        panels.push(panel);
-        (panel.top ? top : bottom).push(panel);
+        sim += vim.m;
+        sip += vip.m;
+        som += vom.m;
+        sop += vop.m;
       }
-      this.specs = specs;
-      this.panels = panels;
-      this.top.sync(top);
-      this.bottom.sync(bottom);
-      for (let p of mount) {
-        p.dom.classList.add("cm-panel");
-        if (p.class) p.dom.classList.add(p.class);
-        if (p.mount) p.mount();
+      if (vim && !nextRight(vop)) {
+        vop.t = vim;
+        vop.m += sim - sop;
       }
-    } else {
-      for (let p of this.panels) if (p.update) p.update(update);
+      if (vip && !nextLeft(vom)) {
+        vom.t = vip;
+        vom.m += sip - som;
+        ancestor = v;
+      }
+    }
+    return ancestor;
+  }
+  function sizeNode(node) {
+    node.x *= dx;
+    node.y = node.depth * dy;
+  }
+  tree.separation = function (x) {
+    return arguments.length ? (separation = x, tree) : separation;
+  };
+  tree.size = function (x) {
+    return arguments.length ? (nodeSize = false, dx = +x[0], dy = +x[1], tree) : nodeSize ? null : [dx, dy];
+  };
+  tree.nodeSize = function (x) {
+    return arguments.length ? (nodeSize = true, dx = +x[0], dy = +x[1], tree) : nodeSize ? [dx, dy] : null;
+  };
+  return tree;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/treemap/index.js @58
+58: function(__fusereq, exports, module){
+exports.__esModule = true;
+var round_js_1 = __fusereq(141);
+var round_js_1d = __fuse.dt(round_js_1);
+var squarify_js_1 = __fusereq(63);
+var squarify_js_1d = __fuse.dt(squarify_js_1);
+var accessors_js_1 = __fusereq(138);
+var constant_js_1 = __fusereq(140);
+var constant_js_1d = __fuse.dt(constant_js_1);
+function __DefaultExport__() {
+  var tile = squarify_js_1d.default, round = false, dx = 1, dy = 1, paddingStack = [0], paddingInner = constant_js_1.constantZero, paddingTop = constant_js_1.constantZero, paddingRight = constant_js_1.constantZero, paddingBottom = constant_js_1.constantZero, paddingLeft = constant_js_1.constantZero;
+  function treemap(root) {
+    root.x0 = root.y0 = 0;
+    root.x1 = dx;
+    root.y1 = dy;
+    root.eachBefore(positionNode);
+    paddingStack = [0];
+    if (round) root.eachBefore(round_js_1d.default);
+    return root;
+  }
+  function positionNode(node) {
+    var p = paddingStack[node.depth], x0 = node.x0 + p, y0 = node.y0 + p, x1 = node.x1 - p, y1 = node.y1 - p;
+    if (x1 < x0) x0 = x1 = (x0 + x1) / 2;
+    if (y1 < y0) y0 = y1 = (y0 + y1) / 2;
+    node.x0 = x0;
+    node.y0 = y0;
+    node.x1 = x1;
+    node.y1 = y1;
+    if (node.children) {
+      p = paddingStack[node.depth + 1] = paddingInner(node) / 2;
+      x0 += paddingLeft(node) - p;
+      y0 += paddingTop(node) - p;
+      x1 -= paddingRight(node) - p;
+      y1 -= paddingBottom(node) - p;
+      if (x1 < x0) x0 = x1 = (x0 + x1) / 2;
+      if (y1 < y0) y0 = y1 = (y0 + y1) / 2;
+      tile(node, x0, y0, x1, y1);
     }
   }
-  destroy() {
-    this.top.sync([]);
-    this.bottom.sync([]);
+  treemap.round = function (x) {
+    return arguments.length ? (round = !!x, treemap) : round;
+  };
+  treemap.size = function (x) {
+    return arguments.length ? (dx = +x[0], dy = +x[1], treemap) : [dx, dy];
+  };
+  treemap.tile = function (x) {
+    return arguments.length ? (tile = accessors_js_1.required(x), treemap) : tile;
+  };
+  treemap.padding = function (x) {
+    return arguments.length ? treemap.paddingInner(x).paddingOuter(x) : treemap.paddingInner();
+  };
+  treemap.paddingInner = function (x) {
+    return arguments.length ? (paddingInner = typeof x === "function" ? x : constant_js_1d.default(+x), treemap) : paddingInner;
+  };
+  treemap.paddingOuter = function (x) {
+    return arguments.length ? treemap.paddingTop(x).paddingRight(x).paddingBottom(x).paddingLeft(x) : treemap.paddingTop();
+  };
+  treemap.paddingTop = function (x) {
+    return arguments.length ? (paddingTop = typeof x === "function" ? x : constant_js_1d.default(+x), treemap) : paddingTop;
+  };
+  treemap.paddingRight = function (x) {
+    return arguments.length ? (paddingRight = typeof x === "function" ? x : constant_js_1d.default(+x), treemap) : paddingRight;
+  };
+  treemap.paddingBottom = function (x) {
+    return arguments.length ? (paddingBottom = typeof x === "function" ? x : constant_js_1d.default(+x), treemap) : paddingBottom;
+  };
+  treemap.paddingLeft = function (x) {
+    return arguments.length ? (paddingLeft = typeof x === "function" ? x : constant_js_1d.default(+x), treemap) : paddingLeft;
+  };
+  return treemap;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/treemap/binary.js @59
+59: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(parent, x0, y0, x1, y1) {
+  var nodes = parent.children, i, n = nodes.length, sum, sums = new Array(n + 1);
+  for (sums[0] = sum = i = 0; i < n; ++i) {
+    sums[i + 1] = sum += nodes[i].value;
   }
-}, {
-  provide: view_1.PluginField.scrollMargins.from(value => ({
-    top: value.top.scrollMargin(),
-    bottom: value.bottom.scrollMargin()
-  }))
-});
-class PanelGroup {
-  constructor(view, top, container) {
-    this.view = view;
-    this.top = top;
-    this.container = container;
-    this.dom = undefined;
-    this.classes = "";
-    this.panels = [];
-    this.syncClasses();
-  }
-  sync(panels) {
-    this.panels = panels;
-    this.syncDOM();
-  }
-  syncDOM() {
-    if (this.panels.length == 0) {
-      if (this.dom) {
-        this.dom.remove();
-        this.dom = undefined;
-      }
+  partition(0, n, parent.value, x0, y0, x1, y1);
+  function partition(i, j, value, x0, y0, x1, y1) {
+    if (i >= j - 1) {
+      var node = nodes[i];
+      (node.x0 = x0, node.y0 = y0);
+      (node.x1 = x1, node.y1 = y1);
       return;
     }
-    if (!this.dom) {
-      this.dom = document.createElement("div");
-      this.dom.className = this.top ? "cm-panels cm-panels-top" : "cm-panels cm-panels-bottom";
-      this.dom.style[this.top ? "top" : "bottom"] = "0";
-      let parent = this.container || this.view.dom;
-      parent.insertBefore(this.dom, this.top ? parent.firstChild : null);
+    var valueOffset = sums[i], valueTarget = value / 2 + valueOffset, k = i + 1, hi = j - 1;
+    while (k < hi) {
+      var mid = k + hi >>> 1;
+      if (sums[mid] < valueTarget) k = mid + 1; else hi = mid;
     }
-    let curDOM = this.dom.firstChild;
-    for (let panel of this.panels) {
-      if (panel.dom.parentNode == this.dom) {
-        while (curDOM != panel.dom) curDOM = rm(curDOM);
-        curDOM = curDOM.nextSibling;
-      } else {
-        this.dom.insertBefore(panel.dom, curDOM);
+    if (valueTarget - sums[k - 1] < sums[k] - valueTarget && i + 1 < k) --k;
+    var valueLeft = sums[k] - valueOffset, valueRight = value - valueLeft;
+    if (x1 - x0 > y1 - y0) {
+      var xk = value ? (x0 * valueRight + x1 * valueLeft) / value : x1;
+      partition(i, k, valueLeft, x0, y0, xk, y1);
+      partition(k, j, valueRight, xk, y0, x1, y1);
+    } else {
+      var yk = value ? (y0 * valueRight + y1 * valueLeft) / value : y1;
+      partition(i, k, valueLeft, x0, y0, x1, yk);
+      partition(k, j, valueRight, x0, yk, x1, y1);
+    }
+  }
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/treemap/dice.js @60
+60: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(parent, x0, y0, x1, y1) {
+  var nodes = parent.children, node, i = -1, n = nodes.length, k = parent.value && (x1 - x0) / parent.value;
+  while (++i < n) {
+    (node = nodes[i], node.y0 = y0, node.y1 = y1);
+    (node.x0 = x0, node.x1 = x0 += node.value * k);
+  }
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/treemap/slice.js @61
+61: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(parent, x0, y0, x1, y1) {
+  var nodes = parent.children, node, i = -1, n = nodes.length, k = parent.value && (y1 - y0) / parent.value;
+  while (++i < n) {
+    (node = nodes[i], node.x0 = x0, node.x1 = x1);
+    (node.y0 = y0, node.y1 = y0 += node.value * k);
+  }
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/treemap/sliceDice.js @62
+62: function(__fusereq, exports, module){
+exports.__esModule = true;
+var dice_js_1 = __fusereq(60);
+var dice_js_1d = __fuse.dt(dice_js_1);
+var slice_js_1 = __fusereq(61);
+var slice_js_1d = __fuse.dt(slice_js_1);
+function __DefaultExport__(parent, x0, y0, x1, y1) {
+  (parent.depth & 1 ? slice_js_1d.default : dice_js_1d.default)(parent, x0, y0, x1, y1);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/treemap/squarify.js @63
+63: function(__fusereq, exports, module){
+exports.__esModule = true;
+var dice_js_1 = __fusereq(60);
+var dice_js_1d = __fuse.dt(dice_js_1);
+var slice_js_1 = __fusereq(61);
+var slice_js_1d = __fuse.dt(slice_js_1);
+exports.phi = (1 + Math.sqrt(5)) / 2;
+function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
+  var rows = [], nodes = parent.children, row, nodeValue, i0 = 0, i1 = 0, n = nodes.length, dx, dy, value = parent.value, sumValue, minValue, maxValue, newRatio, minRatio, alpha, beta;
+  while (i0 < n) {
+    (dx = x1 - x0, dy = y1 - y0);
+    do sumValue = nodes[i1++].value; while (!sumValue && i1 < n);
+    minValue = maxValue = sumValue;
+    alpha = Math.max(dy / dx, dx / dy) / (value * ratio);
+    beta = sumValue * sumValue * alpha;
+    minRatio = Math.max(maxValue / beta, beta / minValue);
+    for (; i1 < n; ++i1) {
+      sumValue += nodeValue = nodes[i1].value;
+      if (nodeValue < minValue) minValue = nodeValue;
+      if (nodeValue > maxValue) maxValue = nodeValue;
+      beta = sumValue * sumValue * alpha;
+      newRatio = Math.max(maxValue / beta, beta / minValue);
+      if (newRatio > minRatio) {
+        sumValue -= nodeValue;
+        break;
+      }
+      minRatio = newRatio;
+    }
+    rows.push(row = {
+      value: sumValue,
+      dice: dx < dy,
+      children: nodes.slice(i0, i1)
+    });
+    if (row.dice) dice_js_1d.default(row, x0, y0, x1, value ? y0 += dy * sumValue / value : y1); else slice_js_1d.default(row, x0, y0, value ? x0 += dx * sumValue / value : x1, y1);
+    (value -= sumValue, i0 = i1);
+  }
+  return rows;
+}
+exports.squarifyRatio = squarifyRatio;
+exports.default = (function custom(ratio) {
+  function squarify(parent, x0, y0, x1, y1) {
+    squarifyRatio(ratio, parent, x0, y0, x1, y1);
+  }
+  squarify.ratio = function (x) {
+    return custom((x = +x) > 1 ? x : 1);
+  };
+  return squarify;
+})(exports.phi);
+
+},
+
+// node_modules/d3-hierarchy/src/treemap/resquarify.js @64
+64: function(__fusereq, exports, module){
+exports.__esModule = true;
+var dice_js_1 = __fusereq(60);
+var dice_js_1d = __fuse.dt(dice_js_1);
+var slice_js_1 = __fusereq(61);
+var slice_js_1d = __fuse.dt(slice_js_1);
+var squarify_js_1 = __fusereq(63);
+exports.default = (function custom(ratio) {
+  function resquarify(parent, x0, y0, x1, y1) {
+    if ((rows = parent._squarify) && rows.ratio === ratio) {
+      var rows, row, nodes, i, j = -1, n, m = rows.length, value = parent.value;
+      while (++j < m) {
+        (row = rows[j], nodes = row.children);
+        for ((i = row.value = 0, n = nodes.length); i < n; ++i) row.value += nodes[i].value;
+        if (row.dice) dice_js_1d.default(row, x0, y0, x1, value ? y0 += (y1 - y0) * row.value / value : y1); else slice_js_1d.default(row, x0, y0, value ? x0 += (x1 - x0) * row.value / value : x1, y1);
+        value -= row.value;
+      }
+    } else {
+      parent._squarify = rows = squarify_js_1.squarifyRatio(ratio, parent, x0, y0, x1, y1);
+      rows.ratio = ratio;
+    }
+  }
+  resquarify.ratio = function (x) {
+    return custom((x = +x) > 1 ? x : 1);
+  };
+  return resquarify;
+})(squarify_js_1.phi);
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/count.js @125
+125: function(__fusereq, exports, module){
+exports.__esModule = true;
+function count(node) {
+  var sum = 0, children = node.children, i = children && children.length;
+  if (!i) sum = 1; else while (--i >= 0) sum += children[i].value;
+  node.value = sum;
+}
+function __DefaultExport__() {
+  return this.eachAfter(count);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/each.js @126
+126: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(callback, that) {
+  let index = -1;
+  for (const node of this) {
+    callback.call(that, node, ++index, this);
+  }
+  return this;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/eachBefore.js @127
+127: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(callback, that) {
+  var node = this, nodes = [node], children, i, index = -1;
+  while (node = nodes.pop()) {
+    callback.call(that, node, ++index, this);
+    if (children = node.children) {
+      for (i = children.length - 1; i >= 0; --i) {
+        nodes.push(children[i]);
       }
     }
-    while (curDOM) curDOM = rm(curDOM);
   }
-  scrollMargin() {
-    return !this.dom || this.container ? 0 : Math.max(0, this.top ? this.dom.getBoundingClientRect().bottom - this.view.scrollDOM.getBoundingClientRect().top : this.view.scrollDOM.getBoundingClientRect().bottom - this.dom.getBoundingClientRect().top);
+  return this;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/eachAfter.js @128
+128: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(callback, that) {
+  var node = this, nodes = [node], next = [], children, i, n, index = -1;
+  while (node = nodes.pop()) {
+    next.push(node);
+    if (children = node.children) {
+      for ((i = 0, n = children.length); i < n; ++i) {
+        nodes.push(children[i]);
+      }
+    }
   }
-  syncClasses() {
-    if (!this.container || this.classes == this.view.themeClasses) return;
-    for (let cls of this.classes.split(" ")) if (cls) this.container.classList.remove(cls);
-    for (let cls of (this.classes = this.view.themeClasses).split(" ")) if (cls) this.container.classList.add(cls);
+  while (node = next.pop()) {
+    callback.call(that, node, ++index, this);
+  }
+  return this;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/find.js @129
+129: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(callback, that) {
+  let index = -1;
+  for (const node of this) {
+    if (callback.call(that, node, ++index, this)) {
+      return node;
+    }
   }
 }
-function rm(node) {
-  let next = node.nextSibling;
-  node.remove();
-  return next;
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/sum.js @130
+130: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(value) {
+  return this.eachAfter(function (node) {
+    var sum = +value(node.data) || 0, children = node.children, i = children && children.length;
+    while (--i >= 0) sum += children[i].value;
+    node.value = sum;
+  });
 }
-const baseTheme = view_1.EditorView.baseTheme({
-  ".cm-panels": {
-    boxSizing: "border-box",
-    position: "sticky",
-    left: 0,
-    right: 0
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/sort.js @131
+131: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(compare) {
+  return this.eachBefore(function (node) {
+    if (node.children) {
+      node.children.sort(compare);
+    }
+  });
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/path.js @132
+132: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(end) {
+  var start = this, ancestor = leastCommonAncestor(start, end), nodes = [start];
+  while (start !== ancestor) {
+    start = start.parent;
+    nodes.push(start);
+  }
+  var k = nodes.length;
+  while (end !== ancestor) {
+    nodes.splice(k, 0, end);
+    end = end.parent;
+  }
+  return nodes;
+}
+exports.default = __DefaultExport__;
+function leastCommonAncestor(a, b) {
+  if (a === b) return a;
+  var aNodes = a.ancestors(), bNodes = b.ancestors(), c = null;
+  a = aNodes.pop();
+  b = bNodes.pop();
+  while (a === b) {
+    c = a;
+    a = aNodes.pop();
+    b = bNodes.pop();
+  }
+  return c;
+}
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/ancestors.js @133
+133: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__() {
+  var node = this, nodes = [node];
+  while (node = node.parent) {
+    nodes.push(node);
+  }
+  return nodes;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/descendants.js @134
+134: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__() {
+  return Array.from(this);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/leaves.js @135
+135: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__() {
+  var leaves = [];
+  this.eachBefore(function (node) {
+    if (!node.children) {
+      leaves.push(node);
+    }
+  });
+  return leaves;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/links.js @136
+136: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__() {
+  var root = this, links = [];
+  root.each(function (node) {
+    if (node !== root) {
+      links.push({
+        source: node.parent,
+        target: node
+      });
+    }
+  });
+  return links;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/hierarchy/iterator.js @137
+137: function(__fusereq, exports, module){
+exports.__esModule = true;
+function* __DefaultExport__() {
+  var node = this, current, next = [node], children, i, n;
+  do {
+    (current = next.reverse(), next = []);
+    while (node = current.pop()) {
+      yield node;
+      if (children = node.children) {
+        for ((i = 0, n = children.length); i < n; ++i) {
+          next.push(children[i]);
+        }
+      }
+    }
+  } while (next.length);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/accessors.js @138
+138: function(__fusereq, exports, module){
+function optional(f) {
+  return f == null ? null : required(f);
+}
+exports.optional = optional;
+function required(f) {
+  if (typeof f !== "function") throw new Error();
+  return f;
+}
+exports.required = required;
+
+},
+
+// node_modules/d3-hierarchy/src/array.js @139
+139: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(x) {
+  return typeof x === "object" && ("length" in x) ? x : Array.from(x);
+}
+exports.default = __DefaultExport__;
+function shuffle(array) {
+  var m = array.length, t, i;
+  while (m) {
+    i = Math.random() * m-- | 0;
+    t = array[m];
+    array[m] = array[i];
+    array[i] = t;
+  }
+  return array;
+}
+exports.shuffle = shuffle;
+
+},
+
+// node_modules/d3-hierarchy/src/constant.js @140
+140: function(__fusereq, exports, module){
+exports.__esModule = true;
+function constantZero() {
+  return 0;
+}
+exports.constantZero = constantZero;
+function __DefaultExport__(x) {
+  return function () {
+    return x;
+  };
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-hierarchy/src/treemap/round.js @141
+141: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(node) {
+  node.x0 = Math.round(node.x0);
+  node.y0 = Math.round(node.y0);
+  node.x1 = Math.round(node.x1);
+  node.y1 = Math.round(node.y1);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/index.js @47
+47: function(__fusereq, exports, module){
+exports.__esModule = true;
+var create_js_1 = __fusereq(66);
+var create_js_1d = __fuse.dt(create_js_1);
+exports.create = create_js_1d.default;
+var creator_js_1 = __fusereq(67);
+var creator_js_1d = __fuse.dt(creator_js_1);
+exports.creator = creator_js_1d.default;
+var local_js_1 = __fusereq(68);
+var local_js_1d = __fuse.dt(local_js_1);
+exports.local = local_js_1d.default;
+var matcher_js_1 = __fusereq(69);
+var matcher_js_1d = __fuse.dt(matcher_js_1);
+exports.matcher = matcher_js_1d.default;
+var namespace_js_1 = __fusereq(70);
+var namespace_js_1d = __fuse.dt(namespace_js_1);
+exports.namespace = namespace_js_1d.default;
+var namespaces_js_1 = __fusereq(71);
+var namespaces_js_1d = __fuse.dt(namespaces_js_1);
+exports.namespaces = namespaces_js_1d.default;
+var pointer_js_1 = __fusereq(72);
+var pointer_js_1d = __fuse.dt(pointer_js_1);
+exports.pointer = pointer_js_1d.default;
+var pointers_js_1 = __fusereq(73);
+var pointers_js_1d = __fuse.dt(pointers_js_1);
+exports.pointers = pointers_js_1d.default;
+var select_js_1 = __fusereq(74);
+var select_js_1d = __fuse.dt(select_js_1);
+exports.select = select_js_1d.default;
+var selectAll_js_1 = __fusereq(75);
+var selectAll_js_1d = __fuse.dt(selectAll_js_1);
+exports.selectAll = selectAll_js_1d.default;
+var index_js_1 = __fusereq(76);
+var index_js_1d = __fuse.dt(index_js_1);
+exports.selection = index_js_1d.default;
+var selector_js_1 = __fusereq(77);
+var selector_js_1d = __fuse.dt(selector_js_1);
+exports.selector = selector_js_1d.default;
+var selectorAll_js_1 = __fusereq(78);
+var selectorAll_js_1d = __fuse.dt(selectorAll_js_1);
+exports.selectorAll = selectorAll_js_1d.default;
+var style_js_1 = __fusereq(79);
+exports.style = style_js_1.styleValue;
+var window_js_1 = __fusereq(80);
+var window_js_1d = __fuse.dt(window_js_1);
+exports.window = window_js_1d.default;
+
+},
+
+// node_modules/d3-selection/src/create.js @66
+66: function(__fusereq, exports, module){
+exports.__esModule = true;
+var creator_js_1 = __fusereq(67);
+var creator_js_1d = __fuse.dt(creator_js_1);
+var select_js_1 = __fusereq(74);
+var select_js_1d = __fuse.dt(select_js_1);
+function __DefaultExport__(name) {
+  return select_js_1d.default(creator_js_1d.default(name).call(document.documentElement));
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/creator.js @67
+67: function(__fusereq, exports, module){
+exports.__esModule = true;
+var namespace_js_1 = __fusereq(70);
+var namespace_js_1d = __fuse.dt(namespace_js_1);
+var namespaces_js_1 = __fusereq(71);
+function creatorInherit(name) {
+  return function () {
+    var document = this.ownerDocument, uri = this.namespaceURI;
+    return uri === namespaces_js_1.xhtml && document.documentElement.namespaceURI === namespaces_js_1.xhtml ? document.createElement(name) : document.createElementNS(uri, name);
+  };
+}
+function creatorFixed(fullname) {
+  return function () {
+    return this.ownerDocument.createElementNS(fullname.space, fullname.local);
+  };
+}
+function __DefaultExport__(name) {
+  var fullname = namespace_js_1d.default(name);
+  return (fullname.local ? creatorFixed : creatorInherit)(fullname);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/local.js @68
+68: function(__fusereq, exports, module){
+exports.__esModule = true;
+var nextId = 0;
+function local() {
+  return new Local();
+}
+exports.default = local;
+function Local() {
+  this._ = "@" + (++nextId).toString(36);
+}
+Local.prototype = local.prototype = {
+  constructor: Local,
+  get: function (node) {
+    var id = this._;
+    while (!((id in node))) if (!(node = node.parentNode)) return;
+    return node[id];
   },
-  "&light .cm-panels": {
-    backgroundColor: "#f5f5f5",
-    color: "black"
+  set: function (node, value) {
+    return node[this._] = value;
   },
-  "&light .cm-panels-top": {
-    borderBottom: "1px solid #ddd"
+  remove: function (node) {
+    return (this._ in node) && delete node[this._];
   },
-  "&light .cm-panels-bottom": {
-    borderTop: "1px solid #ddd"
+  toString: function () {
+    return this._;
+  }
+};
+
+},
+
+// node_modules/d3-selection/src/matcher.js @69
+69: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(selector) {
+  return function () {
+    return this.matches(selector);
+  };
+}
+exports.default = __DefaultExport__;
+function childMatcher(selector) {
+  return function (node) {
+    return node.matches(selector);
+  };
+}
+exports.childMatcher = childMatcher;
+
+},
+
+// node_modules/d3-selection/src/namespace.js @70
+70: function(__fusereq, exports, module){
+exports.__esModule = true;
+var namespaces_js_1 = __fusereq(71);
+var namespaces_js_1d = __fuse.dt(namespaces_js_1);
+function __DefaultExport__(name) {
+  var prefix = name += "", i = prefix.indexOf(":");
+  if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
+  return namespaces_js_1d.default.hasOwnProperty(prefix) ? {
+    space: namespaces_js_1d.default[prefix],
+    local: name
+  } : name;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/namespaces.js @71
+71: function(__fusereq, exports, module){
+exports.__esModule = true;
+exports.xhtml = "http://www.w3.org/1999/xhtml";
+exports.default = {
+  svg: "http://www.w3.org/2000/svg",
+  xhtml: exports.xhtml,
+  xlink: "http://www.w3.org/1999/xlink",
+  xml: "http://www.w3.org/XML/1998/namespace",
+  xmlns: "http://www.w3.org/2000/xmlns/"
+};
+
+},
+
+// node_modules/d3-selection/src/pointer.js @72
+72: function(__fusereq, exports, module){
+exports.__esModule = true;
+var sourceEvent_js_1 = __fusereq(143);
+var sourceEvent_js_1d = __fuse.dt(sourceEvent_js_1);
+function __DefaultExport__(event, node) {
+  event = sourceEvent_js_1d.default(event);
+  if (node === undefined) node = event.currentTarget;
+  if (node) {
+    var svg = node.ownerSVGElement || node;
+    if (svg.createSVGPoint) {
+      var point = svg.createSVGPoint();
+      (point.x = event.clientX, point.y = event.clientY);
+      point = point.matrixTransform(node.getScreenCTM().inverse());
+      return [point.x, point.y];
+    }
+    if (node.getBoundingClientRect) {
+      var rect = node.getBoundingClientRect();
+      return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop];
+    }
+  }
+  return [event.pageX, event.pageY];
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/pointers.js @73
+73: function(__fusereq, exports, module){
+exports.__esModule = true;
+var pointer_js_1 = __fusereq(72);
+var pointer_js_1d = __fuse.dt(pointer_js_1);
+var sourceEvent_js_1 = __fusereq(143);
+var sourceEvent_js_1d = __fuse.dt(sourceEvent_js_1);
+function __DefaultExport__(events, node) {
+  if (events.target) {
+    events = sourceEvent_js_1d.default(events);
+    if (node === undefined) node = events.currentTarget;
+    events = events.touches || [events];
+  }
+  return Array.from(events, event => pointer_js_1d.default(event, node));
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/select.js @74
+74: function(__fusereq, exports, module){
+exports.__esModule = true;
+var index_js_1 = __fusereq(76);
+function __DefaultExport__(selector) {
+  return typeof selector === "string" ? new index_js_1.Selection([[document.querySelector(selector)]], [document.documentElement]) : new index_js_1.Selection([[selector]], index_js_1.root);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selectAll.js @75
+75: function(__fusereq, exports, module){
+exports.__esModule = true;
+var array_js_1 = __fusereq(144);
+var array_js_1d = __fuse.dt(array_js_1);
+var index_js_1 = __fusereq(76);
+function __DefaultExport__(selector) {
+  return typeof selector === "string" ? new index_js_1.Selection([document.querySelectorAll(selector)], [document.documentElement]) : new index_js_1.Selection([selector == null ? [] : array_js_1d.default(selector)], index_js_1.root);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/index.js @76
+76: function(__fusereq, exports, module){
+exports.__esModule = true;
+var select_js_1 = __fusereq(145);
+var select_js_1d = __fuse.dt(select_js_1);
+var selectAll_js_1 = __fusereq(146);
+var selectAll_js_1d = __fuse.dt(selectAll_js_1);
+var selectChild_js_1 = __fusereq(147);
+var selectChild_js_1d = __fuse.dt(selectChild_js_1);
+var selectChildren_js_1 = __fusereq(148);
+var selectChildren_js_1d = __fuse.dt(selectChildren_js_1);
+var filter_js_1 = __fusereq(149);
+var filter_js_1d = __fuse.dt(filter_js_1);
+var data_js_1 = __fusereq(150);
+var data_js_1d = __fuse.dt(data_js_1);
+var enter_js_1 = __fusereq(151);
+var enter_js_1d = __fuse.dt(enter_js_1);
+var exit_js_1 = __fusereq(152);
+var exit_js_1d = __fuse.dt(exit_js_1);
+var join_js_1 = __fusereq(153);
+var join_js_1d = __fuse.dt(join_js_1);
+var merge_js_1 = __fusereq(154);
+var merge_js_1d = __fuse.dt(merge_js_1);
+var order_js_1 = __fusereq(155);
+var order_js_1d = __fuse.dt(order_js_1);
+var sort_js_1 = __fusereq(156);
+var sort_js_1d = __fuse.dt(sort_js_1);
+var call_js_1 = __fusereq(157);
+var call_js_1d = __fuse.dt(call_js_1);
+var nodes_js_1 = __fusereq(158);
+var nodes_js_1d = __fuse.dt(nodes_js_1);
+var node_js_1 = __fusereq(159);
+var node_js_1d = __fuse.dt(node_js_1);
+var size_js_1 = __fusereq(160);
+var size_js_1d = __fuse.dt(size_js_1);
+var empty_js_1 = __fusereq(161);
+var empty_js_1d = __fuse.dt(empty_js_1);
+var each_js_1 = __fusereq(162);
+var each_js_1d = __fuse.dt(each_js_1);
+var attr_js_1 = __fusereq(163);
+var attr_js_1d = __fuse.dt(attr_js_1);
+var style_js_1 = __fusereq(79);
+var style_js_1d = __fuse.dt(style_js_1);
+var property_js_1 = __fusereq(164);
+var property_js_1d = __fuse.dt(property_js_1);
+var classed_js_1 = __fusereq(165);
+var classed_js_1d = __fuse.dt(classed_js_1);
+var text_js_1 = __fusereq(166);
+var text_js_1d = __fuse.dt(text_js_1);
+var html_js_1 = __fusereq(167);
+var html_js_1d = __fuse.dt(html_js_1);
+var raise_js_1 = __fusereq(168);
+var raise_js_1d = __fuse.dt(raise_js_1);
+var lower_js_1 = __fusereq(169);
+var lower_js_1d = __fuse.dt(lower_js_1);
+var append_js_1 = __fusereq(170);
+var append_js_1d = __fuse.dt(append_js_1);
+var insert_js_1 = __fusereq(171);
+var insert_js_1d = __fuse.dt(insert_js_1);
+var remove_js_1 = __fusereq(172);
+var remove_js_1d = __fuse.dt(remove_js_1);
+var clone_js_1 = __fusereq(173);
+var clone_js_1d = __fuse.dt(clone_js_1);
+var datum_js_1 = __fusereq(174);
+var datum_js_1d = __fuse.dt(datum_js_1);
+var on_js_1 = __fusereq(175);
+var on_js_1d = __fuse.dt(on_js_1);
+var dispatch_js_1 = __fusereq(176);
+var dispatch_js_1d = __fuse.dt(dispatch_js_1);
+var iterator_js_1 = __fusereq(177);
+var iterator_js_1d = __fuse.dt(iterator_js_1);
+exports.root = [null];
+function Selection(groups, parents) {
+  this._groups = groups;
+  this._parents = parents;
+}
+exports.Selection = Selection;
+function selection() {
+  return new Selection([[document.documentElement]], exports.root);
+}
+function selection_selection() {
+  return this;
+}
+Selection.prototype = selection.prototype = {
+  constructor: Selection,
+  select: select_js_1d.default,
+  selectAll: selectAll_js_1d.default,
+  selectChild: selectChild_js_1d.default,
+  selectChildren: selectChildren_js_1d.default,
+  filter: filter_js_1d.default,
+  data: data_js_1d.default,
+  enter: enter_js_1d.default,
+  exit: exit_js_1d.default,
+  join: join_js_1d.default,
+  merge: merge_js_1d.default,
+  selection: selection_selection,
+  order: order_js_1d.default,
+  sort: sort_js_1d.default,
+  call: call_js_1d.default,
+  nodes: nodes_js_1d.default,
+  node: node_js_1d.default,
+  size: size_js_1d.default,
+  empty: empty_js_1d.default,
+  each: each_js_1d.default,
+  attr: attr_js_1d.default,
+  style: style_js_1d.default,
+  property: property_js_1d.default,
+  classed: classed_js_1d.default,
+  text: text_js_1d.default,
+  html: html_js_1d.default,
+  raise: raise_js_1d.default,
+  lower: lower_js_1d.default,
+  append: append_js_1d.default,
+  insert: insert_js_1d.default,
+  remove: remove_js_1d.default,
+  clone: clone_js_1d.default,
+  datum: datum_js_1d.default,
+  on: on_js_1d.default,
+  dispatch: dispatch_js_1d.default,
+  [Symbol.iterator]: iterator_js_1d.default
+};
+exports.default = selection;
+
+},
+
+// node_modules/d3-selection/src/selector.js @77
+77: function(__fusereq, exports, module){
+exports.__esModule = true;
+function none() {}
+function __DefaultExport__(selector) {
+  return selector == null ? none : function () {
+    return this.querySelector(selector);
+  };
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selectorAll.js @78
+78: function(__fusereq, exports, module){
+exports.__esModule = true;
+function empty() {
+  return [];
+}
+function __DefaultExport__(selector) {
+  return selector == null ? empty : function () {
+    return this.querySelectorAll(selector);
+  };
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/style.js @79
+79: function(__fusereq, exports, module){
+exports.__esModule = true;
+var window_js_1 = __fusereq(80);
+var window_js_1d = __fuse.dt(window_js_1);
+function styleRemove(name) {
+  return function () {
+    this.style.removeProperty(name);
+  };
+}
+function styleConstant(name, value, priority) {
+  return function () {
+    this.style.setProperty(name, value, priority);
+  };
+}
+function styleFunction(name, value, priority) {
+  return function () {
+    var v = value.apply(this, arguments);
+    if (v == null) this.style.removeProperty(name); else this.style.setProperty(name, v, priority);
+  };
+}
+function __DefaultExport__(name, value, priority) {
+  return arguments.length > 1 ? this.each((value == null ? styleRemove : typeof value === "function" ? styleFunction : styleConstant)(name, value, priority == null ? "" : priority)) : styleValue(this.node(), name);
+}
+exports.default = __DefaultExport__;
+function styleValue(node, name) {
+  return node.style.getPropertyValue(name) || window_js_1d.default(node).getComputedStyle(node, null).getPropertyValue(name);
+}
+exports.styleValue = styleValue;
+
+},
+
+// node_modules/d3-selection/src/window.js @80
+80: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(node) {
+  return node.ownerDocument && node.ownerDocument.defaultView || node.document && node || node.defaultView;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/sourceEvent.js @143
+143: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(event) {
+  let sourceEvent;
+  while (sourceEvent = event.sourceEvent) event = sourceEvent;
+  return event;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/array.js @144
+144: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(x) {
+  return typeof x === "object" && ("length" in x) ? x : Array.from(x);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/select.js @145
+145: function(__fusereq, exports, module){
+exports.__esModule = true;
+var index_js_1 = __fusereq(76);
+var selector_js_1 = __fusereq(77);
+var selector_js_1d = __fuse.dt(selector_js_1);
+function __DefaultExport__(select) {
+  if (typeof select !== "function") select = selector_js_1d.default(select);
+  for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+    for (var group = groups[j], n = group.length, subgroup = subgroups[j] = new Array(n), node, subnode, i = 0; i < n; ++i) {
+      if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
+        if (("__data__" in node)) subnode.__data__ = node.__data__;
+        subgroup[i] = subnode;
+      }
+    }
+  }
+  return new index_js_1.Selection(subgroups, this._parents);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/selectAll.js @146
+146: function(__fusereq, exports, module){
+exports.__esModule = true;
+var index_js_1 = __fusereq(76);
+var array_js_1 = __fusereq(144);
+var array_js_1d = __fuse.dt(array_js_1);
+var selectorAll_js_1 = __fusereq(78);
+var selectorAll_js_1d = __fuse.dt(selectorAll_js_1);
+function arrayAll(select) {
+  return function () {
+    var group = select.apply(this, arguments);
+    return group == null ? [] : array_js_1d.default(group);
+  };
+}
+function __DefaultExport__(select) {
+  if (typeof select === "function") select = arrayAll(select); else select = selectorAll_js_1d.default(select);
+  for (var groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
+    for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
+      if (node = group[i]) {
+        subgroups.push(select.call(node, node.__data__, i, group));
+        parents.push(node);
+      }
+    }
+  }
+  return new index_js_1.Selection(subgroups, parents);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/selectChild.js @147
+147: function(__fusereq, exports, module){
+exports.__esModule = true;
+var matcher_js_1 = __fusereq(69);
+var find = Array.prototype.find;
+function childFind(match) {
+  return function () {
+    return find.call(this.children, match);
+  };
+}
+function childFirst() {
+  return this.firstElementChild;
+}
+function __DefaultExport__(match) {
+  return this.select(match == null ? childFirst : childFind(typeof match === "function" ? match : matcher_js_1.childMatcher(match)));
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/selectChildren.js @148
+148: function(__fusereq, exports, module){
+exports.__esModule = true;
+var matcher_js_1 = __fusereq(69);
+var filter = Array.prototype.filter;
+function children() {
+  return this.children;
+}
+function childrenFilter(match) {
+  return function () {
+    return filter.call(this.children, match);
+  };
+}
+function __DefaultExport__(match) {
+  return this.selectAll(match == null ? children : childrenFilter(typeof match === "function" ? match : matcher_js_1.childMatcher(match)));
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/filter.js @149
+149: function(__fusereq, exports, module){
+exports.__esModule = true;
+var index_js_1 = __fusereq(76);
+var matcher_js_1 = __fusereq(69);
+var matcher_js_1d = __fuse.dt(matcher_js_1);
+function __DefaultExport__(match) {
+  if (typeof match !== "function") match = matcher_js_1d.default(match);
+  for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+    for (var group = groups[j], n = group.length, subgroup = subgroups[j] = [], node, i = 0; i < n; ++i) {
+      if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
+        subgroup.push(node);
+      }
+    }
+  }
+  return new index_js_1.Selection(subgroups, this._parents);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/data.js @150
+150: function(__fusereq, exports, module){
+exports.__esModule = true;
+var index_js_1 = __fusereq(76);
+var enter_js_1 = __fusereq(151);
+var array_js_1 = __fusereq(144);
+var array_js_1d = __fuse.dt(array_js_1);
+var constant_js_1 = __fusereq(188);
+var constant_js_1d = __fuse.dt(constant_js_1);
+function bindIndex(parent, group, enter, update, exit, data) {
+  var i = 0, node, groupLength = group.length, dataLength = data.length;
+  for (; i < dataLength; ++i) {
+    if (node = group[i]) {
+      node.__data__ = data[i];
+      update[i] = node;
+    } else {
+      enter[i] = new enter_js_1.EnterNode(parent, data[i]);
+    }
+  }
+  for (; i < groupLength; ++i) {
+    if (node = group[i]) {
+      exit[i] = node;
+    }
+  }
+}
+function bindKey(parent, group, enter, update, exit, data, key) {
+  var i, node, nodeByKeyValue = new Map(), groupLength = group.length, dataLength = data.length, keyValues = new Array(groupLength), keyValue;
+  for (i = 0; i < groupLength; ++i) {
+    if (node = group[i]) {
+      keyValues[i] = keyValue = key.call(node, node.__data__, i, group) + "";
+      if (nodeByKeyValue.has(keyValue)) {
+        exit[i] = node;
+      } else {
+        nodeByKeyValue.set(keyValue, node);
+      }
+    }
+  }
+  for (i = 0; i < dataLength; ++i) {
+    keyValue = key.call(parent, data[i], i, data) + "";
+    if (node = nodeByKeyValue.get(keyValue)) {
+      update[i] = node;
+      node.__data__ = data[i];
+      nodeByKeyValue.delete(keyValue);
+    } else {
+      enter[i] = new enter_js_1.EnterNode(parent, data[i]);
+    }
+  }
+  for (i = 0; i < groupLength; ++i) {
+    if ((node = group[i]) && nodeByKeyValue.get(keyValues[i]) === node) {
+      exit[i] = node;
+    }
+  }
+}
+function datum(node) {
+  return node.__data__;
+}
+function __DefaultExport__(value, key) {
+  if (!arguments.length) return Array.from(this, datum);
+  var bind = key ? bindKey : bindIndex, parents = this._parents, groups = this._groups;
+  if (typeof value !== "function") value = constant_js_1d.default(value);
+  for (var m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
+    var parent = parents[j], group = groups[j], groupLength = group.length, data = array_js_1d.default(value.call(parent, parent && parent.__data__, j, parents)), dataLength = data.length, enterGroup = enter[j] = new Array(dataLength), updateGroup = update[j] = new Array(dataLength), exitGroup = exit[j] = new Array(groupLength);
+    bind(parent, group, enterGroup, updateGroup, exitGroup, data, key);
+    for (var i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
+      if (previous = enterGroup[i0]) {
+        if (i0 >= i1) i1 = i0 + 1;
+        while (!(next = updateGroup[i1]) && ++i1 < dataLength) ;
+        previous._next = next || null;
+      }
+    }
+  }
+  update = new index_js_1.Selection(update, parents);
+  update._enter = enter;
+  update._exit = exit;
+  return update;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/enter.js @151
+151: function(__fusereq, exports, module){
+exports.__esModule = true;
+var sparse_js_1 = __fusereq(187);
+var sparse_js_1d = __fuse.dt(sparse_js_1);
+var index_js_1 = __fusereq(76);
+function __DefaultExport__() {
+  return new index_js_1.Selection(this._enter || this._groups.map(sparse_js_1d.default), this._parents);
+}
+exports.default = __DefaultExport__;
+function EnterNode(parent, datum) {
+  this.ownerDocument = parent.ownerDocument;
+  this.namespaceURI = parent.namespaceURI;
+  this._next = null;
+  this._parent = parent;
+  this.__data__ = datum;
+}
+exports.EnterNode = EnterNode;
+EnterNode.prototype = {
+  constructor: EnterNode,
+  appendChild: function (child) {
+    return this._parent.insertBefore(child, this._next);
   },
-  "&dark .cm-panels": {
-    backgroundColor: "#333338",
-    color: "white"
+  insertBefore: function (child, next) {
+    return this._parent.insertBefore(child, next);
+  },
+  querySelector: function (selector) {
+    return this._parent.querySelector(selector);
+  },
+  querySelectorAll: function (selector) {
+    return this._parent.querySelectorAll(selector);
+  }
+};
+
+},
+
+// node_modules/d3-selection/src/selection/exit.js @152
+152: function(__fusereq, exports, module){
+exports.__esModule = true;
+var sparse_js_1 = __fusereq(187);
+var sparse_js_1d = __fuse.dt(sparse_js_1);
+var index_js_1 = __fusereq(76);
+function __DefaultExport__() {
+  return new index_js_1.Selection(this._exit || this._groups.map(sparse_js_1d.default), this._parents);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/join.js @153
+153: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(onenter, onupdate, onexit) {
+  var enter = this.enter(), update = this, exit = this.exit();
+  enter = typeof onenter === "function" ? onenter(enter) : enter.append(onenter + "");
+  if (onupdate != null) update = onupdate(update);
+  if (onexit == null) exit.remove(); else onexit(exit);
+  return enter && update ? enter.merge(update).order() : update;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/merge.js @154
+154: function(__fusereq, exports, module){
+exports.__esModule = true;
+var index_js_1 = __fusereq(76);
+function __DefaultExport__(selection) {
+  if (!(selection instanceof index_js_1.Selection)) throw new Error("invalid merge");
+  for (var groups0 = this._groups, groups1 = selection._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
+    for (var group0 = groups0[j], group1 = groups1[j], n = group0.length, merge = merges[j] = new Array(n), node, i = 0; i < n; ++i) {
+      if (node = group0[i] || group1[i]) {
+        merge[i] = node;
+      }
+    }
+  }
+  for (; j < m0; ++j) {
+    merges[j] = groups0[j];
+  }
+  return new index_js_1.Selection(merges, this._parents);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/order.js @155
+155: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__() {
+  for (var groups = this._groups, j = -1, m = groups.length; ++j < m; ) {
+    for (var group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0; ) {
+      if (node = group[i]) {
+        if (next && node.compareDocumentPosition(next) ^ 4) next.parentNode.insertBefore(node, next);
+        next = node;
+      }
+    }
+  }
+  return this;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/sort.js @156
+156: function(__fusereq, exports, module){
+exports.__esModule = true;
+var index_js_1 = __fusereq(76);
+function __DefaultExport__(compare) {
+  if (!compare) compare = ascending;
+  function compareNode(a, b) {
+    return a && b ? compare(a.__data__, b.__data__) : !a - !b;
+  }
+  for (var groups = this._groups, m = groups.length, sortgroups = new Array(m), j = 0; j < m; ++j) {
+    for (var group = groups[j], n = group.length, sortgroup = sortgroups[j] = new Array(n), node, i = 0; i < n; ++i) {
+      if (node = group[i]) {
+        sortgroup[i] = node;
+      }
+    }
+    sortgroup.sort(compareNode);
+  }
+  return new index_js_1.Selection(sortgroups, this._parents).order();
+}
+exports.default = __DefaultExport__;
+function ascending(a, b) {
+  return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+}
+
+},
+
+// node_modules/d3-selection/src/selection/call.js @157
+157: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__() {
+  var callback = arguments[0];
+  arguments[0] = this;
+  callback.apply(null, arguments);
+  return this;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/nodes.js @158
+158: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__() {
+  return Array.from(this);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/node.js @159
+159: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__() {
+  for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
+    for (var group = groups[j], i = 0, n = group.length; i < n; ++i) {
+      var node = group[i];
+      if (node) return node;
+    }
+  }
+  return null;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/size.js @160
+160: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__() {
+  let size = 0;
+  for (const node of this) ++size;
+  return size;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/empty.js @161
+161: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__() {
+  return !this.node();
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/each.js @162
+162: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(callback) {
+  for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
+    for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
+      if (node = group[i]) callback.call(node, node.__data__, i, group);
+    }
+  }
+  return this;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/attr.js @163
+163: function(__fusereq, exports, module){
+exports.__esModule = true;
+var namespace_js_1 = __fusereq(70);
+var namespace_js_1d = __fuse.dt(namespace_js_1);
+function attrRemove(name) {
+  return function () {
+    this.removeAttribute(name);
+  };
+}
+function attrRemoveNS(fullname) {
+  return function () {
+    this.removeAttributeNS(fullname.space, fullname.local);
+  };
+}
+function attrConstant(name, value) {
+  return function () {
+    this.setAttribute(name, value);
+  };
+}
+function attrConstantNS(fullname, value) {
+  return function () {
+    this.setAttributeNS(fullname.space, fullname.local, value);
+  };
+}
+function attrFunction(name, value) {
+  return function () {
+    var v = value.apply(this, arguments);
+    if (v == null) this.removeAttribute(name); else this.setAttribute(name, v);
+  };
+}
+function attrFunctionNS(fullname, value) {
+  return function () {
+    var v = value.apply(this, arguments);
+    if (v == null) this.removeAttributeNS(fullname.space, fullname.local); else this.setAttributeNS(fullname.space, fullname.local, v);
+  };
+}
+function __DefaultExport__(name, value) {
+  var fullname = namespace_js_1d.default(name);
+  if (arguments.length < 2) {
+    var node = this.node();
+    return fullname.local ? node.getAttributeNS(fullname.space, fullname.local) : node.getAttribute(fullname);
+  }
+  return this.each((value == null ? fullname.local ? attrRemoveNS : attrRemove : typeof value === "function" ? fullname.local ? attrFunctionNS : attrFunction : fullname.local ? attrConstantNS : attrConstant)(fullname, value));
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/property.js @164
+164: function(__fusereq, exports, module){
+exports.__esModule = true;
+function propertyRemove(name) {
+  return function () {
+    delete this[name];
+  };
+}
+function propertyConstant(name, value) {
+  return function () {
+    this[name] = value;
+  };
+}
+function propertyFunction(name, value) {
+  return function () {
+    var v = value.apply(this, arguments);
+    if (v == null) delete this[name]; else this[name] = v;
+  };
+}
+function __DefaultExport__(name, value) {
+  return arguments.length > 1 ? this.each((value == null ? propertyRemove : typeof value === "function" ? propertyFunction : propertyConstant)(name, value)) : this.node()[name];
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/classed.js @165
+165: function(__fusereq, exports, module){
+exports.__esModule = true;
+function classArray(string) {
+  return string.trim().split(/^|\s+/);
+}
+function classList(node) {
+  return node.classList || new ClassList(node);
+}
+function ClassList(node) {
+  this._node = node;
+  this._names = classArray(node.getAttribute("class") || "");
+}
+ClassList.prototype = {
+  add: function (name) {
+    var i = this._names.indexOf(name);
+    if (i < 0) {
+      this._names.push(name);
+      this._node.setAttribute("class", this._names.join(" "));
+    }
+  },
+  remove: function (name) {
+    var i = this._names.indexOf(name);
+    if (i >= 0) {
+      this._names.splice(i, 1);
+      this._node.setAttribute("class", this._names.join(" "));
+    }
+  },
+  contains: function (name) {
+    return this._names.indexOf(name) >= 0;
+  }
+};
+function classedAdd(node, names) {
+  var list = classList(node), i = -1, n = names.length;
+  while (++i < n) list.add(names[i]);
+}
+function classedRemove(node, names) {
+  var list = classList(node), i = -1, n = names.length;
+  while (++i < n) list.remove(names[i]);
+}
+function classedTrue(names) {
+  return function () {
+    classedAdd(this, names);
+  };
+}
+function classedFalse(names) {
+  return function () {
+    classedRemove(this, names);
+  };
+}
+function classedFunction(names, value) {
+  return function () {
+    (value.apply(this, arguments) ? classedAdd : classedRemove)(this, names);
+  };
+}
+function __DefaultExport__(name, value) {
+  var names = classArray(name + "");
+  if (arguments.length < 2) {
+    var list = classList(this.node()), i = -1, n = names.length;
+    while (++i < n) if (!list.contains(names[i])) return false;
+    return true;
+  }
+  return this.each((typeof value === "function" ? classedFunction : value ? classedTrue : classedFalse)(names, value));
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/text.js @166
+166: function(__fusereq, exports, module){
+exports.__esModule = true;
+function textRemove() {
+  this.textContent = "";
+}
+function textConstant(value) {
+  return function () {
+    this.textContent = value;
+  };
+}
+function textFunction(value) {
+  return function () {
+    var v = value.apply(this, arguments);
+    this.textContent = v == null ? "" : v;
+  };
+}
+function __DefaultExport__(value) {
+  return arguments.length ? this.each(value == null ? textRemove : (typeof value === "function" ? textFunction : textConstant)(value)) : this.node().textContent;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/html.js @167
+167: function(__fusereq, exports, module){
+exports.__esModule = true;
+function htmlRemove() {
+  this.innerHTML = "";
+}
+function htmlConstant(value) {
+  return function () {
+    this.innerHTML = value;
+  };
+}
+function htmlFunction(value) {
+  return function () {
+    var v = value.apply(this, arguments);
+    this.innerHTML = v == null ? "" : v;
+  };
+}
+function __DefaultExport__(value) {
+  return arguments.length ? this.each(value == null ? htmlRemove : (typeof value === "function" ? htmlFunction : htmlConstant)(value)) : this.node().innerHTML;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/raise.js @168
+168: function(__fusereq, exports, module){
+exports.__esModule = true;
+function raise() {
+  if (this.nextSibling) this.parentNode.appendChild(this);
+}
+function __DefaultExport__() {
+  return this.each(raise);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/lower.js @169
+169: function(__fusereq, exports, module){
+exports.__esModule = true;
+function lower() {
+  if (this.previousSibling) this.parentNode.insertBefore(this, this.parentNode.firstChild);
+}
+function __DefaultExport__() {
+  return this.each(lower);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/append.js @170
+170: function(__fusereq, exports, module){
+exports.__esModule = true;
+var creator_js_1 = __fusereq(67);
+var creator_js_1d = __fuse.dt(creator_js_1);
+function __DefaultExport__(name) {
+  var create = typeof name === "function" ? name : creator_js_1d.default(name);
+  return this.select(function () {
+    return this.appendChild(create.apply(this, arguments));
+  });
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/insert.js @171
+171: function(__fusereq, exports, module){
+exports.__esModule = true;
+var creator_js_1 = __fusereq(67);
+var creator_js_1d = __fuse.dt(creator_js_1);
+var selector_js_1 = __fusereq(77);
+var selector_js_1d = __fuse.dt(selector_js_1);
+function constantNull() {
+  return null;
+}
+function __DefaultExport__(name, before) {
+  var create = typeof name === "function" ? name : creator_js_1d.default(name), select = before == null ? constantNull : typeof before === "function" ? before : selector_js_1d.default(before);
+  return this.select(function () {
+    return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null);
+  });
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/remove.js @172
+172: function(__fusereq, exports, module){
+exports.__esModule = true;
+function remove() {
+  var parent = this.parentNode;
+  if (parent) parent.removeChild(this);
+}
+function __DefaultExport__() {
+  return this.each(remove);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/clone.js @173
+173: function(__fusereq, exports, module){
+exports.__esModule = true;
+function selection_cloneShallow() {
+  var clone = this.cloneNode(false), parent = this.parentNode;
+  return parent ? parent.insertBefore(clone, this.nextSibling) : clone;
+}
+function selection_cloneDeep() {
+  var clone = this.cloneNode(true), parent = this.parentNode;
+  return parent ? parent.insertBefore(clone, this.nextSibling) : clone;
+}
+function __DefaultExport__(deep) {
+  return this.select(deep ? selection_cloneDeep : selection_cloneShallow);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/datum.js @174
+174: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(value) {
+  return arguments.length ? this.property("__data__", value) : this.node().__data__;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/on.js @175
+175: function(__fusereq, exports, module){
+exports.__esModule = true;
+function contextListener(listener) {
+  return function (event) {
+    listener.call(this, event, this.__data__);
+  };
+}
+function parseTypenames(typenames) {
+  return typenames.trim().split(/^|\s+/).map(function (t) {
+    var name = "", i = t.indexOf(".");
+    if (i >= 0) (name = t.slice(i + 1), t = t.slice(0, i));
+    return {
+      type: t,
+      name: name
+    };
+  });
+}
+function onRemove(typename) {
+  return function () {
+    var on = this.__on;
+    if (!on) return;
+    for (var j = 0, i = -1, m = on.length, o; j < m; ++j) {
+      if ((o = on[j], (!typename.type || o.type === typename.type) && o.name === typename.name)) {
+        this.removeEventListener(o.type, o.listener, o.options);
+      } else {
+        on[++i] = o;
+      }
+    }
+    if (++i) on.length = i; else delete this.__on;
+  };
+}
+function onAdd(typename, value, options) {
+  return function () {
+    var on = this.__on, o, listener = contextListener(value);
+    if (on) for (var j = 0, m = on.length; j < m; ++j) {
+      if ((o = on[j]).type === typename.type && o.name === typename.name) {
+        this.removeEventListener(o.type, o.listener, o.options);
+        this.addEventListener(o.type, o.listener = listener, o.options = options);
+        o.value = value;
+        return;
+      }
+    }
+    this.addEventListener(typename.type, listener, options);
+    o = {
+      type: typename.type,
+      name: typename.name,
+      value: value,
+      listener: listener,
+      options: options
+    };
+    if (!on) this.__on = [o]; else on.push(o);
+  };
+}
+function __DefaultExport__(typename, value, options) {
+  var typenames = parseTypenames(typename + ""), i, n = typenames.length, t;
+  if (arguments.length < 2) {
+    var on = this.node().__on;
+    if (on) for (var j = 0, m = on.length, o; j < m; ++j) {
+      for ((i = 0, o = on[j]); i < n; ++i) {
+        if ((t = typenames[i]).type === o.type && t.name === o.name) {
+          return o.value;
+        }
+      }
+    }
+    return;
+  }
+  on = value ? onAdd : onRemove;
+  for (i = 0; i < n; ++i) this.each(on(typenames[i], value, options));
+  return this;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/dispatch.js @176
+176: function(__fusereq, exports, module){
+exports.__esModule = true;
+var window_js_1 = __fusereq(80);
+var window_js_1d = __fuse.dt(window_js_1);
+function dispatchEvent(node, type, params) {
+  var window = window_js_1d.default(node), event = window.CustomEvent;
+  if (typeof event === "function") {
+    event = new event(type, params);
+  } else {
+    event = window.document.createEvent("Event");
+    if (params) (event.initEvent(type, params.bubbles, params.cancelable), event.detail = params.detail); else event.initEvent(type, false, false);
+  }
+  node.dispatchEvent(event);
+}
+function dispatchConstant(type, params) {
+  return function () {
+    return dispatchEvent(this, type, params);
+  };
+}
+function dispatchFunction(type, params) {
+  return function () {
+    return dispatchEvent(this, type, params.apply(this, arguments));
+  };
+}
+function __DefaultExport__(type, params) {
+  return this.each((typeof params === "function" ? dispatchFunction : dispatchConstant)(type, params));
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/iterator.js @177
+177: function(__fusereq, exports, module){
+exports.__esModule = true;
+function* __DefaultExport__() {
+  for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
+    for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
+      if (node = group[i]) yield node;
+    }
+  }
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/selection/sparse.js @187
+187: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(update) {
+  return new Array(update.length);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-selection/src/constant.js @188
+188: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(x) {
+  return function () {
+    return x;
+  };
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-path/src/index.js @178
+178: function(__fusereq, exports, module){
+exports.__esModule = true;
+var path_js_1 = __fusereq(189);
+var path_js_1d = __fuse.dt(path_js_1);
+exports.path = path_js_1d.default;
+
+},
+
+// node_modules/d3-path/src/path.js @189
+189: function(__fusereq, exports, module){
+exports.__esModule = true;
+const pi = Math.PI, tau = 2 * pi, epsilon = 1e-6, tauEpsilon = tau - epsilon;
+function Path() {
+  this._x0 = this._y0 = this._x1 = this._y1 = null;
+  this._ = "";
+}
+function path() {
+  return new Path();
+}
+Path.prototype = path.prototype = {
+  constructor: Path,
+  moveTo: function (x, y) {
+    this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y);
+  },
+  closePath: function () {
+    if (this._x1 !== null) {
+      (this._x1 = this._x0, this._y1 = this._y0);
+      this._ += "Z";
+    }
+  },
+  lineTo: function (x, y) {
+    this._ += "L" + (this._x1 = +x) + "," + (this._y1 = +y);
+  },
+  quadraticCurveTo: function (x1, y1, x, y) {
+    this._ += "Q" + +x1 + "," + +y1 + "," + (this._x1 = +x) + "," + (this._y1 = +y);
+  },
+  bezierCurveTo: function (x1, y1, x2, y2, x, y) {
+    this._ += "C" + +x1 + "," + +y1 + "," + +x2 + "," + +y2 + "," + (this._x1 = +x) + "," + (this._y1 = +y);
+  },
+  arcTo: function (x1, y1, x2, y2, r) {
+    (x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r);
+    var x0 = this._x1, y0 = this._y1, x21 = x2 - x1, y21 = y2 - y1, x01 = x0 - x1, y01 = y0 - y1, l01_2 = x01 * x01 + y01 * y01;
+    if (r < 0) throw new Error("negative radius: " + r);
+    if (this._x1 === null) {
+      this._ += "M" + (this._x1 = x1) + "," + (this._y1 = y1);
+    } else if (!(l01_2 > epsilon)) ; else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
+      this._ += "L" + (this._x1 = x1) + "," + (this._y1 = y1);
+    } else {
+      var x20 = x2 - x0, y20 = y2 - y0, l21_2 = x21 * x21 + y21 * y21, l20_2 = x20 * x20 + y20 * y20, l21 = Math.sqrt(l21_2), l01 = Math.sqrt(l01_2), l = r * Math.tan((pi - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2), t01 = l / l01, t21 = l / l21;
+      if (Math.abs(t01 - 1) > epsilon) {
+        this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01);
+      }
+      this._ += "A" + r + "," + r + ",0,0," + +(y01 * x20 > x01 * y20) + "," + (this._x1 = x1 + t21 * x21) + "," + (this._y1 = y1 + t21 * y21);
+    }
+  },
+  arc: function (x, y, r, a0, a1, ccw) {
+    (x = +x, y = +y, r = +r, ccw = !!ccw);
+    var dx = r * Math.cos(a0), dy = r * Math.sin(a0), x0 = x + dx, y0 = y + dy, cw = 1 ^ ccw, da = ccw ? a0 - a1 : a1 - a0;
+    if (r < 0) throw new Error("negative radius: " + r);
+    if (this._x1 === null) {
+      this._ += "M" + x0 + "," + y0;
+    } else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
+      this._ += "L" + x0 + "," + y0;
+    }
+    if (!r) return;
+    if (da < 0) da = da % tau + tau;
+    if (da > tauEpsilon) {
+      this._ += "A" + r + "," + r + ",0,1," + cw + "," + (x - dx) + "," + (y - dy) + "A" + r + "," + r + ",0,1," + cw + "," + (this._x1 = x0) + "," + (this._y1 = y0);
+    } else if (da > epsilon) {
+      this._ += "A" + r + "," + r + ",0," + +(da >= pi) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
+    }
+  },
+  rect: function (x, y, w, h) {
+    this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y) + "h" + +w + "v" + +h + "h" + -w + "Z";
+  },
+  toString: function () {
+    return this._;
+  }
+};
+exports.default = path;
+
+},
+
+// node_modules/d3-shape/src/index.js @48
+48: function(__fusereq, exports, module){
+exports.__esModule = true;
+var arc_js_1 = __fusereq(81);
+var arc_js_1d = __fuse.dt(arc_js_1);
+exports.arc = arc_js_1d.default;
+var area_js_1 = __fusereq(82);
+var area_js_1d = __fuse.dt(area_js_1);
+exports.area = area_js_1d.default;
+var line_js_1 = __fusereq(83);
+var line_js_1d = __fuse.dt(line_js_1);
+exports.line = line_js_1d.default;
+var pie_js_1 = __fusereq(84);
+var pie_js_1d = __fuse.dt(pie_js_1);
+exports.pie = pie_js_1d.default;
+var areaRadial_js_1 = __fusereq(85);
+var areaRadial_js_1d = __fuse.dt(areaRadial_js_1);
+exports.areaRadial = areaRadial_js_1d.default;
+var areaRadial_js_1d = __fuse.dt(areaRadial_js_1);
+exports.radialArea = areaRadial_js_1d.default;
+var lineRadial_js_1 = __fusereq(86);
+var lineRadial_js_1d = __fuse.dt(lineRadial_js_1);
+exports.lineRadial = lineRadial_js_1d.default;
+var lineRadial_js_1d = __fuse.dt(lineRadial_js_1);
+exports.radialLine = lineRadial_js_1d.default;
+var pointRadial_js_1 = __fusereq(87);
+var pointRadial_js_1d = __fuse.dt(pointRadial_js_1);
+exports.pointRadial = pointRadial_js_1d.default;
+var index_js_1 = __fusereq(88);
+exports.linkHorizontal = index_js_1.linkHorizontal;
+exports.linkVertical = index_js_1.linkVertical;
+exports.linkRadial = index_js_1.linkRadial;
+var symbol_js_1 = __fusereq(89);
+var symbol_js_1d = __fuse.dt(symbol_js_1);
+exports.symbol = symbol_js_1d.default;
+exports.symbols = symbol_js_1.symbols;
+var circle_js_1 = __fusereq(90);
+var circle_js_1d = __fuse.dt(circle_js_1);
+exports.symbolCircle = circle_js_1d.default;
+var cross_js_1 = __fusereq(91);
+var cross_js_1d = __fuse.dt(cross_js_1);
+exports.symbolCross = cross_js_1d.default;
+var diamond_js_1 = __fusereq(92);
+var diamond_js_1d = __fuse.dt(diamond_js_1);
+exports.symbolDiamond = diamond_js_1d.default;
+var square_js_1 = __fusereq(93);
+var square_js_1d = __fuse.dt(square_js_1);
+exports.symbolSquare = square_js_1d.default;
+var star_js_1 = __fusereq(94);
+var star_js_1d = __fuse.dt(star_js_1);
+exports.symbolStar = star_js_1d.default;
+var triangle_js_1 = __fusereq(95);
+var triangle_js_1d = __fuse.dt(triangle_js_1);
+exports.symbolTriangle = triangle_js_1d.default;
+var wye_js_1 = __fusereq(96);
+var wye_js_1d = __fuse.dt(wye_js_1);
+exports.symbolWye = wye_js_1d.default;
+var basisClosed_js_1 = __fusereq(97);
+var basisClosed_js_1d = __fuse.dt(basisClosed_js_1);
+exports.curveBasisClosed = basisClosed_js_1d.default;
+var basisOpen_js_1 = __fusereq(98);
+var basisOpen_js_1d = __fuse.dt(basisOpen_js_1);
+exports.curveBasisOpen = basisOpen_js_1d.default;
+var basis_js_1 = __fusereq(99);
+var basis_js_1d = __fuse.dt(basis_js_1);
+exports.curveBasis = basis_js_1d.default;
+var bump_js_1 = __fusereq(100);
+exports.curveBumpX = bump_js_1.bumpX;
+exports.curveBumpY = bump_js_1.bumpY;
+var bundle_js_1 = __fusereq(101);
+var bundle_js_1d = __fuse.dt(bundle_js_1);
+exports.curveBundle = bundle_js_1d.default;
+var cardinalClosed_js_1 = __fusereq(102);
+var cardinalClosed_js_1d = __fuse.dt(cardinalClosed_js_1);
+exports.curveCardinalClosed = cardinalClosed_js_1d.default;
+var cardinalOpen_js_1 = __fusereq(103);
+var cardinalOpen_js_1d = __fuse.dt(cardinalOpen_js_1);
+exports.curveCardinalOpen = cardinalOpen_js_1d.default;
+var cardinal_js_1 = __fusereq(104);
+var cardinal_js_1d = __fuse.dt(cardinal_js_1);
+exports.curveCardinal = cardinal_js_1d.default;
+var catmullRomClosed_js_1 = __fusereq(105);
+var catmullRomClosed_js_1d = __fuse.dt(catmullRomClosed_js_1);
+exports.curveCatmullRomClosed = catmullRomClosed_js_1d.default;
+var catmullRomOpen_js_1 = __fusereq(106);
+var catmullRomOpen_js_1d = __fuse.dt(catmullRomOpen_js_1);
+exports.curveCatmullRomOpen = catmullRomOpen_js_1d.default;
+var catmullRom_js_1 = __fusereq(107);
+var catmullRom_js_1d = __fuse.dt(catmullRom_js_1);
+exports.curveCatmullRom = catmullRom_js_1d.default;
+var linearClosed_js_1 = __fusereq(108);
+var linearClosed_js_1d = __fuse.dt(linearClosed_js_1);
+exports.curveLinearClosed = linearClosed_js_1d.default;
+var linear_js_1 = __fusereq(109);
+var linear_js_1d = __fuse.dt(linear_js_1);
+exports.curveLinear = linear_js_1d.default;
+var monotone_js_1 = __fusereq(110);
+exports.curveMonotoneX = monotone_js_1.monotoneX;
+exports.curveMonotoneY = monotone_js_1.monotoneY;
+var natural_js_1 = __fusereq(111);
+var natural_js_1d = __fuse.dt(natural_js_1);
+exports.curveNatural = natural_js_1d.default;
+var step_js_1 = __fusereq(112);
+var step_js_1d = __fuse.dt(step_js_1);
+exports.curveStep = step_js_1d.default;
+exports.curveStepAfter = step_js_1.stepAfter;
+exports.curveStepBefore = step_js_1.stepBefore;
+var stack_js_1 = __fusereq(113);
+var stack_js_1d = __fuse.dt(stack_js_1);
+exports.stack = stack_js_1d.default;
+var expand_js_1 = __fusereq(114);
+var expand_js_1d = __fuse.dt(expand_js_1);
+exports.stackOffsetExpand = expand_js_1d.default;
+var diverging_js_1 = __fusereq(115);
+var diverging_js_1d = __fuse.dt(diverging_js_1);
+exports.stackOffsetDiverging = diverging_js_1d.default;
+var none_js_1 = __fusereq(116);
+var none_js_1d = __fuse.dt(none_js_1);
+exports.stackOffsetNone = none_js_1d.default;
+var silhouette_js_1 = __fusereq(117);
+var silhouette_js_1d = __fuse.dt(silhouette_js_1);
+exports.stackOffsetSilhouette = silhouette_js_1d.default;
+var wiggle_js_1 = __fusereq(118);
+var wiggle_js_1d = __fuse.dt(wiggle_js_1);
+exports.stackOffsetWiggle = wiggle_js_1d.default;
+var appearance_js_1 = __fusereq(119);
+var appearance_js_1d = __fuse.dt(appearance_js_1);
+exports.stackOrderAppearance = appearance_js_1d.default;
+var ascending_js_1 = __fusereq(120);
+var ascending_js_1d = __fuse.dt(ascending_js_1);
+exports.stackOrderAscending = ascending_js_1d.default;
+var descending_js_1 = __fusereq(121);
+var descending_js_1d = __fuse.dt(descending_js_1);
+exports.stackOrderDescending = descending_js_1d.default;
+var insideOut_js_1 = __fusereq(122);
+var insideOut_js_1d = __fuse.dt(insideOut_js_1);
+exports.stackOrderInsideOut = insideOut_js_1d.default;
+var none_js_2 = __fusereq(123);
+var none_js_2d = __fuse.dt(none_js_2);
+exports.stackOrderNone = none_js_2d.default;
+var reverse_js_1 = __fusereq(124);
+var reverse_js_1d = __fuse.dt(reverse_js_1);
+exports.stackOrderReverse = reverse_js_1d.default;
+
+},
+
+// node_modules/d3-shape/src/arc.js @81
+81: function(__fusereq, exports, module){
+exports.__esModule = true;
+var d3_path_1 = __fusereq(178);
+var constant_js_1 = __fusereq(180);
+var constant_js_1d = __fuse.dt(constant_js_1);
+var math_js_1 = __fusereq(182);
+function arcInnerRadius(d) {
+  return d.innerRadius;
+}
+function arcOuterRadius(d) {
+  return d.outerRadius;
+}
+function arcStartAngle(d) {
+  return d.startAngle;
+}
+function arcEndAngle(d) {
+  return d.endAngle;
+}
+function arcPadAngle(d) {
+  return d && d.padAngle;
+}
+function intersect(x0, y0, x1, y1, x2, y2, x3, y3) {
+  var x10 = x1 - x0, y10 = y1 - y0, x32 = x3 - x2, y32 = y3 - y2, t = y32 * x10 - x32 * y10;
+  if (t * t < math_js_1.epsilon) return;
+  t = (x32 * (y0 - y2) - y32 * (x0 - x2)) / t;
+  return [x0 + t * x10, y0 + t * y10];
+}
+function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
+  var x01 = x0 - x1, y01 = y0 - y1, lo = (cw ? rc : -rc) / math_js_1.sqrt(x01 * x01 + y01 * y01), ox = lo * y01, oy = -lo * x01, x11 = x0 + ox, y11 = y0 + oy, x10 = x1 + ox, y10 = y1 + oy, x00 = (x11 + x10) / 2, y00 = (y11 + y10) / 2, dx = x10 - x11, dy = y10 - y11, d2 = dx * dx + dy * dy, r = r1 - rc, D = x11 * y10 - x10 * y11, d = (dy < 0 ? -1 : 1) * math_js_1.sqrt(math_js_1.max(0, r * r * d2 - D * D)), cx0 = (D * dy - dx * d) / d2, cy0 = (-D * dx - dy * d) / d2, cx1 = (D * dy + dx * d) / d2, cy1 = (-D * dx + dy * d) / d2, dx0 = cx0 - x00, dy0 = cy0 - y00, dx1 = cx1 - x00, dy1 = cy1 - y00;
+  if (dx0 * dx0 + dy0 * dy0 > dx1 * dx1 + dy1 * dy1) (cx0 = cx1, cy0 = cy1);
+  return {
+    cx: cx0,
+    cy: cy0,
+    x01: -ox,
+    y01: -oy,
+    x11: cx0 * (r1 / r - 1),
+    y11: cy0 * (r1 / r - 1)
+  };
+}
+function __DefaultExport__() {
+  var innerRadius = arcInnerRadius, outerRadius = arcOuterRadius, cornerRadius = constant_js_1d.default(0), padRadius = null, startAngle = arcStartAngle, endAngle = arcEndAngle, padAngle = arcPadAngle, context = null;
+  function arc() {
+    var buffer, r, r0 = +innerRadius.apply(this, arguments), r1 = +outerRadius.apply(this, arguments), a0 = startAngle.apply(this, arguments) - math_js_1.halfPi, a1 = endAngle.apply(this, arguments) - math_js_1.halfPi, da = math_js_1.abs(a1 - a0), cw = a1 > a0;
+    if (!context) context = buffer = d3_path_1.path();
+    if (r1 < r0) (r = r1, r1 = r0, r0 = r);
+    if (!(r1 > math_js_1.epsilon)) context.moveTo(0, 0); else if (da > math_js_1.tau - math_js_1.epsilon) {
+      context.moveTo(r1 * math_js_1.cos(a0), r1 * math_js_1.sin(a0));
+      context.arc(0, 0, r1, a0, a1, !cw);
+      if (r0 > math_js_1.epsilon) {
+        context.moveTo(r0 * math_js_1.cos(a1), r0 * math_js_1.sin(a1));
+        context.arc(0, 0, r0, a1, a0, cw);
+      }
+    } else {
+      var a01 = a0, a11 = a1, a00 = a0, a10 = a1, da0 = da, da1 = da, ap = padAngle.apply(this, arguments) / 2, rp = ap > math_js_1.epsilon && (padRadius ? +padRadius.apply(this, arguments) : math_js_1.sqrt(r0 * r0 + r1 * r1)), rc = math_js_1.min(math_js_1.abs(r1 - r0) / 2, +cornerRadius.apply(this, arguments)), rc0 = rc, rc1 = rc, t0, t1;
+      if (rp > math_js_1.epsilon) {
+        var p0 = math_js_1.asin(rp / r0 * math_js_1.sin(ap)), p1 = math_js_1.asin(rp / r1 * math_js_1.sin(ap));
+        if ((da0 -= p0 * 2) > math_js_1.epsilon) (p0 *= cw ? 1 : -1, a00 += p0, a10 -= p0); else (da0 = 0, a00 = a10 = (a0 + a1) / 2);
+        if ((da1 -= p1 * 2) > math_js_1.epsilon) (p1 *= cw ? 1 : -1, a01 += p1, a11 -= p1); else (da1 = 0, a01 = a11 = (a0 + a1) / 2);
+      }
+      var x01 = r1 * math_js_1.cos(a01), y01 = r1 * math_js_1.sin(a01), x10 = r0 * math_js_1.cos(a10), y10 = r0 * math_js_1.sin(a10);
+      if (rc > math_js_1.epsilon) {
+        var x11 = r1 * math_js_1.cos(a11), y11 = r1 * math_js_1.sin(a11), x00 = r0 * math_js_1.cos(a00), y00 = r0 * math_js_1.sin(a00), oc;
+        if (da < math_js_1.pi && (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10))) {
+          var ax = x01 - oc[0], ay = y01 - oc[1], bx = x11 - oc[0], by = y11 - oc[1], kc = 1 / math_js_1.sin(math_js_1.acos((ax * bx + ay * by) / (math_js_1.sqrt(ax * ax + ay * ay) * math_js_1.sqrt(bx * bx + by * by))) / 2), lc = math_js_1.sqrt(oc[0] * oc[0] + oc[1] * oc[1]);
+          rc0 = math_js_1.min(rc, (r0 - lc) / (kc - 1));
+          rc1 = math_js_1.min(rc, (r1 - lc) / (kc + 1));
+        }
+      }
+      if (!(da1 > math_js_1.epsilon)) context.moveTo(x01, y01); else if (rc1 > math_js_1.epsilon) {
+        t0 = cornerTangents(x00, y00, x01, y01, r1, rc1, cw);
+        t1 = cornerTangents(x11, y11, x10, y10, r1, rc1, cw);
+        context.moveTo(t0.cx + t0.x01, t0.cy + t0.y01);
+        if (rc1 < rc) context.arc(t0.cx, t0.cy, rc1, math_js_1.atan2(t0.y01, t0.x01), math_js_1.atan2(t1.y01, t1.x01), !cw); else {
+          context.arc(t0.cx, t0.cy, rc1, math_js_1.atan2(t0.y01, t0.x01), math_js_1.atan2(t0.y11, t0.x11), !cw);
+          context.arc(0, 0, r1, math_js_1.atan2(t0.cy + t0.y11, t0.cx + t0.x11), math_js_1.atan2(t1.cy + t1.y11, t1.cx + t1.x11), !cw);
+          context.arc(t1.cx, t1.cy, rc1, math_js_1.atan2(t1.y11, t1.x11), math_js_1.atan2(t1.y01, t1.x01), !cw);
+        }
+      } else (context.moveTo(x01, y01), context.arc(0, 0, r1, a01, a11, !cw));
+      if (!(r0 > math_js_1.epsilon) || !(da0 > math_js_1.epsilon)) context.lineTo(x10, y10); else if (rc0 > math_js_1.epsilon) {
+        t0 = cornerTangents(x10, y10, x11, y11, r0, -rc0, cw);
+        t1 = cornerTangents(x01, y01, x00, y00, r0, -rc0, cw);
+        context.lineTo(t0.cx + t0.x01, t0.cy + t0.y01);
+        if (rc0 < rc) context.arc(t0.cx, t0.cy, rc0, math_js_1.atan2(t0.y01, t0.x01), math_js_1.atan2(t1.y01, t1.x01), !cw); else {
+          context.arc(t0.cx, t0.cy, rc0, math_js_1.atan2(t0.y01, t0.x01), math_js_1.atan2(t0.y11, t0.x11), !cw);
+          context.arc(0, 0, r0, math_js_1.atan2(t0.cy + t0.y11, t0.cx + t0.x11), math_js_1.atan2(t1.cy + t1.y11, t1.cx + t1.x11), cw);
+          context.arc(t1.cx, t1.cy, rc0, math_js_1.atan2(t1.y11, t1.x11), math_js_1.atan2(t1.y01, t1.x01), !cw);
+        }
+      } else context.arc(0, 0, r0, a10, a00, cw);
+    }
+    context.closePath();
+    if (buffer) return (context = null, buffer + "" || null);
+  }
+  arc.centroid = function () {
+    var r = (+innerRadius.apply(this, arguments) + +outerRadius.apply(this, arguments)) / 2, a = (+startAngle.apply(this, arguments) + +endAngle.apply(this, arguments)) / 2 - math_js_1.pi / 2;
+    return [math_js_1.cos(a) * r, math_js_1.sin(a) * r];
+  };
+  arc.innerRadius = function (_) {
+    return arguments.length ? (innerRadius = typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : innerRadius;
+  };
+  arc.outerRadius = function (_) {
+    return arguments.length ? (outerRadius = typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : outerRadius;
+  };
+  arc.cornerRadius = function (_) {
+    return arguments.length ? (cornerRadius = typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : cornerRadius;
+  };
+  arc.padRadius = function (_) {
+    return arguments.length ? (padRadius = _ == null ? null : typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : padRadius;
+  };
+  arc.startAngle = function (_) {
+    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : startAngle;
+  };
+  arc.endAngle = function (_) {
+    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : endAngle;
+  };
+  arc.padAngle = function (_) {
+    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : padAngle;
+  };
+  arc.context = function (_) {
+    return arguments.length ? (context = _ == null ? null : _, arc) : context;
+  };
+  return arc;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/area.js @82
+82: function(__fusereq, exports, module){
+exports.__esModule = true;
+var d3_path_1 = __fusereq(178);
+var array_js_1 = __fusereq(179);
+var array_js_1d = __fuse.dt(array_js_1);
+var constant_js_1 = __fusereq(180);
+var constant_js_1d = __fuse.dt(constant_js_1);
+var linear_js_1 = __fusereq(109);
+var linear_js_1d = __fuse.dt(linear_js_1);
+var line_js_1 = __fusereq(83);
+var line_js_1d = __fuse.dt(line_js_1);
+var point_js_1 = __fusereq(181);
+function __DefaultExport__(x0, y0, y1) {
+  var x1 = null, defined = constant_js_1d.default(true), context = null, curve = linear_js_1d.default, output = null;
+  x0 = typeof x0 === "function" ? x0 : x0 === undefined ? point_js_1.x : constant_js_1d.default(+x0);
+  y0 = typeof y0 === "function" ? y0 : y0 === undefined ? constant_js_1d.default(0) : constant_js_1d.default(+y0);
+  y1 = typeof y1 === "function" ? y1 : y1 === undefined ? point_js_1.y : constant_js_1d.default(+y1);
+  function area(data) {
+    var i, j, k, n = (data = array_js_1d.default(data)).length, d, defined0 = false, buffer, x0z = new Array(n), y0z = new Array(n);
+    if (context == null) output = curve(buffer = d3_path_1.path());
+    for (i = 0; i <= n; ++i) {
+      if (!(i < n && defined(d = data[i], i, data)) === defined0) {
+        if (defined0 = !defined0) {
+          j = i;
+          output.areaStart();
+          output.lineStart();
+        } else {
+          output.lineEnd();
+          output.lineStart();
+          for (k = i - 1; k >= j; --k) {
+            output.point(x0z[k], y0z[k]);
+          }
+          output.lineEnd();
+          output.areaEnd();
+        }
+      }
+      if (defined0) {
+        (x0z[i] = +x0(d, i, data), y0z[i] = +y0(d, i, data));
+        output.point(x1 ? +x1(d, i, data) : x0z[i], y1 ? +y1(d, i, data) : y0z[i]);
+      }
+    }
+    if (buffer) return (output = null, buffer + "" || null);
+  }
+  function arealine() {
+    return line_js_1d.default().defined(defined).curve(curve).context(context);
+  }
+  area.x = function (_) {
+    return arguments.length ? (x0 = typeof _ === "function" ? _ : constant_js_1d.default(+_), x1 = null, area) : x0;
+  };
+  area.x0 = function (_) {
+    return arguments.length ? (x0 = typeof _ === "function" ? _ : constant_js_1d.default(+_), area) : x0;
+  };
+  area.x1 = function (_) {
+    return arguments.length ? (x1 = _ == null ? null : typeof _ === "function" ? _ : constant_js_1d.default(+_), area) : x1;
+  };
+  area.y = function (_) {
+    return arguments.length ? (y0 = typeof _ === "function" ? _ : constant_js_1d.default(+_), y1 = null, area) : y0;
+  };
+  area.y0 = function (_) {
+    return arguments.length ? (y0 = typeof _ === "function" ? _ : constant_js_1d.default(+_), area) : y0;
+  };
+  area.y1 = function (_) {
+    return arguments.length ? (y1 = _ == null ? null : typeof _ === "function" ? _ : constant_js_1d.default(+_), area) : y1;
+  };
+  area.lineX0 = area.lineY0 = function () {
+    return arealine().x(x0).y(y0);
+  };
+  area.lineY1 = function () {
+    return arealine().x(x0).y(y1);
+  };
+  area.lineX1 = function () {
+    return arealine().x(x1).y(y0);
+  };
+  area.defined = function (_) {
+    return arguments.length ? (defined = typeof _ === "function" ? _ : constant_js_1d.default(!!_), area) : defined;
+  };
+  area.curve = function (_) {
+    return arguments.length ? (curve = _, context != null && (output = curve(context)), area) : curve;
+  };
+  area.context = function (_) {
+    return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), area) : context;
+  };
+  return area;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/line.js @83
+83: function(__fusereq, exports, module){
+exports.__esModule = true;
+var d3_path_1 = __fusereq(178);
+var array_js_1 = __fusereq(179);
+var array_js_1d = __fuse.dt(array_js_1);
+var constant_js_1 = __fusereq(180);
+var constant_js_1d = __fuse.dt(constant_js_1);
+var linear_js_1 = __fusereq(109);
+var linear_js_1d = __fuse.dt(linear_js_1);
+var point_js_1 = __fusereq(181);
+function __DefaultExport__(x, y) {
+  var defined = constant_js_1d.default(true), context = null, curve = linear_js_1d.default, output = null;
+  x = typeof x === "function" ? x : x === undefined ? point_js_1.x : constant_js_1d.default(x);
+  y = typeof y === "function" ? y : y === undefined ? point_js_1.y : constant_js_1d.default(y);
+  function line(data) {
+    var i, n = (data = array_js_1d.default(data)).length, d, defined0 = false, buffer;
+    if (context == null) output = curve(buffer = d3_path_1.path());
+    for (i = 0; i <= n; ++i) {
+      if (!(i < n && defined(d = data[i], i, data)) === defined0) {
+        if (defined0 = !defined0) output.lineStart(); else output.lineEnd();
+      }
+      if (defined0) output.point(+x(d, i, data), +y(d, i, data));
+    }
+    if (buffer) return (output = null, buffer + "" || null);
+  }
+  line.x = function (_) {
+    return arguments.length ? (x = typeof _ === "function" ? _ : constant_js_1d.default(+_), line) : x;
+  };
+  line.y = function (_) {
+    return arguments.length ? (y = typeof _ === "function" ? _ : constant_js_1d.default(+_), line) : y;
+  };
+  line.defined = function (_) {
+    return arguments.length ? (defined = typeof _ === "function" ? _ : constant_js_1d.default(!!_), line) : defined;
+  };
+  line.curve = function (_) {
+    return arguments.length ? (curve = _, context != null && (output = curve(context)), line) : curve;
+  };
+  line.context = function (_) {
+    return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), line) : context;
+  };
+  return line;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/pie.js @84
+84: function(__fusereq, exports, module){
+exports.__esModule = true;
+var array_js_1 = __fusereq(179);
+var array_js_1d = __fuse.dt(array_js_1);
+var constant_js_1 = __fusereq(180);
+var constant_js_1d = __fuse.dt(constant_js_1);
+var descending_js_1 = __fusereq(183);
+var descending_js_1d = __fuse.dt(descending_js_1);
+var identity_js_1 = __fusereq(184);
+var identity_js_1d = __fuse.dt(identity_js_1);
+var math_js_1 = __fusereq(182);
+function __DefaultExport__() {
+  var value = identity_js_1d.default, sortValues = descending_js_1d.default, sort = null, startAngle = constant_js_1d.default(0), endAngle = constant_js_1d.default(math_js_1.tau), padAngle = constant_js_1d.default(0);
+  function pie(data) {
+    var i, n = (data = array_js_1d.default(data)).length, j, k, sum = 0, index = new Array(n), arcs = new Array(n), a0 = +startAngle.apply(this, arguments), da = Math.min(math_js_1.tau, Math.max(-math_js_1.tau, endAngle.apply(this, arguments) - a0)), a1, p = Math.min(Math.abs(da) / n, padAngle.apply(this, arguments)), pa = p * (da < 0 ? -1 : 1), v;
+    for (i = 0; i < n; ++i) {
+      if ((v = arcs[index[i] = i] = +value(data[i], i, data)) > 0) {
+        sum += v;
+      }
+    }
+    if (sortValues != null) index.sort(function (i, j) {
+      return sortValues(arcs[i], arcs[j]);
+    }); else if (sort != null) index.sort(function (i, j) {
+      return sort(data[i], data[j]);
+    });
+    for ((i = 0, k = sum ? (da - n * pa) / sum : 0); i < n; (++i, a0 = a1)) {
+      (j = index[i], v = arcs[j], a1 = a0 + (v > 0 ? v * k : 0) + pa, arcs[j] = {
+        data: data[j],
+        index: i,
+        value: v,
+        startAngle: a0,
+        endAngle: a1,
+        padAngle: p
+      });
+    }
+    return arcs;
+  }
+  pie.value = function (_) {
+    return arguments.length ? (value = typeof _ === "function" ? _ : constant_js_1d.default(+_), pie) : value;
+  };
+  pie.sortValues = function (_) {
+    return arguments.length ? (sortValues = _, sort = null, pie) : sortValues;
+  };
+  pie.sort = function (_) {
+    return arguments.length ? (sort = _, sortValues = null, pie) : sort;
+  };
+  pie.startAngle = function (_) {
+    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant_js_1d.default(+_), pie) : startAngle;
+  };
+  pie.endAngle = function (_) {
+    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant_js_1d.default(+_), pie) : endAngle;
+  };
+  pie.padAngle = function (_) {
+    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant_js_1d.default(+_), pie) : padAngle;
+  };
+  return pie;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/areaRadial.js @85
+85: function(__fusereq, exports, module){
+exports.__esModule = true;
+var radial_js_1 = __fusereq(185);
+var radial_js_1d = __fuse.dt(radial_js_1);
+var area_js_1 = __fusereq(82);
+var area_js_1d = __fuse.dt(area_js_1);
+var lineRadial_js_1 = __fusereq(86);
+function __DefaultExport__() {
+  var a = area_js_1d.default().curve(radial_js_1.curveRadialLinear), c = a.curve, x0 = a.lineX0, x1 = a.lineX1, y0 = a.lineY0, y1 = a.lineY1;
+  (a.angle = a.x, delete a.x);
+  (a.startAngle = a.x0, delete a.x0);
+  (a.endAngle = a.x1, delete a.x1);
+  (a.radius = a.y, delete a.y);
+  (a.innerRadius = a.y0, delete a.y0);
+  (a.outerRadius = a.y1, delete a.y1);
+  (a.lineStartAngle = function () {
+    return lineRadial_js_1.lineRadial(x0());
+  }, delete a.lineX0);
+  (a.lineEndAngle = function () {
+    return lineRadial_js_1.lineRadial(x1());
+  }, delete a.lineX1);
+  (a.lineInnerRadius = function () {
+    return lineRadial_js_1.lineRadial(y0());
+  }, delete a.lineY0);
+  (a.lineOuterRadius = function () {
+    return lineRadial_js_1.lineRadial(y1());
+  }, delete a.lineY1);
+  a.curve = function (_) {
+    return arguments.length ? c(radial_js_1d.default(_)) : c()._curve;
+  };
+  return a;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/lineRadial.js @86
+86: function(__fusereq, exports, module){
+exports.__esModule = true;
+var radial_js_1 = __fusereq(185);
+var radial_js_1d = __fuse.dt(radial_js_1);
+var line_js_1 = __fusereq(83);
+var line_js_1d = __fuse.dt(line_js_1);
+function lineRadial(l) {
+  var c = l.curve;
+  (l.angle = l.x, delete l.x);
+  (l.radius = l.y, delete l.y);
+  l.curve = function (_) {
+    return arguments.length ? c(radial_js_1d.default(_)) : c()._curve;
+  };
+  return l;
+}
+exports.lineRadial = lineRadial;
+function __DefaultExport__() {
+  return lineRadial(line_js_1d.default().curve(radial_js_1.curveRadialLinear));
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/pointRadial.js @87
+87: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(x, y) {
+  return [(y = +y) * Math.cos(x -= Math.PI / 2), y * Math.sin(x)];
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/link/index.js @88
+88: function(__fusereq, exports, module){
+exports.__esModule = true;
+var d3_path_1 = __fusereq(178);
+var array_js_1 = __fusereq(179);
+var constant_js_1 = __fusereq(180);
+var constant_js_1d = __fuse.dt(constant_js_1);
+var point_js_1 = __fusereq(181);
+var pointRadial_js_1 = __fusereq(87);
+var pointRadial_js_1d = __fuse.dt(pointRadial_js_1);
+function linkSource(d) {
+  return d.source;
+}
+function linkTarget(d) {
+  return d.target;
+}
+function link(curve) {
+  var source = linkSource, target = linkTarget, x = point_js_1.x, y = point_js_1.y, context = null;
+  function link() {
+    var buffer, argv = array_js_1.slice.call(arguments), s = source.apply(this, argv), t = target.apply(this, argv);
+    if (!context) context = buffer = d3_path_1.path();
+    curve(context, +x.apply(this, (argv[0] = s, argv)), +y.apply(this, argv), +x.apply(this, (argv[0] = t, argv)), +y.apply(this, argv));
+    if (buffer) return (context = null, buffer + "" || null);
+  }
+  link.source = function (_) {
+    return arguments.length ? (source = _, link) : source;
+  };
+  link.target = function (_) {
+    return arguments.length ? (target = _, link) : target;
+  };
+  link.x = function (_) {
+    return arguments.length ? (x = typeof _ === "function" ? _ : constant_js_1d.default(+_), link) : x;
+  };
+  link.y = function (_) {
+    return arguments.length ? (y = typeof _ === "function" ? _ : constant_js_1d.default(+_), link) : y;
+  };
+  link.context = function (_) {
+    return arguments.length ? (context = _ == null ? null : _, link) : context;
+  };
+  return link;
+}
+function curveHorizontal(context, x0, y0, x1, y1) {
+  context.moveTo(x0, y0);
+  context.bezierCurveTo(x0 = (x0 + x1) / 2, y0, x0, y1, x1, y1);
+}
+function curveVertical(context, x0, y0, x1, y1) {
+  context.moveTo(x0, y0);
+  context.bezierCurveTo(x0, y0 = (y0 + y1) / 2, x1, y0, x1, y1);
+}
+function curveRadial(context, x0, y0, x1, y1) {
+  var p0 = pointRadial_js_1d.default(x0, y0), p1 = pointRadial_js_1d.default(x0, y0 = (y0 + y1) / 2), p2 = pointRadial_js_1d.default(x1, y0), p3 = pointRadial_js_1d.default(x1, y1);
+  context.moveTo(p0[0], p0[1]);
+  context.bezierCurveTo(p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]);
+}
+function linkHorizontal() {
+  return link(curveHorizontal);
+}
+exports.linkHorizontal = linkHorizontal;
+function linkVertical() {
+  return link(curveVertical);
+}
+exports.linkVertical = linkVertical;
+function linkRadial() {
+  var l = link(curveRadial);
+  (l.angle = l.x, delete l.x);
+  (l.radius = l.y, delete l.y);
+  return l;
+}
+exports.linkRadial = linkRadial;
+
+},
+
+// node_modules/d3-shape/src/symbol.js @89
+89: function(__fusereq, exports, module){
+exports.__esModule = true;
+var d3_path_1 = __fusereq(178);
+var circle_js_1 = __fusereq(90);
+var circle_js_1d = __fuse.dt(circle_js_1);
+var cross_js_1 = __fusereq(91);
+var cross_js_1d = __fuse.dt(cross_js_1);
+var diamond_js_1 = __fusereq(92);
+var diamond_js_1d = __fuse.dt(diamond_js_1);
+var star_js_1 = __fusereq(94);
+var star_js_1d = __fuse.dt(star_js_1);
+var square_js_1 = __fusereq(93);
+var square_js_1d = __fuse.dt(square_js_1);
+var triangle_js_1 = __fusereq(95);
+var triangle_js_1d = __fuse.dt(triangle_js_1);
+var wye_js_1 = __fusereq(96);
+var wye_js_1d = __fuse.dt(wye_js_1);
+var constant_js_1 = __fusereq(180);
+var constant_js_1d = __fuse.dt(constant_js_1);
+exports.symbols = [circle_js_1d.default, cross_js_1d.default, diamond_js_1d.default, square_js_1d.default, star_js_1d.default, triangle_js_1d.default, wye_js_1d.default];
+function __DefaultExport__(type, size) {
+  var context = null;
+  type = typeof type === "function" ? type : constant_js_1d.default(type || circle_js_1d.default);
+  size = typeof size === "function" ? size : constant_js_1d.default(size === undefined ? 64 : +size);
+  function symbol() {
+    var buffer;
+    if (!context) context = buffer = d3_path_1.path();
+    type.apply(this, arguments).draw(context, +size.apply(this, arguments));
+    if (buffer) return (context = null, buffer + "" || null);
+  }
+  symbol.type = function (_) {
+    return arguments.length ? (type = typeof _ === "function" ? _ : constant_js_1d.default(_), symbol) : type;
+  };
+  symbol.size = function (_) {
+    return arguments.length ? (size = typeof _ === "function" ? _ : constant_js_1d.default(+_), symbol) : size;
+  };
+  symbol.context = function (_) {
+    return arguments.length ? (context = _ == null ? null : _, symbol) : context;
+  };
+  return symbol;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/symbol/circle.js @90
+90: function(__fusereq, exports, module){
+exports.__esModule = true;
+var math_js_1 = __fusereq(182);
+exports.default = {
+  draw: function (context, size) {
+    var r = Math.sqrt(size / math_js_1.pi);
+    context.moveTo(r, 0);
+    context.arc(0, 0, r, 0, math_js_1.tau);
+  }
+};
+
+},
+
+// node_modules/d3-shape/src/symbol/cross.js @91
+91: function(__fusereq, exports, module){
+exports.__esModule = true;
+exports.default = {
+  draw: function (context, size) {
+    var r = Math.sqrt(size / 5) / 2;
+    context.moveTo(-3 * r, -r);
+    context.lineTo(-r, -r);
+    context.lineTo(-r, -3 * r);
+    context.lineTo(r, -3 * r);
+    context.lineTo(r, -r);
+    context.lineTo(3 * r, -r);
+    context.lineTo(3 * r, r);
+    context.lineTo(r, r);
+    context.lineTo(r, 3 * r);
+    context.lineTo(-r, 3 * r);
+    context.lineTo(-r, r);
+    context.lineTo(-3 * r, r);
+    context.closePath();
+  }
+};
+
+},
+
+// node_modules/d3-shape/src/symbol/diamond.js @92
+92: function(__fusereq, exports, module){
+exports.__esModule = true;
+var tan30 = Math.sqrt(1 / 3), tan30_2 = tan30 * 2;
+exports.default = {
+  draw: function (context, size) {
+    var y = Math.sqrt(size / tan30_2), x = y * tan30;
+    context.moveTo(0, -y);
+    context.lineTo(x, 0);
+    context.lineTo(0, y);
+    context.lineTo(-x, 0);
+    context.closePath();
+  }
+};
+
+},
+
+// node_modules/d3-shape/src/symbol/square.js @93
+93: function(__fusereq, exports, module){
+exports.__esModule = true;
+exports.default = {
+  draw: function (context, size) {
+    var w = Math.sqrt(size), x = -w / 2;
+    context.rect(x, x, w, w);
+  }
+};
+
+},
+
+// node_modules/d3-shape/src/symbol/star.js @94
+94: function(__fusereq, exports, module){
+exports.__esModule = true;
+var math_js_1 = __fusereq(182);
+var ka = 0.89081309152928522810, kr = Math.sin(math_js_1.pi / 10) / Math.sin(7 * math_js_1.pi / 10), kx = Math.sin(math_js_1.tau / 10) * kr, ky = -Math.cos(math_js_1.tau / 10) * kr;
+exports.default = {
+  draw: function (context, size) {
+    var r = Math.sqrt(size * ka), x = kx * r, y = ky * r;
+    context.moveTo(0, -r);
+    context.lineTo(x, y);
+    for (var i = 1; i < 5; ++i) {
+      var a = math_js_1.tau * i / 5, c = Math.cos(a), s = Math.sin(a);
+      context.lineTo(s * r, -c * r);
+      context.lineTo(c * x - s * y, s * x + c * y);
+    }
+    context.closePath();
+  }
+};
+
+},
+
+// node_modules/d3-shape/src/symbol/triangle.js @95
+95: function(__fusereq, exports, module){
+exports.__esModule = true;
+var sqrt3 = Math.sqrt(3);
+exports.default = {
+  draw: function (context, size) {
+    var y = -Math.sqrt(size / (sqrt3 * 3));
+    context.moveTo(0, y * 2);
+    context.lineTo(-sqrt3 * y, -y);
+    context.lineTo(sqrt3 * y, -y);
+    context.closePath();
+  }
+};
+
+},
+
+// node_modules/d3-shape/src/symbol/wye.js @96
+96: function(__fusereq, exports, module){
+exports.__esModule = true;
+var c = -0.5, s = Math.sqrt(3) / 2, k = 1 / Math.sqrt(12), a = (k / 2 + 1) * 3;
+exports.default = {
+  draw: function (context, size) {
+    var r = Math.sqrt(size / a), x0 = r / 2, y0 = r * k, x1 = x0, y1 = r * k + r, x2 = -x1, y2 = y1;
+    context.moveTo(x0, y0);
+    context.lineTo(x1, y1);
+    context.lineTo(x2, y2);
+    context.lineTo(c * x0 - s * y0, s * x0 + c * y0);
+    context.lineTo(c * x1 - s * y1, s * x1 + c * y1);
+    context.lineTo(c * x2 - s * y2, s * x2 + c * y2);
+    context.lineTo(c * x0 + s * y0, c * y0 - s * x0);
+    context.lineTo(c * x1 + s * y1, c * y1 - s * x1);
+    context.lineTo(c * x2 + s * y2, c * y2 - s * x2);
+    context.closePath();
+  }
+};
+
+},
+
+// node_modules/d3-shape/src/curve/basisClosed.js @97
+97: function(__fusereq, exports, module){
+exports.__esModule = true;
+var noop_js_1 = __fusereq(186);
+var noop_js_1d = __fuse.dt(noop_js_1);
+var basis_js_1 = __fusereq(99);
+function BasisClosed(context) {
+  this._context = context;
+}
+BasisClosed.prototype = {
+  areaStart: noop_js_1d.default,
+  areaEnd: noop_js_1d.default,
+  lineStart: function () {
+    this._x0 = this._x1 = this._x2 = this._x3 = this._x4 = this._y0 = this._y1 = this._y2 = this._y3 = this._y4 = NaN;
+    this._point = 0;
+  },
+  lineEnd: function () {
+    switch (this._point) {
+      case 1:
+        {
+          this._context.moveTo(this._x2, this._y2);
+          this._context.closePath();
+          break;
+        }
+      case 2:
+        {
+          this._context.moveTo((this._x2 + 2 * this._x3) / 3, (this._y2 + 2 * this._y3) / 3);
+          this._context.lineTo((this._x3 + 2 * this._x2) / 3, (this._y3 + 2 * this._y2) / 3);
+          this._context.closePath();
+          break;
+        }
+      case 3:
+        {
+          this.point(this._x2, this._y2);
+          this.point(this._x3, this._y3);
+          this.point(this._x4, this._y4);
+          break;
+        }
+    }
+  },
+  point: function (x, y) {
+    (x = +x, y = +y);
+    switch (this._point) {
+      case 0:
+        this._point = 1;
+        (this._x2 = x, this._y2 = y);
+        break;
+      case 1:
+        this._point = 2;
+        (this._x3 = x, this._y3 = y);
+        break;
+      case 2:
+        this._point = 3;
+        (this._x4 = x, this._y4 = y);
+        this._context.moveTo((this._x0 + 4 * this._x1 + x) / 6, (this._y0 + 4 * this._y1 + y) / 6);
+        break;
+      default:
+        basis_js_1.point(this, x, y);
+        break;
+    }
+    (this._x0 = this._x1, this._x1 = x);
+    (this._y0 = this._y1, this._y1 = y);
+  }
+};
+function __DefaultExport__(context) {
+  return new BasisClosed(context);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/curve/basisOpen.js @98
+98: function(__fusereq, exports, module){
+exports.__esModule = true;
+var basis_js_1 = __fusereq(99);
+function BasisOpen(context) {
+  this._context = context;
+}
+BasisOpen.prototype = {
+  areaStart: function () {
+    this._line = 0;
+  },
+  areaEnd: function () {
+    this._line = NaN;
+  },
+  lineStart: function () {
+    this._x0 = this._x1 = this._y0 = this._y1 = NaN;
+    this._point = 0;
+  },
+  lineEnd: function () {
+    if (this._line || this._line !== 0 && this._point === 3) this._context.closePath();
+    this._line = 1 - this._line;
+  },
+  point: function (x, y) {
+    (x = +x, y = +y);
+    switch (this._point) {
+      case 0:
+        this._point = 1;
+        break;
+      case 1:
+        this._point = 2;
+        break;
+      case 2:
+        this._point = 3;
+        var x0 = (this._x0 + 4 * this._x1 + x) / 6, y0 = (this._y0 + 4 * this._y1 + y) / 6;
+        this._line ? this._context.lineTo(x0, y0) : this._context.moveTo(x0, y0);
+        break;
+      case 3:
+        this._point = 4;
+      default:
+        basis_js_1.point(this, x, y);
+        break;
+    }
+    (this._x0 = this._x1, this._x1 = x);
+    (this._y0 = this._y1, this._y1 = y);
+  }
+};
+function __DefaultExport__(context) {
+  return new BasisOpen(context);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/curve/basis.js @99
+99: function(__fusereq, exports, module){
+exports.__esModule = true;
+function point(that, x, y) {
+  that._context.bezierCurveTo((2 * that._x0 + that._x1) / 3, (2 * that._y0 + that._y1) / 3, (that._x0 + 2 * that._x1) / 3, (that._y0 + 2 * that._y1) / 3, (that._x0 + 4 * that._x1 + x) / 6, (that._y0 + 4 * that._y1 + y) / 6);
+}
+exports.point = point;
+function Basis(context) {
+  this._context = context;
+}
+exports.Basis = Basis;
+Basis.prototype = {
+  areaStart: function () {
+    this._line = 0;
+  },
+  areaEnd: function () {
+    this._line = NaN;
+  },
+  lineStart: function () {
+    this._x0 = this._x1 = this._y0 = this._y1 = NaN;
+    this._point = 0;
+  },
+  lineEnd: function () {
+    switch (this._point) {
+      case 3:
+        point(this, this._x1, this._y1);
+      case 2:
+        this._context.lineTo(this._x1, this._y1);
+        break;
+    }
+    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+    this._line = 1 - this._line;
+  },
+  point: function (x, y) {
+    (x = +x, y = +y);
+    switch (this._point) {
+      case 0:
+        this._point = 1;
+        this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+        break;
+      case 1:
+        this._point = 2;
+        break;
+      case 2:
+        this._point = 3;
+        this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6);
+      default:
+        point(this, x, y);
+        break;
+    }
+    (this._x0 = this._x1, this._x1 = x);
+    (this._y0 = this._y1, this._y1 = y);
+  }
+};
+function __DefaultExport__(context) {
+  return new Basis(context);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/curve/bump.js @100
+100: function(__fusereq, exports, module){
+class Bump {
+  constructor(context, x) {
+    this._context = context;
+    this._x = x;
+  }
+  areaStart() {
+    this._line = 0;
+  }
+  areaEnd() {
+    this._line = NaN;
+  }
+  lineStart() {
+    this._point = 0;
+  }
+  lineEnd() {
+    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+    this._line = 1 - this._line;
+  }
+  point(x, y) {
+    (x = +x, y = +y);
+    switch (this._point) {
+      case 0:
+        {
+          this._point = 1;
+          if (this._line) this._context.lineTo(x, y); else this._context.moveTo(x, y);
+          break;
+        }
+      case 1:
+        this._point = 2;
+      default:
+        {
+          if (this._x) this._context.bezierCurveTo(this._x0 = (this._x0 + x) / 2, this._y0, this._x0, y, x, y); else this._context.bezierCurveTo(this._x0, this._y0 = (this._y0 + y) / 2, x, this._y0, x, y);
+          break;
+        }
+    }
+    (this._x0 = x, this._y0 = y);
+  }
+}
+function bumpX(context) {
+  return new Bump(context, true);
+}
+exports.bumpX = bumpX;
+function bumpY(context) {
+  return new Bump(context, false);
+}
+exports.bumpY = bumpY;
+
+},
+
+// node_modules/d3-shape/src/curve/bundle.js @101
+101: function(__fusereq, exports, module){
+exports.__esModule = true;
+var basis_js_1 = __fusereq(99);
+function Bundle(context, beta) {
+  this._basis = new basis_js_1.Basis(context);
+  this._beta = beta;
+}
+Bundle.prototype = {
+  lineStart: function () {
+    this._x = [];
+    this._y = [];
+    this._basis.lineStart();
+  },
+  lineEnd: function () {
+    var x = this._x, y = this._y, j = x.length - 1;
+    if (j > 0) {
+      var x0 = x[0], y0 = y[0], dx = x[j] - x0, dy = y[j] - y0, i = -1, t;
+      while (++i <= j) {
+        t = i / j;
+        this._basis.point(this._beta * x[i] + (1 - this._beta) * (x0 + t * dx), this._beta * y[i] + (1 - this._beta) * (y0 + t * dy));
+      }
+    }
+    this._x = this._y = null;
+    this._basis.lineEnd();
+  },
+  point: function (x, y) {
+    this._x.push(+x);
+    this._y.push(+y);
+  }
+};
+exports.default = (function custom(beta) {
+  function bundle(context) {
+    return beta === 1 ? new basis_js_1.Basis(context) : new Bundle(context, beta);
+  }
+  bundle.beta = function (beta) {
+    return custom(+beta);
+  };
+  return bundle;
+})(0.85);
+
+},
+
+// node_modules/d3-shape/src/curve/cardinalClosed.js @102
+102: function(__fusereq, exports, module){
+exports.__esModule = true;
+var noop_js_1 = __fusereq(186);
+var noop_js_1d = __fuse.dt(noop_js_1);
+var cardinal_js_1 = __fusereq(104);
+function CardinalClosed(context, tension) {
+  this._context = context;
+  this._k = (1 - tension) / 6;
+}
+exports.CardinalClosed = CardinalClosed;
+CardinalClosed.prototype = {
+  areaStart: noop_js_1d.default,
+  areaEnd: noop_js_1d.default,
+  lineStart: function () {
+    this._x0 = this._x1 = this._x2 = this._x3 = this._x4 = this._x5 = this._y0 = this._y1 = this._y2 = this._y3 = this._y4 = this._y5 = NaN;
+    this._point = 0;
+  },
+  lineEnd: function () {
+    switch (this._point) {
+      case 1:
+        {
+          this._context.moveTo(this._x3, this._y3);
+          this._context.closePath();
+          break;
+        }
+      case 2:
+        {
+          this._context.lineTo(this._x3, this._y3);
+          this._context.closePath();
+          break;
+        }
+      case 3:
+        {
+          this.point(this._x3, this._y3);
+          this.point(this._x4, this._y4);
+          this.point(this._x5, this._y5);
+          break;
+        }
+    }
+  },
+  point: function (x, y) {
+    (x = +x, y = +y);
+    switch (this._point) {
+      case 0:
+        this._point = 1;
+        (this._x3 = x, this._y3 = y);
+        break;
+      case 1:
+        this._point = 2;
+        this._context.moveTo(this._x4 = x, this._y4 = y);
+        break;
+      case 2:
+        this._point = 3;
+        (this._x5 = x, this._y5 = y);
+        break;
+      default:
+        cardinal_js_1.point(this, x, y);
+        break;
+    }
+    (this._x0 = this._x1, this._x1 = this._x2, this._x2 = x);
+    (this._y0 = this._y1, this._y1 = this._y2, this._y2 = y);
+  }
+};
+exports.default = (function custom(tension) {
+  function cardinal(context) {
+    return new CardinalClosed(context, tension);
+  }
+  cardinal.tension = function (tension) {
+    return custom(+tension);
+  };
+  return cardinal;
+})(0);
+
+},
+
+// node_modules/d3-shape/src/curve/cardinalOpen.js @103
+103: function(__fusereq, exports, module){
+exports.__esModule = true;
+var cardinal_js_1 = __fusereq(104);
+function CardinalOpen(context, tension) {
+  this._context = context;
+  this._k = (1 - tension) / 6;
+}
+exports.CardinalOpen = CardinalOpen;
+CardinalOpen.prototype = {
+  areaStart: function () {
+    this._line = 0;
+  },
+  areaEnd: function () {
+    this._line = NaN;
+  },
+  lineStart: function () {
+    this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
+    this._point = 0;
+  },
+  lineEnd: function () {
+    if (this._line || this._line !== 0 && this._point === 3) this._context.closePath();
+    this._line = 1 - this._line;
+  },
+  point: function (x, y) {
+    (x = +x, y = +y);
+    switch (this._point) {
+      case 0:
+        this._point = 1;
+        break;
+      case 1:
+        this._point = 2;
+        break;
+      case 2:
+        this._point = 3;
+        this._line ? this._context.lineTo(this._x2, this._y2) : this._context.moveTo(this._x2, this._y2);
+        break;
+      case 3:
+        this._point = 4;
+      default:
+        cardinal_js_1.point(this, x, y);
+        break;
+    }
+    (this._x0 = this._x1, this._x1 = this._x2, this._x2 = x);
+    (this._y0 = this._y1, this._y1 = this._y2, this._y2 = y);
+  }
+};
+exports.default = (function custom(tension) {
+  function cardinal(context) {
+    return new CardinalOpen(context, tension);
+  }
+  cardinal.tension = function (tension) {
+    return custom(+tension);
+  };
+  return cardinal;
+})(0);
+
+},
+
+// node_modules/d3-shape/src/curve/cardinal.js @104
+104: function(__fusereq, exports, module){
+exports.__esModule = true;
+function point(that, x, y) {
+  that._context.bezierCurveTo(that._x1 + that._k * (that._x2 - that._x0), that._y1 + that._k * (that._y2 - that._y0), that._x2 + that._k * (that._x1 - x), that._y2 + that._k * (that._y1 - y), that._x2, that._y2);
+}
+exports.point = point;
+function Cardinal(context, tension) {
+  this._context = context;
+  this._k = (1 - tension) / 6;
+}
+exports.Cardinal = Cardinal;
+Cardinal.prototype = {
+  areaStart: function () {
+    this._line = 0;
+  },
+  areaEnd: function () {
+    this._line = NaN;
+  },
+  lineStart: function () {
+    this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
+    this._point = 0;
+  },
+  lineEnd: function () {
+    switch (this._point) {
+      case 2:
+        this._context.lineTo(this._x2, this._y2);
+        break;
+      case 3:
+        point(this, this._x1, this._y1);
+        break;
+    }
+    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+    this._line = 1 - this._line;
+  },
+  point: function (x, y) {
+    (x = +x, y = +y);
+    switch (this._point) {
+      case 0:
+        this._point = 1;
+        this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+        break;
+      case 1:
+        this._point = 2;
+        (this._x1 = x, this._y1 = y);
+        break;
+      case 2:
+        this._point = 3;
+      default:
+        point(this, x, y);
+        break;
+    }
+    (this._x0 = this._x1, this._x1 = this._x2, this._x2 = x);
+    (this._y0 = this._y1, this._y1 = this._y2, this._y2 = y);
+  }
+};
+exports.default = (function custom(tension) {
+  function cardinal(context) {
+    return new Cardinal(context, tension);
+  }
+  cardinal.tension = function (tension) {
+    return custom(+tension);
+  };
+  return cardinal;
+})(0);
+
+},
+
+// node_modules/d3-shape/src/curve/catmullRomClosed.js @105
+105: function(__fusereq, exports, module){
+exports.__esModule = true;
+var cardinalClosed_js_1 = __fusereq(102);
+var noop_js_1 = __fusereq(186);
+var noop_js_1d = __fuse.dt(noop_js_1);
+var catmullRom_js_1 = __fusereq(107);
+function CatmullRomClosed(context, alpha) {
+  this._context = context;
+  this._alpha = alpha;
+}
+CatmullRomClosed.prototype = {
+  areaStart: noop_js_1d.default,
+  areaEnd: noop_js_1d.default,
+  lineStart: function () {
+    this._x0 = this._x1 = this._x2 = this._x3 = this._x4 = this._x5 = this._y0 = this._y1 = this._y2 = this._y3 = this._y4 = this._y5 = NaN;
+    this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
+  },
+  lineEnd: function () {
+    switch (this._point) {
+      case 1:
+        {
+          this._context.moveTo(this._x3, this._y3);
+          this._context.closePath();
+          break;
+        }
+      case 2:
+        {
+          this._context.lineTo(this._x3, this._y3);
+          this._context.closePath();
+          break;
+        }
+      case 3:
+        {
+          this.point(this._x3, this._y3);
+          this.point(this._x4, this._y4);
+          this.point(this._x5, this._y5);
+          break;
+        }
+    }
+  },
+  point: function (x, y) {
+    (x = +x, y = +y);
+    if (this._point) {
+      var x23 = this._x2 - x, y23 = this._y2 - y;
+      this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
+    }
+    switch (this._point) {
+      case 0:
+        this._point = 1;
+        (this._x3 = x, this._y3 = y);
+        break;
+      case 1:
+        this._point = 2;
+        this._context.moveTo(this._x4 = x, this._y4 = y);
+        break;
+      case 2:
+        this._point = 3;
+        (this._x5 = x, this._y5 = y);
+        break;
+      default:
+        catmullRom_js_1.point(this, x, y);
+        break;
+    }
+    (this._l01_a = this._l12_a, this._l12_a = this._l23_a);
+    (this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a);
+    (this._x0 = this._x1, this._x1 = this._x2, this._x2 = x);
+    (this._y0 = this._y1, this._y1 = this._y2, this._y2 = y);
+  }
+};
+exports.default = (function custom(alpha) {
+  function catmullRom(context) {
+    return alpha ? new CatmullRomClosed(context, alpha) : new cardinalClosed_js_1.CardinalClosed(context, 0);
+  }
+  catmullRom.alpha = function (alpha) {
+    return custom(+alpha);
+  };
+  return catmullRom;
+})(0.5);
+
+},
+
+// node_modules/d3-shape/src/curve/catmullRomOpen.js @106
+106: function(__fusereq, exports, module){
+exports.__esModule = true;
+var cardinalOpen_js_1 = __fusereq(103);
+var catmullRom_js_1 = __fusereq(107);
+function CatmullRomOpen(context, alpha) {
+  this._context = context;
+  this._alpha = alpha;
+}
+CatmullRomOpen.prototype = {
+  areaStart: function () {
+    this._line = 0;
+  },
+  areaEnd: function () {
+    this._line = NaN;
+  },
+  lineStart: function () {
+    this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
+    this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
+  },
+  lineEnd: function () {
+    if (this._line || this._line !== 0 && this._point === 3) this._context.closePath();
+    this._line = 1 - this._line;
+  },
+  point: function (x, y) {
+    (x = +x, y = +y);
+    if (this._point) {
+      var x23 = this._x2 - x, y23 = this._y2 - y;
+      this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
+    }
+    switch (this._point) {
+      case 0:
+        this._point = 1;
+        break;
+      case 1:
+        this._point = 2;
+        break;
+      case 2:
+        this._point = 3;
+        this._line ? this._context.lineTo(this._x2, this._y2) : this._context.moveTo(this._x2, this._y2);
+        break;
+      case 3:
+        this._point = 4;
+      default:
+        catmullRom_js_1.point(this, x, y);
+        break;
+    }
+    (this._l01_a = this._l12_a, this._l12_a = this._l23_a);
+    (this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a);
+    (this._x0 = this._x1, this._x1 = this._x2, this._x2 = x);
+    (this._y0 = this._y1, this._y1 = this._y2, this._y2 = y);
+  }
+};
+exports.default = (function custom(alpha) {
+  function catmullRom(context) {
+    return alpha ? new CatmullRomOpen(context, alpha) : new cardinalOpen_js_1.CardinalOpen(context, 0);
+  }
+  catmullRom.alpha = function (alpha) {
+    return custom(+alpha);
+  };
+  return catmullRom;
+})(0.5);
+
+},
+
+// node_modules/d3-shape/src/curve/catmullRom.js @107
+107: function(__fusereq, exports, module){
+exports.__esModule = true;
+var math_js_1 = __fusereq(182);
+var cardinal_js_1 = __fusereq(104);
+function point(that, x, y) {
+  var x1 = that._x1, y1 = that._y1, x2 = that._x2, y2 = that._y2;
+  if (that._l01_a > math_js_1.epsilon) {
+    var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a, n = 3 * that._l01_a * (that._l01_a + that._l12_a);
+    x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n;
+    y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n;
+  }
+  if (that._l23_a > math_js_1.epsilon) {
+    var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a, m = 3 * that._l23_a * (that._l23_a + that._l12_a);
+    x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m;
+    y2 = (y2 * b + that._y1 * that._l23_2a - y * that._l12_2a) / m;
+  }
+  that._context.bezierCurveTo(x1, y1, x2, y2, that._x2, that._y2);
+}
+exports.point = point;
+function CatmullRom(context, alpha) {
+  this._context = context;
+  this._alpha = alpha;
+}
+CatmullRom.prototype = {
+  areaStart: function () {
+    this._line = 0;
+  },
+  areaEnd: function () {
+    this._line = NaN;
+  },
+  lineStart: function () {
+    this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
+    this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
+  },
+  lineEnd: function () {
+    switch (this._point) {
+      case 2:
+        this._context.lineTo(this._x2, this._y2);
+        break;
+      case 3:
+        this.point(this._x2, this._y2);
+        break;
+    }
+    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+    this._line = 1 - this._line;
+  },
+  point: function (x, y) {
+    (x = +x, y = +y);
+    if (this._point) {
+      var x23 = this._x2 - x, y23 = this._y2 - y;
+      this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
+    }
+    switch (this._point) {
+      case 0:
+        this._point = 1;
+        this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+        break;
+      case 1:
+        this._point = 2;
+        break;
+      case 2:
+        this._point = 3;
+      default:
+        point(this, x, y);
+        break;
+    }
+    (this._l01_a = this._l12_a, this._l12_a = this._l23_a);
+    (this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a);
+    (this._x0 = this._x1, this._x1 = this._x2, this._x2 = x);
+    (this._y0 = this._y1, this._y1 = this._y2, this._y2 = y);
+  }
+};
+exports.default = (function custom(alpha) {
+  function catmullRom(context) {
+    return alpha ? new CatmullRom(context, alpha) : new cardinal_js_1.Cardinal(context, 0);
+  }
+  catmullRom.alpha = function (alpha) {
+    return custom(+alpha);
+  };
+  return catmullRom;
+})(0.5);
+
+},
+
+// node_modules/d3-shape/src/curve/linearClosed.js @108
+108: function(__fusereq, exports, module){
+exports.__esModule = true;
+var noop_js_1 = __fusereq(186);
+var noop_js_1d = __fuse.dt(noop_js_1);
+function LinearClosed(context) {
+  this._context = context;
+}
+LinearClosed.prototype = {
+  areaStart: noop_js_1d.default,
+  areaEnd: noop_js_1d.default,
+  lineStart: function () {
+    this._point = 0;
+  },
+  lineEnd: function () {
+    if (this._point) this._context.closePath();
+  },
+  point: function (x, y) {
+    (x = +x, y = +y);
+    if (this._point) this._context.lineTo(x, y); else (this._point = 1, this._context.moveTo(x, y));
+  }
+};
+function __DefaultExport__(context) {
+  return new LinearClosed(context);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/curve/linear.js @109
+109: function(__fusereq, exports, module){
+exports.__esModule = true;
+function Linear(context) {
+  this._context = context;
+}
+Linear.prototype = {
+  areaStart: function () {
+    this._line = 0;
+  },
+  areaEnd: function () {
+    this._line = NaN;
+  },
+  lineStart: function () {
+    this._point = 0;
+  },
+  lineEnd: function () {
+    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+    this._line = 1 - this._line;
+  },
+  point: function (x, y) {
+    (x = +x, y = +y);
+    switch (this._point) {
+      case 0:
+        this._point = 1;
+        this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+        break;
+      case 1:
+        this._point = 2;
+      default:
+        this._context.lineTo(x, y);
+        break;
+    }
+  }
+};
+function __DefaultExport__(context) {
+  return new Linear(context);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/curve/monotone.js @110
+110: function(__fusereq, exports, module){
+function sign(x) {
+  return x < 0 ? -1 : 1;
+}
+function slope3(that, x2, y2) {
+  var h0 = that._x1 - that._x0, h1 = x2 - that._x1, s0 = (that._y1 - that._y0) / (h0 || h1 < 0 && -0), s1 = (y2 - that._y1) / (h1 || h0 < 0 && -0), p = (s0 * h1 + s1 * h0) / (h0 + h1);
+  return (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0;
+}
+function slope2(that, t) {
+  var h = that._x1 - that._x0;
+  return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
+}
+function point(that, t0, t1) {
+  var x0 = that._x0, y0 = that._y0, x1 = that._x1, y1 = that._y1, dx = (x1 - x0) / 3;
+  that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
+}
+function MonotoneX(context) {
+  this._context = context;
+}
+MonotoneX.prototype = {
+  areaStart: function () {
+    this._line = 0;
+  },
+  areaEnd: function () {
+    this._line = NaN;
+  },
+  lineStart: function () {
+    this._x0 = this._x1 = this._y0 = this._y1 = this._t0 = NaN;
+    this._point = 0;
+  },
+  lineEnd: function () {
+    switch (this._point) {
+      case 2:
+        this._context.lineTo(this._x1, this._y1);
+        break;
+      case 3:
+        point(this, this._t0, slope2(this, this._t0));
+        break;
+    }
+    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+    this._line = 1 - this._line;
+  },
+  point: function (x, y) {
+    var t1 = NaN;
+    (x = +x, y = +y);
+    if (x === this._x1 && y === this._y1) return;
+    switch (this._point) {
+      case 0:
+        this._point = 1;
+        this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+        break;
+      case 1:
+        this._point = 2;
+        break;
+      case 2:
+        this._point = 3;
+        point(this, slope2(this, t1 = slope3(this, x, y)), t1);
+        break;
+      default:
+        point(this, this._t0, t1 = slope3(this, x, y));
+        break;
+    }
+    (this._x0 = this._x1, this._x1 = x);
+    (this._y0 = this._y1, this._y1 = y);
+    this._t0 = t1;
+  }
+};
+function MonotoneY(context) {
+  this._context = new ReflectContext(context);
+}
+(MonotoneY.prototype = Object.create(MonotoneX.prototype)).point = function (x, y) {
+  MonotoneX.prototype.point.call(this, y, x);
+};
+function ReflectContext(context) {
+  this._context = context;
+}
+ReflectContext.prototype = {
+  moveTo: function (x, y) {
+    this._context.moveTo(y, x);
+  },
+  closePath: function () {
+    this._context.closePath();
+  },
+  lineTo: function (x, y) {
+    this._context.lineTo(y, x);
+  },
+  bezierCurveTo: function (x1, y1, x2, y2, x, y) {
+    this._context.bezierCurveTo(y1, x1, y2, x2, y, x);
+  }
+};
+function monotoneX(context) {
+  return new MonotoneX(context);
+}
+exports.monotoneX = monotoneX;
+function monotoneY(context) {
+  return new MonotoneY(context);
+}
+exports.monotoneY = monotoneY;
+
+},
+
+// node_modules/d3-shape/src/curve/natural.js @111
+111: function(__fusereq, exports, module){
+exports.__esModule = true;
+function Natural(context) {
+  this._context = context;
+}
+Natural.prototype = {
+  areaStart: function () {
+    this._line = 0;
+  },
+  areaEnd: function () {
+    this._line = NaN;
+  },
+  lineStart: function () {
+    this._x = [];
+    this._y = [];
+  },
+  lineEnd: function () {
+    var x = this._x, y = this._y, n = x.length;
+    if (n) {
+      this._line ? this._context.lineTo(x[0], y[0]) : this._context.moveTo(x[0], y[0]);
+      if (n === 2) {
+        this._context.lineTo(x[1], y[1]);
+      } else {
+        var px = controlPoints(x), py = controlPoints(y);
+        for (var i0 = 0, i1 = 1; i1 < n; (++i0, ++i1)) {
+          this._context.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x[i1], y[i1]);
+        }
+      }
+    }
+    if (this._line || this._line !== 0 && n === 1) this._context.closePath();
+    this._line = 1 - this._line;
+    this._x = this._y = null;
+  },
+  point: function (x, y) {
+    this._x.push(+x);
+    this._y.push(+y);
+  }
+};
+function controlPoints(x) {
+  var i, n = x.length - 1, m, a = new Array(n), b = new Array(n), r = new Array(n);
+  (a[0] = 0, b[0] = 2, r[0] = x[0] + 2 * x[1]);
+  for (i = 1; i < n - 1; ++i) (a[i] = 1, b[i] = 4, r[i] = 4 * x[i] + 2 * x[i + 1]);
+  (a[n - 1] = 2, b[n - 1] = 7, r[n - 1] = 8 * x[n - 1] + x[n]);
+  for (i = 1; i < n; ++i) (m = a[i] / b[i - 1], b[i] -= m, r[i] -= m * r[i - 1]);
+  a[n - 1] = r[n - 1] / b[n - 1];
+  for (i = n - 2; i >= 0; --i) a[i] = (r[i] - a[i + 1]) / b[i];
+  b[n - 1] = (x[n] + a[n - 1]) / 2;
+  for (i = 0; i < n - 1; ++i) b[i] = 2 * x[i + 1] - a[i + 1];
+  return [a, b];
+}
+function __DefaultExport__(context) {
+  return new Natural(context);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/curve/step.js @112
+112: function(__fusereq, exports, module){
+exports.__esModule = true;
+function Step(context, t) {
+  this._context = context;
+  this._t = t;
+}
+Step.prototype = {
+  areaStart: function () {
+    this._line = 0;
+  },
+  areaEnd: function () {
+    this._line = NaN;
+  },
+  lineStart: function () {
+    this._x = this._y = NaN;
+    this._point = 0;
+  },
+  lineEnd: function () {
+    if (0 < this._t && this._t < 1 && this._point === 2) this._context.lineTo(this._x, this._y);
+    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+    if (this._line >= 0) (this._t = 1 - this._t, this._line = 1 - this._line);
+  },
+  point: function (x, y) {
+    (x = +x, y = +y);
+    switch (this._point) {
+      case 0:
+        this._point = 1;
+        this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+        break;
+      case 1:
+        this._point = 2;
+      default:
+        {
+          if (this._t <= 0) {
+            this._context.lineTo(this._x, y);
+            this._context.lineTo(x, y);
+          } else {
+            var x1 = this._x * (1 - this._t) + x * this._t;
+            this._context.lineTo(x1, this._y);
+            this._context.lineTo(x1, y);
+          }
+          break;
+        }
+    }
+    (this._x = x, this._y = y);
+  }
+};
+function __DefaultExport__(context) {
+  return new Step(context, 0.5);
+}
+exports.default = __DefaultExport__;
+function stepBefore(context) {
+  return new Step(context, 0);
+}
+exports.stepBefore = stepBefore;
+function stepAfter(context) {
+  return new Step(context, 1);
+}
+exports.stepAfter = stepAfter;
+
+},
+
+// node_modules/d3-shape/src/stack.js @113
+113: function(__fusereq, exports, module){
+exports.__esModule = true;
+var array_js_1 = __fusereq(179);
+var array_js_1d = __fuse.dt(array_js_1);
+var constant_js_1 = __fusereq(180);
+var constant_js_1d = __fuse.dt(constant_js_1);
+var none_js_1 = __fusereq(116);
+var none_js_1d = __fuse.dt(none_js_1);
+var none_js_2 = __fusereq(123);
+var none_js_2d = __fuse.dt(none_js_2);
+function stackValue(d, key) {
+  return d[key];
+}
+function stackSeries(key) {
+  const series = [];
+  series.key = key;
+  return series;
+}
+function __DefaultExport__() {
+  var keys = constant_js_1d.default([]), order = none_js_2d.default, offset = none_js_1d.default, value = stackValue;
+  function stack(data) {
+    var sz = Array.from(keys.apply(this, arguments), stackSeries), i, n = sz.length, j = -1, oz;
+    for (const d of data) {
+      for ((i = 0, ++j); i < n; ++i) {
+        (sz[i][j] = [0, +value(d, sz[i].key, j, data)]).data = d;
+      }
+    }
+    for ((i = 0, oz = array_js_1d.default(order(sz))); i < n; ++i) {
+      sz[oz[i]].index = i;
+    }
+    offset(sz, oz);
+    return sz;
+  }
+  stack.keys = function (_) {
+    return arguments.length ? (keys = typeof _ === "function" ? _ : constant_js_1d.default(Array.from(_)), stack) : keys;
+  };
+  stack.value = function (_) {
+    return arguments.length ? (value = typeof _ === "function" ? _ : constant_js_1d.default(+_), stack) : value;
+  };
+  stack.order = function (_) {
+    return arguments.length ? (order = _ == null ? none_js_2d.default : typeof _ === "function" ? _ : constant_js_1d.default(Array.from(_)), stack) : order;
+  };
+  stack.offset = function (_) {
+    return arguments.length ? (offset = _ == null ? none_js_1d.default : _, stack) : offset;
+  };
+  return stack;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/offset/expand.js @114
+114: function(__fusereq, exports, module){
+exports.__esModule = true;
+var none_js_1 = __fusereq(116);
+var none_js_1d = __fuse.dt(none_js_1);
+function __DefaultExport__(series, order) {
+  if (!((n = series.length) > 0)) return;
+  for (var i, n, j = 0, m = series[0].length, y; j < m; ++j) {
+    for (y = i = 0; i < n; ++i) y += series[i][j][1] || 0;
+    if (y) for (i = 0; i < n; ++i) series[i][j][1] /= y;
+  }
+  none_js_1d.default(series, order);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/offset/diverging.js @115
+115: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(series, order) {
+  if (!((n = series.length) > 0)) return;
+  for (var i, j = 0, d, dy, yp, yn, n, m = series[order[0]].length; j < m; ++j) {
+    for ((yp = yn = 0, i = 0); i < n; ++i) {
+      if ((dy = (d = series[order[i]][j])[1] - d[0]) > 0) {
+        (d[0] = yp, d[1] = yp += dy);
+      } else if (dy < 0) {
+        (d[1] = yn, d[0] = yn += dy);
+      } else {
+        (d[0] = 0, d[1] = dy);
+      }
+    }
+  }
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/offset/none.js @116
+116: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(series, order) {
+  if (!((n = series.length) > 1)) return;
+  for (var i = 1, j, s0, s1 = series[order[0]], n, m = s1.length; i < n; ++i) {
+    (s0 = s1, s1 = series[order[i]]);
+    for (j = 0; j < m; ++j) {
+      s1[j][1] += s1[j][0] = isNaN(s0[j][1]) ? s0[j][0] : s0[j][1];
+    }
+  }
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/offset/silhouette.js @117
+117: function(__fusereq, exports, module){
+exports.__esModule = true;
+var none_js_1 = __fusereq(116);
+var none_js_1d = __fuse.dt(none_js_1);
+function __DefaultExport__(series, order) {
+  if (!((n = series.length) > 0)) return;
+  for (var j = 0, s0 = series[order[0]], n, m = s0.length; j < m; ++j) {
+    for (var i = 0, y = 0; i < n; ++i) y += series[i][j][1] || 0;
+    s0[j][1] += s0[j][0] = -y / 2;
+  }
+  none_js_1d.default(series, order);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/offset/wiggle.js @118
+118: function(__fusereq, exports, module){
+exports.__esModule = true;
+var none_js_1 = __fusereq(116);
+var none_js_1d = __fuse.dt(none_js_1);
+function __DefaultExport__(series, order) {
+  if (!((n = series.length) > 0) || !((m = (s0 = series[order[0]]).length) > 0)) return;
+  for (var y = 0, j = 1, s0, m, n; j < m; ++j) {
+    for (var i = 0, s1 = 0, s2 = 0; i < n; ++i) {
+      var si = series[order[i]], sij0 = si[j][1] || 0, sij1 = si[j - 1][1] || 0, s3 = (sij0 - sij1) / 2;
+      for (var k = 0; k < i; ++k) {
+        var sk = series[order[k]], skj0 = sk[j][1] || 0, skj1 = sk[j - 1][1] || 0;
+        s3 += skj0 - skj1;
+      }
+      (s1 += sij0, s2 += s3 * sij0);
+    }
+    s0[j - 1][1] += s0[j - 1][0] = y;
+    if (s1) y -= s2 / s1;
+  }
+  s0[j - 1][1] += s0[j - 1][0] = y;
+  none_js_1d.default(series, order);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/order/appearance.js @119
+119: function(__fusereq, exports, module){
+exports.__esModule = true;
+var none_js_1 = __fusereq(123);
+var none_js_1d = __fuse.dt(none_js_1);
+function __DefaultExport__(series) {
+  var peaks = series.map(peak);
+  return none_js_1d.default(series).sort(function (a, b) {
+    return peaks[a] - peaks[b];
+  });
+}
+exports.default = __DefaultExport__;
+function peak(series) {
+  var i = -1, j = 0, n = series.length, vi, vj = -Infinity;
+  while (++i < n) if ((vi = +series[i][1]) > vj) (vj = vi, j = i);
+  return j;
+}
+
+},
+
+// node_modules/d3-shape/src/order/ascending.js @120
+120: function(__fusereq, exports, module){
+exports.__esModule = true;
+var none_js_1 = __fusereq(123);
+var none_js_1d = __fuse.dt(none_js_1);
+function __DefaultExport__(series) {
+  var sums = series.map(sum);
+  return none_js_1d.default(series).sort(function (a, b) {
+    return sums[a] - sums[b];
+  });
+}
+exports.default = __DefaultExport__;
+function sum(series) {
+  var s = 0, i = -1, n = series.length, v;
+  while (++i < n) if (v = +series[i][1]) s += v;
+  return s;
+}
+exports.sum = sum;
+
+},
+
+// node_modules/d3-shape/src/order/descending.js @121
+121: function(__fusereq, exports, module){
+exports.__esModule = true;
+var ascending_js_1 = __fusereq(120);
+var ascending_js_1d = __fuse.dt(ascending_js_1);
+function __DefaultExport__(series) {
+  return ascending_js_1d.default(series).reverse();
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/order/insideOut.js @122
+122: function(__fusereq, exports, module){
+exports.__esModule = true;
+var appearance_js_1 = __fusereq(119);
+var appearance_js_1d = __fuse.dt(appearance_js_1);
+var ascending_js_1 = __fusereq(120);
+function __DefaultExport__(series) {
+  var n = series.length, i, j, sums = series.map(ascending_js_1.sum), order = appearance_js_1d.default(series), top = 0, bottom = 0, tops = [], bottoms = [];
+  for (i = 0; i < n; ++i) {
+    j = order[i];
+    if (top < bottom) {
+      top += sums[j];
+      tops.push(j);
+    } else {
+      bottom += sums[j];
+      bottoms.push(j);
+    }
+  }
+  return bottoms.reverse().concat(tops);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/order/none.js @123
+123: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(series) {
+  var n = series.length, o = new Array(n);
+  while (--n >= 0) o[n] = n;
+  return o;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/order/reverse.js @124
+124: function(__fusereq, exports, module){
+exports.__esModule = true;
+var none_js_1 = __fusereq(123);
+var none_js_1d = __fuse.dt(none_js_1);
+function __DefaultExport__(series) {
+  return none_js_1d.default(series).reverse();
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/array.js @179
+179: function(__fusereq, exports, module){
+exports.__esModule = true;
+exports.slice = Array.prototype.slice;
+function __DefaultExport__(x) {
+  return typeof x === "object" && ("length" in x) ? x : Array.from(x);
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/constant.js @180
+180: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(x) {
+  return function constant() {
+    return x;
+  };
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/point.js @181
+181: function(__fusereq, exports, module){
+function x(p) {
+  return p[0];
+}
+exports.x = x;
+function y(p) {
+  return p[1];
+}
+exports.y = y;
+
+},
+
+// node_modules/d3-shape/src/math.js @182
+182: function(__fusereq, exports, module){
+exports.__esModule = true;
+exports.abs = Math.abs;
+exports.atan2 = Math.atan2;
+exports.cos = Math.cos;
+exports.max = Math.max;
+exports.min = Math.min;
+exports.sin = Math.sin;
+exports.sqrt = Math.sqrt;
+exports.epsilon = 1e-12;
+exports.pi = Math.PI;
+exports.halfPi = exports.pi / 2;
+exports.tau = 2 * exports.pi;
+function acos(x) {
+  return x > 1 ? 0 : x < -1 ? exports.pi : Math.acos(x);
+}
+exports.acos = acos;
+function asin(x) {
+  return x >= 1 ? exports.halfPi : x <= -1 ? -exports.halfPi : Math.asin(x);
+}
+exports.asin = asin;
+
+},
+
+// node_modules/d3-shape/src/descending.js @183
+183: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(a, b) {
+  return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/identity.js @184
+184: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__(d) {
+  return d;
+}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/d3-shape/src/curve/radial.js @185
+185: function(__fusereq, exports, module){
+exports.__esModule = true;
+var linear_js_1 = __fusereq(109);
+var linear_js_1d = __fuse.dt(linear_js_1);
+exports.curveRadialLinear = curveRadial(linear_js_1d.default);
+function Radial(curve) {
+  this._curve = curve;
+}
+Radial.prototype = {
+  areaStart: function () {
+    this._curve.areaStart();
+  },
+  areaEnd: function () {
+    this._curve.areaEnd();
+  },
+  lineStart: function () {
+    this._curve.lineStart();
+  },
+  lineEnd: function () {
+    this._curve.lineEnd();
+  },
+  point: function (a, r) {
+    this._curve.point(r * Math.sin(a), r * -Math.cos(a));
+  }
+};
+function curveRadial(curve) {
+  function radial(context) {
+    return new Radial(curve(context));
+  }
+  radial._curve = curve;
+  return radial;
+}
+exports.default = curveRadial;
+
+},
+
+// node_modules/d3-shape/src/noop.js @186
+186: function(__fusereq, exports, module){
+exports.__esModule = true;
+function __DefaultExport__() {}
+exports.default = __DefaultExport__;
+
+},
+
+// node_modules/@codemirror/history/dist/index.js @30
+30: function(__fusereq, exports, module){
+exports.__esModule = true;
+var state_1 = __fusereq(15);
+var view_1 = __fusereq(14);
+const fromHistory = state_1.Annotation.define();
+const isolateHistory = state_1.Annotation.define();
+const invertedEffects = state_1.Facet.define();
+const historyConfig = state_1.Facet.define({
+  combine(configs) {
+    return state_1.combineConfig(configs, {
+      minDepth: 100,
+      newGroupDelay: 500
+    }, {
+      minDepth: Math.max,
+      newGroupDelay: Math.min
+    });
   }
 });
-const showPanel = state_1.Facet.define({
-  enables: [panelPlugin, baseTheme]
+const historyField = state_1.StateField.define({
+  create() {
+    return HistoryState.empty;
+  },
+  update(state, tr) {
+    let config = tr.state.facet(historyConfig);
+    let fromHist = tr.annotation(fromHistory);
+    if (fromHist) {
+      let item = HistEvent.fromTransaction(tr), from = fromHist.side;
+      let other = from == 0 ? state.undone : state.done;
+      if (item) other = updateBranch(other, other.length, config.minDepth, item); else other = addSelection(other, tr.startState.selection);
+      return new HistoryState(from == 0 ? fromHist.rest : other, from == 0 ? other : fromHist.rest);
+    }
+    let isolate = tr.annotation(isolateHistory);
+    if (isolate == "full" || isolate == "before") state = state.isolate();
+    if (tr.annotation(state_1.Transaction.addToHistory) === false) return !tr.changes.empty ? state.addMapping(tr.changes.desc) : state;
+    let event = HistEvent.fromTransaction(tr);
+    let time = tr.annotation(state_1.Transaction.time), userEvent = tr.annotation(state_1.Transaction.userEvent);
+    if (event) state = state.addChanges(event, time, userEvent, config.newGroupDelay, config.minDepth); else if (tr.selection) state = state.addSelection(tr.startState.selection, time, userEvent, config.newGroupDelay);
+    if (isolate == "full" || isolate == "after") state = state.isolate();
+    return state;
+  }
 });
-exports.getPanel = getPanel;
-exports.panels = panels;
-exports.showPanel = showPanel;
+function history(config = {}) {
+  return [historyField, historyConfig.of(config), view_1.EditorView.domEventHandlers({
+    beforeinput(e, view) {
+      if (e.inputType == "historyUndo") return undo(view);
+      if (e.inputType == "historyRedo") return redo(view);
+      return false;
+    }
+  })];
+}
+function cmd(side, selection) {
+  return function ({state, dispatch}) {
+    let historyState = state.field(historyField, false);
+    if (!historyState) return false;
+    let tr = historyState.pop(side, state, selection);
+    if (!tr) return false;
+    dispatch(tr);
+    return true;
+  };
+}
+const undo = cmd(0, false);
+const redo = cmd(1, false);
+const undoSelection = cmd(0, true);
+const redoSelection = cmd(1, true);
+function depth(side) {
+  return function (state) {
+    let histState = state.field(historyField, false);
+    if (!histState) return 0;
+    let branch = side == 0 ? histState.done : histState.undone;
+    return branch.length - (branch.length && !branch[0].changes ? 1 : 0);
+  };
+}
+const undoDepth = depth(0);
+const redoDepth = depth(1);
+class HistEvent {
+  constructor(changes, effects, mapped, startSelection, selectionsAfter) {
+    this.changes = changes;
+    this.effects = effects;
+    this.mapped = mapped;
+    this.startSelection = startSelection;
+    this.selectionsAfter = selectionsAfter;
+  }
+  setSelAfter(after) {
+    return new HistEvent(this.changes, this.effects, this.mapped, this.startSelection, after);
+  }
+  static fromTransaction(tr) {
+    let effects = none;
+    for (let invert of tr.startState.facet(invertedEffects)) {
+      let result = invert(tr);
+      if (result.length) effects = effects.concat(result);
+    }
+    if (!effects.length && tr.changes.empty) return null;
+    return new HistEvent(tr.changes.invert(tr.startState.doc), effects, undefined, tr.startState.selection, none);
+  }
+  static selection(selections) {
+    return new HistEvent(undefined, none, undefined, undefined, selections);
+  }
+}
+function updateBranch(branch, to, maxLen, newEvent) {
+  let start = to + 1 > maxLen + 20 ? to - maxLen - 1 : 0;
+  let newBranch = branch.slice(start, to);
+  newBranch.push(newEvent);
+  return newBranch;
+}
+function isAdjacent(a, b) {
+  let ranges = [], isAdjacent = false;
+  a.iterChangedRanges((f, t) => ranges.push(f, t));
+  b.iterChangedRanges((_f, _t, f, t) => {
+    for (let i = 0; i < ranges.length; ) {
+      let from = ranges[i++], to = ranges[i++];
+      if (t >= from && f <= to) isAdjacent = true;
+    }
+  });
+  return isAdjacent;
+}
+function eqSelectionShape(a, b) {
+  return a.ranges.length == b.ranges.length && a.ranges.filter((r, i) => r.empty != b.ranges[i].empty).length === 0;
+}
+function conc(a, b) {
+  return !a.length ? b : !b.length ? a : a.concat(b);
+}
+const none = [];
+const MaxSelectionsPerEvent = 200;
+function addSelection(branch, selection) {
+  if (!branch.length) {
+    return [HistEvent.selection([selection])];
+  } else {
+    let lastEvent = branch[branch.length - 1];
+    let sels = lastEvent.selectionsAfter.slice(Math.max(0, lastEvent.selectionsAfter.length - MaxSelectionsPerEvent));
+    if (sels.length && sels[sels.length - 1].eq(selection)) return branch;
+    sels.push(selection);
+    return updateBranch(branch, branch.length - 1, 1e9, lastEvent.setSelAfter(sels));
+  }
+}
+function popSelection(branch) {
+  let last = branch[branch.length - 1];
+  let newBranch = branch.slice();
+  newBranch[branch.length - 1] = last.setSelAfter(last.selectionsAfter.slice(0, last.selectionsAfter.length - 1));
+  return newBranch;
+}
+function addMappingToBranch(branch, mapping) {
+  if (!branch.length) return branch;
+  let length = branch.length, selections = none;
+  while (length) {
+    let event = mapEvent(branch[length - 1], mapping, selections);
+    if (event.changes && !event.changes.empty || event.effects.length) {
+      let result = branch.slice(0, length);
+      result[length - 1] = event;
+      return result;
+    } else {
+      mapping = event.mapped;
+      length--;
+      selections = event.selectionsAfter;
+    }
+  }
+  return selections.length ? [HistEvent.selection(selections)] : none;
+}
+function mapEvent(event, mapping, extraSelections) {
+  let selections = conc(event.selectionsAfter.length ? event.selectionsAfter.map(s => s.map(mapping)) : none, extraSelections);
+  if (!event.changes) return HistEvent.selection(selections);
+  let mappedChanges = event.changes.map(mapping), before = mapping.mapDesc(event.changes, true);
+  let fullMapping = event.mapped ? event.mapped.composeDesc(before) : before;
+  return new HistEvent(mappedChanges, state_1.StateEffect.mapEffects(event.effects, mapping), fullMapping, event.startSelection.map(before), selections);
+}
+class HistoryState {
+  constructor(done, undone, prevTime = 0, prevUserEvent = undefined) {
+    this.done = done;
+    this.undone = undone;
+    this.prevTime = prevTime;
+    this.prevUserEvent = prevUserEvent;
+  }
+  isolate() {
+    return this.prevTime ? new HistoryState(this.done, this.undone) : this;
+  }
+  addChanges(event, time, userEvent, newGroupDelay, maxLen) {
+    let done = this.done, lastEvent = done[done.length - 1];
+    if (lastEvent && lastEvent.changes && time - this.prevTime < newGroupDelay && !lastEvent.selectionsAfter.length && !lastEvent.changes.empty && event.changes && isAdjacent(lastEvent.changes, event.changes)) {
+      done = updateBranch(done, done.length - 1, maxLen, new HistEvent(event.changes.compose(lastEvent.changes), conc(event.effects, lastEvent.effects), lastEvent.mapped, lastEvent.startSelection, none));
+    } else {
+      done = updateBranch(done, done.length, maxLen, event);
+    }
+    return new HistoryState(done, none, time, userEvent);
+  }
+  addSelection(selection, time, userEvent, newGroupDelay) {
+    let last = this.done.length ? this.done[this.done.length - 1].selectionsAfter : none;
+    if (last.length > 0 && time - this.prevTime < newGroupDelay && userEvent == "keyboardselection" && this.prevUserEvent == userEvent && eqSelectionShape(last[last.length - 1], selection)) return this;
+    return new HistoryState(addSelection(this.done, selection), this.undone, time, userEvent);
+  }
+  addMapping(mapping) {
+    return new HistoryState(addMappingToBranch(this.done, mapping), addMappingToBranch(this.undone, mapping), this.prevTime, this.prevUserEvent);
+  }
+  pop(side, state, selection) {
+    let branch = side == 0 ? this.done : this.undone;
+    if (branch.length == 0) return null;
+    let event = branch[branch.length - 1];
+    if (selection && event.selectionsAfter.length) {
+      return state.update({
+        selection: event.selectionsAfter[event.selectionsAfter.length - 1],
+        annotations: fromHistory.of({
+          side,
+          rest: popSelection(branch)
+        })
+      });
+    } else if (!event.changes) {
+      return null;
+    } else {
+      let rest = branch.length == 1 ? none : branch.slice(0, branch.length - 1);
+      if (event.mapped) rest = addMappingToBranch(rest, event.mapped);
+      return state.update({
+        changes: event.changes,
+        selection: event.startSelection,
+        effects: event.effects,
+        annotations: fromHistory.of({
+          side,
+          rest
+        }),
+        filter: false
+      });
+    }
+  }
+}
+HistoryState.empty = new HistoryState(none, none);
+const historyKeymap = [{
+  key: "Mod-z",
+  run: undo,
+  preventDefault: true
+}, {
+  key: "Mod-y",
+  mac: "Mod-Shift-z",
+  run: redo,
+  preventDefault: true
+}, {
+  key: "Mod-u",
+  run: undoSelection,
+  preventDefault: true
+}, {
+  key: "Alt-u",
+  mac: "Mod-Shift-u",
+  run: redoSelection,
+  preventDefault: true
+}];
+exports.history = history;
+exports.historyKeymap = historyKeymap;
+exports.invertedEffects = invertedEffects;
+exports.isolateHistory = isolateHistory;
+exports.redo = redo;
+exports.redoDepth = redoDepth;
+exports.redoSelection = redoSelection;
+exports.undo = undo;
+exports.undoDepth = undoDepth;
+exports.undoSelection = undoSelection;
 
 },
 
@@ -15104,261 +19764,6 @@ exports.rectangularSelection = rectangularSelection;
 
 },
 
-// node_modules/@codemirror/history/dist/index.js @30
-30: function(__fusereq, exports, module){
-exports.__esModule = true;
-var state_1 = __fusereq(15);
-var view_1 = __fusereq(14);
-const fromHistory = state_1.Annotation.define();
-const isolateHistory = state_1.Annotation.define();
-const invertedEffects = state_1.Facet.define();
-const historyConfig = state_1.Facet.define({
-  combine(configs) {
-    return state_1.combineConfig(configs, {
-      minDepth: 100,
-      newGroupDelay: 500
-    }, {
-      minDepth: Math.max,
-      newGroupDelay: Math.min
-    });
-  }
-});
-const historyField = state_1.StateField.define({
-  create() {
-    return HistoryState.empty;
-  },
-  update(state, tr) {
-    let config = tr.state.facet(historyConfig);
-    let fromHist = tr.annotation(fromHistory);
-    if (fromHist) {
-      let item = HistEvent.fromTransaction(tr), from = fromHist.side;
-      let other = from == 0 ? state.undone : state.done;
-      if (item) other = updateBranch(other, other.length, config.minDepth, item); else other = addSelection(other, tr.startState.selection);
-      return new HistoryState(from == 0 ? fromHist.rest : other, from == 0 ? other : fromHist.rest);
-    }
-    let isolate = tr.annotation(isolateHistory);
-    if (isolate == "full" || isolate == "before") state = state.isolate();
-    if (tr.annotation(state_1.Transaction.addToHistory) === false) return !tr.changes.empty ? state.addMapping(tr.changes.desc) : state;
-    let event = HistEvent.fromTransaction(tr);
-    let time = tr.annotation(state_1.Transaction.time), userEvent = tr.annotation(state_1.Transaction.userEvent);
-    if (event) state = state.addChanges(event, time, userEvent, config.newGroupDelay, config.minDepth); else if (tr.selection) state = state.addSelection(tr.startState.selection, time, userEvent, config.newGroupDelay);
-    if (isolate == "full" || isolate == "after") state = state.isolate();
-    return state;
-  }
-});
-function history(config = {}) {
-  return [historyField, historyConfig.of(config), view_1.EditorView.domEventHandlers({
-    beforeinput(e, view) {
-      if (e.inputType == "historyUndo") return undo(view);
-      if (e.inputType == "historyRedo") return redo(view);
-      return false;
-    }
-  })];
-}
-function cmd(side, selection) {
-  return function ({state, dispatch}) {
-    let historyState = state.field(historyField, false);
-    if (!historyState) return false;
-    let tr = historyState.pop(side, state, selection);
-    if (!tr) return false;
-    dispatch(tr);
-    return true;
-  };
-}
-const undo = cmd(0, false);
-const redo = cmd(1, false);
-const undoSelection = cmd(0, true);
-const redoSelection = cmd(1, true);
-function depth(side) {
-  return function (state) {
-    let histState = state.field(historyField, false);
-    if (!histState) return 0;
-    let branch = side == 0 ? histState.done : histState.undone;
-    return branch.length - (branch.length && !branch[0].changes ? 1 : 0);
-  };
-}
-const undoDepth = depth(0);
-const redoDepth = depth(1);
-class HistEvent {
-  constructor(changes, effects, mapped, startSelection, selectionsAfter) {
-    this.changes = changes;
-    this.effects = effects;
-    this.mapped = mapped;
-    this.startSelection = startSelection;
-    this.selectionsAfter = selectionsAfter;
-  }
-  setSelAfter(after) {
-    return new HistEvent(this.changes, this.effects, this.mapped, this.startSelection, after);
-  }
-  static fromTransaction(tr) {
-    let effects = none;
-    for (let invert of tr.startState.facet(invertedEffects)) {
-      let result = invert(tr);
-      if (result.length) effects = effects.concat(result);
-    }
-    if (!effects.length && tr.changes.empty) return null;
-    return new HistEvent(tr.changes.invert(tr.startState.doc), effects, undefined, tr.startState.selection, none);
-  }
-  static selection(selections) {
-    return new HistEvent(undefined, none, undefined, undefined, selections);
-  }
-}
-function updateBranch(branch, to, maxLen, newEvent) {
-  let start = to + 1 > maxLen + 20 ? to - maxLen - 1 : 0;
-  let newBranch = branch.slice(start, to);
-  newBranch.push(newEvent);
-  return newBranch;
-}
-function isAdjacent(a, b) {
-  let ranges = [], isAdjacent = false;
-  a.iterChangedRanges((f, t) => ranges.push(f, t));
-  b.iterChangedRanges((_f, _t, f, t) => {
-    for (let i = 0; i < ranges.length; ) {
-      let from = ranges[i++], to = ranges[i++];
-      if (t >= from && f <= to) isAdjacent = true;
-    }
-  });
-  return isAdjacent;
-}
-function eqSelectionShape(a, b) {
-  return a.ranges.length == b.ranges.length && a.ranges.filter((r, i) => r.empty != b.ranges[i].empty).length === 0;
-}
-function conc(a, b) {
-  return !a.length ? b : !b.length ? a : a.concat(b);
-}
-const none = [];
-const MaxSelectionsPerEvent = 200;
-function addSelection(branch, selection) {
-  if (!branch.length) {
-    return [HistEvent.selection([selection])];
-  } else {
-    let lastEvent = branch[branch.length - 1];
-    let sels = lastEvent.selectionsAfter.slice(Math.max(0, lastEvent.selectionsAfter.length - MaxSelectionsPerEvent));
-    if (sels.length && sels[sels.length - 1].eq(selection)) return branch;
-    sels.push(selection);
-    return updateBranch(branch, branch.length - 1, 1e9, lastEvent.setSelAfter(sels));
-  }
-}
-function popSelection(branch) {
-  let last = branch[branch.length - 1];
-  let newBranch = branch.slice();
-  newBranch[branch.length - 1] = last.setSelAfter(last.selectionsAfter.slice(0, last.selectionsAfter.length - 1));
-  return newBranch;
-}
-function addMappingToBranch(branch, mapping) {
-  if (!branch.length) return branch;
-  let length = branch.length, selections = none;
-  while (length) {
-    let event = mapEvent(branch[length - 1], mapping, selections);
-    if (event.changes && !event.changes.empty || event.effects.length) {
-      let result = branch.slice(0, length);
-      result[length - 1] = event;
-      return result;
-    } else {
-      mapping = event.mapped;
-      length--;
-      selections = event.selectionsAfter;
-    }
-  }
-  return selections.length ? [HistEvent.selection(selections)] : none;
-}
-function mapEvent(event, mapping, extraSelections) {
-  let selections = conc(event.selectionsAfter.length ? event.selectionsAfter.map(s => s.map(mapping)) : none, extraSelections);
-  if (!event.changes) return HistEvent.selection(selections);
-  let mappedChanges = event.changes.map(mapping), before = mapping.mapDesc(event.changes, true);
-  let fullMapping = event.mapped ? event.mapped.composeDesc(before) : before;
-  return new HistEvent(mappedChanges, state_1.StateEffect.mapEffects(event.effects, mapping), fullMapping, event.startSelection.map(before), selections);
-}
-class HistoryState {
-  constructor(done, undone, prevTime = 0, prevUserEvent = undefined) {
-    this.done = done;
-    this.undone = undone;
-    this.prevTime = prevTime;
-    this.prevUserEvent = prevUserEvent;
-  }
-  isolate() {
-    return this.prevTime ? new HistoryState(this.done, this.undone) : this;
-  }
-  addChanges(event, time, userEvent, newGroupDelay, maxLen) {
-    let done = this.done, lastEvent = done[done.length - 1];
-    if (lastEvent && lastEvent.changes && time - this.prevTime < newGroupDelay && !lastEvent.selectionsAfter.length && !lastEvent.changes.empty && event.changes && isAdjacent(lastEvent.changes, event.changes)) {
-      done = updateBranch(done, done.length - 1, maxLen, new HistEvent(event.changes.compose(lastEvent.changes), conc(event.effects, lastEvent.effects), lastEvent.mapped, lastEvent.startSelection, none));
-    } else {
-      done = updateBranch(done, done.length, maxLen, event);
-    }
-    return new HistoryState(done, none, time, userEvent);
-  }
-  addSelection(selection, time, userEvent, newGroupDelay) {
-    let last = this.done.length ? this.done[this.done.length - 1].selectionsAfter : none;
-    if (last.length > 0 && time - this.prevTime < newGroupDelay && userEvent == "keyboardselection" && this.prevUserEvent == userEvent && eqSelectionShape(last[last.length - 1], selection)) return this;
-    return new HistoryState(addSelection(this.done, selection), this.undone, time, userEvent);
-  }
-  addMapping(mapping) {
-    return new HistoryState(addMappingToBranch(this.done, mapping), addMappingToBranch(this.undone, mapping), this.prevTime, this.prevUserEvent);
-  }
-  pop(side, state, selection) {
-    let branch = side == 0 ? this.done : this.undone;
-    if (branch.length == 0) return null;
-    let event = branch[branch.length - 1];
-    if (selection && event.selectionsAfter.length) {
-      return state.update({
-        selection: event.selectionsAfter[event.selectionsAfter.length - 1],
-        annotations: fromHistory.of({
-          side,
-          rest: popSelection(branch)
-        })
-      });
-    } else if (!event.changes) {
-      return null;
-    } else {
-      let rest = branch.length == 1 ? none : branch.slice(0, branch.length - 1);
-      if (event.mapped) rest = addMappingToBranch(rest, event.mapped);
-      return state.update({
-        changes: event.changes,
-        selection: event.startSelection,
-        effects: event.effects,
-        annotations: fromHistory.of({
-          side,
-          rest
-        }),
-        filter: false
-      });
-    }
-  }
-}
-HistoryState.empty = new HistoryState(none, none);
-const historyKeymap = [{
-  key: "Mod-z",
-  run: undo,
-  preventDefault: true
-}, {
-  key: "Mod-y",
-  mac: "Mod-Shift-z",
-  run: redo,
-  preventDefault: true
-}, {
-  key: "Mod-u",
-  run: undoSelection,
-  preventDefault: true
-}, {
-  key: "Alt-u",
-  mac: "Mod-Shift-u",
-  run: redoSelection,
-  preventDefault: true
-}];
-exports.history = history;
-exports.historyKeymap = historyKeymap;
-exports.invertedEffects = invertedEffects;
-exports.isolateHistory = isolateHistory;
-exports.redo = redo;
-exports.redoDepth = redoDepth;
-exports.redoSelection = redoSelection;
-exports.undo = undo;
-exports.undoDepth = undoDepth;
-exports.undoSelection = undoSelection;
-
-},
-
 // node_modules/@codemirror/basic-setup/dist/index.js @4
 4: function(__fusereq, exports, module){
 exports.__esModule = true;
@@ -16691,4792 +21096,387 @@ exports.jsonParseLinter = jsonParseLinter;
 
 },
 
-// node_modules/d3-hierarchy/src/index.js @46
-46: function(__fusereq, exports, module){
-exports.__esModule = true;
-var cluster_js_1 = __fusereq(50);
-var cluster_js_1d = __fuse.dt(cluster_js_1);
-exports.cluster = cluster_js_1d.default;
-var index_js_1 = __fusereq(51);
-var index_js_1d = __fuse.dt(index_js_1);
-exports.hierarchy = index_js_1d.default;
-var index_js_2 = __fusereq(52);
-var index_js_2d = __fuse.dt(index_js_2);
-exports.pack = index_js_2d.default;
-var siblings_js_1 = __fusereq(53);
-var siblings_js_1d = __fuse.dt(siblings_js_1);
-exports.packSiblings = siblings_js_1d.default;
-var enclose_js_1 = __fusereq(54);
-var enclose_js_1d = __fuse.dt(enclose_js_1);
-exports.packEnclose = enclose_js_1d.default;
-var partition_js_1 = __fusereq(55);
-var partition_js_1d = __fuse.dt(partition_js_1);
-exports.partition = partition_js_1d.default;
-var stratify_js_1 = __fusereq(56);
-var stratify_js_1d = __fuse.dt(stratify_js_1);
-exports.stratify = stratify_js_1d.default;
-var tree_js_1 = __fusereq(57);
-var tree_js_1d = __fuse.dt(tree_js_1);
-exports.tree = tree_js_1d.default;
-var index_js_3 = __fusereq(58);
-var index_js_3d = __fuse.dt(index_js_3);
-exports.treemap = index_js_3d.default;
-var binary_js_1 = __fusereq(59);
-var binary_js_1d = __fuse.dt(binary_js_1);
-exports.treemapBinary = binary_js_1d.default;
-var dice_js_1 = __fusereq(60);
-var dice_js_1d = __fuse.dt(dice_js_1);
-exports.treemapDice = dice_js_1d.default;
-var slice_js_1 = __fusereq(61);
-var slice_js_1d = __fuse.dt(slice_js_1);
-exports.treemapSlice = slice_js_1d.default;
-var sliceDice_js_1 = __fusereq(62);
-var sliceDice_js_1d = __fuse.dt(sliceDice_js_1);
-exports.treemapSliceDice = sliceDice_js_1d.default;
-var squarify_js_1 = __fusereq(63);
-var squarify_js_1d = __fuse.dt(squarify_js_1);
-exports.treemapSquarify = squarify_js_1d.default;
-var resquarify_js_1 = __fusereq(64);
-var resquarify_js_1d = __fuse.dt(resquarify_js_1);
-exports.treemapResquarify = resquarify_js_1d.default;
-
-},
-
-// node_modules/d3-hierarchy/src/cluster.js @50
-50: function(__fusereq, exports, module){
-exports.__esModule = true;
-function defaultSeparation(a, b) {
-  return a.parent === b.parent ? 1 : 2;
-}
-function meanX(children) {
-  return children.reduce(meanXReduce, 0) / children.length;
-}
-function meanXReduce(x, c) {
-  return x + c.x;
-}
-function maxY(children) {
-  return 1 + children.reduce(maxYReduce, 0);
-}
-function maxYReduce(y, c) {
-  return Math.max(y, c.y);
-}
-function leafLeft(node) {
-  var children;
-  while (children = node.children) node = children[0];
-  return node;
-}
-function leafRight(node) {
-  var children;
-  while (children = node.children) node = children[children.length - 1];
-  return node;
-}
-function __DefaultExport__() {
-  var separation = defaultSeparation, dx = 1, dy = 1, nodeSize = false;
-  function cluster(root) {
-    var previousNode, x = 0;
-    root.eachAfter(function (node) {
-      var children = node.children;
-      if (children) {
-        node.x = meanX(children);
-        node.y = maxY(children);
-      } else {
-        node.x = previousNode ? x += separation(node, previousNode) : 0;
-        node.y = 0;
-        previousNode = node;
-      }
-    });
-    var left = leafLeft(root), right = leafRight(root), x0 = left.x - separation(left, right) / 2, x1 = right.x + separation(right, left) / 2;
-    return root.eachAfter(nodeSize ? function (node) {
-      node.x = (node.x - root.x) * dx;
-      node.y = (root.y - node.y) * dy;
-    } : function (node) {
-      node.x = (node.x - x0) / (x1 - x0) * dx;
-      node.y = (1 - (root.y ? node.y / root.y : 1)) * dy;
-    });
-  }
-  cluster.separation = function (x) {
-    return arguments.length ? (separation = x, cluster) : separation;
-  };
-  cluster.size = function (x) {
-    return arguments.length ? (nodeSize = false, dx = +x[0], dy = +x[1], cluster) : nodeSize ? null : [dx, dy];
-  };
-  cluster.nodeSize = function (x) {
-    return arguments.length ? (nodeSize = true, dx = +x[0], dy = +x[1], cluster) : nodeSize ? [dx, dy] : null;
-  };
-  return cluster;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/index.js @51
-51: function(__fusereq, exports, module){
-exports.__esModule = true;
-var count_js_1 = __fusereq(125);
-var count_js_1d = __fuse.dt(count_js_1);
-var each_js_1 = __fusereq(126);
-var each_js_1d = __fuse.dt(each_js_1);
-var eachBefore_js_1 = __fusereq(127);
-var eachBefore_js_1d = __fuse.dt(eachBefore_js_1);
-var eachAfter_js_1 = __fusereq(128);
-var eachAfter_js_1d = __fuse.dt(eachAfter_js_1);
-var find_js_1 = __fusereq(129);
-var find_js_1d = __fuse.dt(find_js_1);
-var sum_js_1 = __fusereq(130);
-var sum_js_1d = __fuse.dt(sum_js_1);
-var sort_js_1 = __fusereq(131);
-var sort_js_1d = __fuse.dt(sort_js_1);
-var path_js_1 = __fusereq(132);
-var path_js_1d = __fuse.dt(path_js_1);
-var ancestors_js_1 = __fusereq(133);
-var ancestors_js_1d = __fuse.dt(ancestors_js_1);
-var descendants_js_1 = __fusereq(134);
-var descendants_js_1d = __fuse.dt(descendants_js_1);
-var leaves_js_1 = __fusereq(135);
-var leaves_js_1d = __fuse.dt(leaves_js_1);
-var links_js_1 = __fusereq(136);
-var links_js_1d = __fuse.dt(links_js_1);
-var iterator_js_1 = __fusereq(137);
-var iterator_js_1d = __fuse.dt(iterator_js_1);
-function hierarchy(data, children) {
-  if (data instanceof Map) {
-    data = [undefined, data];
-    if (children === undefined) children = mapChildren;
-  } else if (children === undefined) {
-    children = objectChildren;
-  }
-  var root = new Node(data), node, nodes = [root], child, childs, i, n;
-  while (node = nodes.pop()) {
-    if ((childs = children(node.data)) && (n = (childs = Array.from(childs)).length)) {
-      node.children = childs;
-      for (i = n - 1; i >= 0; --i) {
-        nodes.push(child = childs[i] = new Node(childs[i]));
-        child.parent = node;
-        child.depth = node.depth + 1;
-      }
-    }
-  }
-  return root.eachBefore(computeHeight);
-}
-exports.default = hierarchy;
-function node_copy() {
-  return hierarchy(this).eachBefore(copyData);
-}
-function objectChildren(d) {
-  return d.children;
-}
-function mapChildren(d) {
-  return Array.isArray(d) ? d[1] : null;
-}
-function copyData(node) {
-  if (node.data.value !== undefined) node.value = node.data.value;
-  node.data = node.data.data;
-}
-function computeHeight(node) {
-  var height = 0;
-  do node.height = height; while ((node = node.parent) && node.height < ++height);
-}
-exports.computeHeight = computeHeight;
-function Node(data) {
-  this.data = data;
-  this.depth = this.height = 0;
-  this.parent = null;
-}
-exports.Node = Node;
-Node.prototype = hierarchy.prototype = {
-  constructor: Node,
-  count: count_js_1d.default,
-  each: each_js_1d.default,
-  eachAfter: eachAfter_js_1d.default,
-  eachBefore: eachBefore_js_1d.default,
-  find: find_js_1d.default,
-  sum: sum_js_1d.default,
-  sort: sort_js_1d.default,
-  path: path_js_1d.default,
-  ancestors: ancestors_js_1d.default,
-  descendants: descendants_js_1d.default,
-  leaves: leaves_js_1d.default,
-  links: links_js_1d.default,
-  copy: node_copy,
-  [Symbol.iterator]: iterator_js_1d.default
-};
-
-},
-
-// node_modules/d3-hierarchy/src/pack/index.js @52
-52: function(__fusereq, exports, module){
-exports.__esModule = true;
-var siblings_js_1 = __fusereq(53);
-var accessors_js_1 = __fusereq(138);
-var constant_js_1 = __fusereq(140);
-var constant_js_1d = __fuse.dt(constant_js_1);
-function defaultRadius(d) {
-  return Math.sqrt(d.value);
-}
-function __DefaultExport__() {
-  var radius = null, dx = 1, dy = 1, padding = constant_js_1.constantZero;
-  function pack(root) {
-    (root.x = dx / 2, root.y = dy / 2);
-    if (radius) {
-      root.eachBefore(radiusLeaf(radius)).eachAfter(packChildren(padding, 0.5)).eachBefore(translateChild(1));
+// node_modules/fuse-box/modules/fuse-box-css/index.js @11
+11: function(__fusereq, exports, module){
+var cssHandler = function (__filename, contents) {
+  var styleId = __filename.replace(/[\.\/]+/g, '-');
+  if (styleId.charAt(0) === '-') styleId = styleId.substring(1);
+  var exists = document.getElementById(styleId);
+  if (!exists) {
+    var s = document.createElement(contents ? 'style' : 'link');
+    s.id = styleId;
+    s.type = 'text/css';
+    if (contents) {
+      s.innerHTML = contents;
     } else {
-      root.eachBefore(radiusLeaf(defaultRadius)).eachAfter(packChildren(constant_js_1.constantZero, 1)).eachAfter(packChildren(padding, root.r / Math.min(dx, dy))).eachBefore(translateChild(Math.min(dx, dy) / (2 * root.r)));
+      s.rel = 'stylesheet';
+      s.href = __filename;
     }
-    return root;
-  }
-  pack.radius = function (x) {
-    return arguments.length ? (radius = accessors_js_1.optional(x), pack) : radius;
-  };
-  pack.size = function (x) {
-    return arguments.length ? (dx = +x[0], dy = +x[1], pack) : [dx, dy];
-  };
-  pack.padding = function (x) {
-    return arguments.length ? (padding = typeof x === "function" ? x : constant_js_1d.default(+x), pack) : padding;
-  };
-  return pack;
-}
-exports.default = __DefaultExport__;
-function radiusLeaf(radius) {
-  return function (node) {
-    if (!node.children) {
-      node.r = Math.max(0, +radius(node) || 0);
-    }
-  };
-}
-function packChildren(padding, k) {
-  return function (node) {
-    if (children = node.children) {
-      var children, i, n = children.length, r = padding(node) * k || 0, e;
-      if (r) for (i = 0; i < n; ++i) children[i].r += r;
-      e = siblings_js_1.packEnclose(children);
-      if (r) for (i = 0; i < n; ++i) children[i].r -= r;
-      node.r = e + r;
-    }
-  };
-}
-function translateChild(k) {
-  return function (node) {
-    var parent = node.parent;
-    node.r *= k;
-    if (parent) {
-      node.x = parent.x + k * node.x;
-      node.y = parent.y + k * node.y;
-    }
-  };
-}
-
-},
-
-// node_modules/d3-hierarchy/src/pack/siblings.js @53
-53: function(__fusereq, exports, module){
-exports.__esModule = true;
-var array_js_1 = __fusereq(139);
-var array_js_1d = __fuse.dt(array_js_1);
-var enclose_js_1 = __fusereq(54);
-var enclose_js_1d = __fuse.dt(enclose_js_1);
-function place(b, a, c) {
-  var dx = b.x - a.x, x, a2, dy = b.y - a.y, y, b2, d2 = dx * dx + dy * dy;
-  if (d2) {
-    (a2 = a.r + c.r, a2 *= a2);
-    (b2 = b.r + c.r, b2 *= b2);
-    if (a2 > b2) {
-      x = (d2 + b2 - a2) / (2 * d2);
-      y = Math.sqrt(Math.max(0, b2 / d2 - x * x));
-      c.x = b.x - x * dx - y * dy;
-      c.y = b.y - x * dy + y * dx;
-    } else {
-      x = (d2 + a2 - b2) / (2 * d2);
-      y = Math.sqrt(Math.max(0, a2 / d2 - x * x));
-      c.x = a.x + x * dx - y * dy;
-      c.y = a.y + x * dy + y * dx;
-    }
+    document.getElementsByTagName('head')[0].appendChild(s);
   } else {
-    c.x = a.x + c.r;
-    c.y = a.y;
+    if (contents) exists.innerHTML = contents;
   }
-}
-function intersects(a, b) {
-  var dr = a.r + b.r - 1e-6, dx = b.x - a.x, dy = b.y - a.y;
-  return dr > 0 && dr * dr > dx * dx + dy * dy;
-}
-function score(node) {
-  var a = node._, b = node.next._, ab = a.r + b.r, dx = (a.x * b.r + b.x * a.r) / ab, dy = (a.y * b.r + b.y * a.r) / ab;
-  return dx * dx + dy * dy;
-}
-function Node(circle) {
-  this._ = circle;
-  this.next = null;
-  this.previous = null;
-}
-function packEnclose(circles) {
-  if (!(n = (circles = array_js_1d.default(circles)).length)) return 0;
-  var a, b, c, n, aa, ca, i, j, k, sj, sk;
-  (a = circles[0], a.x = 0, a.y = 0);
-  if (!(n > 1)) return a.r;
-  (b = circles[1], a.x = -b.r, b.x = a.r, b.y = 0);
-  if (!(n > 2)) return a.r + b.r;
-  place(b, a, c = circles[2]);
-  (a = new Node(a), b = new Node(b), c = new Node(c));
-  a.next = c.previous = b;
-  b.next = a.previous = c;
-  c.next = b.previous = a;
-  pack: for (i = 3; i < n; ++i) {
-    (place(a._, b._, c = circles[i]), c = new Node(c));
-    (j = b.next, k = a.previous, sj = b._.r, sk = a._.r);
-    do {
-      if (sj <= sk) {
-        if (intersects(j._, c._)) {
-          (b = j, a.next = b, b.previous = a, --i);
-          continue pack;
-        }
-        (sj += j._.r, j = j.next);
-      } else {
-        if (intersects(k._, c._)) {
-          (a = k, a.next = b, b.previous = a, --i);
-          continue pack;
-        }
-        (sk += k._.r, k = k.previous);
-      }
-    } while (j !== k.next);
-    (c.previous = a, c.next = b, a.next = b.previous = b = c);
-    aa = score(a);
-    while ((c = c.next) !== b) {
-      if ((ca = score(c)) < aa) {
-        (a = c, aa = ca);
-      }
-    }
-    b = a.next;
-  }
-  (a = [b._], c = b);
-  while ((c = c.next) !== b) a.push(c._);
-  c = enclose_js_1d.default(a);
-  for (i = 0; i < n; ++i) (a = circles[i], a.x -= c.x, a.y -= c.y);
-  return c.r;
-}
-exports.packEnclose = packEnclose;
-function __DefaultExport__(circles) {
-  packEnclose(circles);
-  return circles;
-}
-exports.default = __DefaultExport__;
+};
+module.exports = cssHandler;
 
 },
 
-// node_modules/d3-hierarchy/src/pack/enclose.js @54
-54: function(__fusereq, exports, module){
-exports.__esModule = true;
-var array_js_1 = __fusereq(139);
-function __DefaultExport__(circles) {
-  var i = 0, n = (circles = array_js_1.shuffle(Array.from(circles))).length, B = [], p, e;
-  while (i < n) {
-    p = circles[i];
-    if (e && enclosesWeak(e, p)) ++i; else (e = encloseBasis(B = extendBasis(B, p)), i = 0);
-  }
-  return e;
+// node_modules/fuse-box/modules/fuse-box-websocket/index.js @3
+3: function(__fusereq, exports, module){
+const events = __fusereq(13);
+function log(text) {
+  console.info(`%c${text}`, 'color: #237abe');
 }
-exports.default = __DefaultExport__;
-function extendBasis(B, p) {
-  var i, j;
-  if (enclosesWeakAll(p, B)) return [p];
-  for (i = 0; i < B.length; ++i) {
-    if (enclosesNot(p, B[i]) && enclosesWeakAll(encloseBasis2(B[i], p), B)) {
-      return [B[i], p];
-    }
-  }
-  for (i = 0; i < B.length - 1; ++i) {
-    for (j = i + 1; j < B.length; ++j) {
-      if (enclosesNot(encloseBasis2(B[i], B[j]), p) && enclosesNot(encloseBasis2(B[i], p), B[j]) && enclosesNot(encloseBasis2(B[j], p), B[i]) && enclosesWeakAll(encloseBasis3(B[i], B[j], p), B)) {
-        return [B[i], B[j], p];
+class SocketClient {
+  constructor(opts) {
+    opts = opts || ({});
+    const port = opts.port || window.location.port;
+    const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const domain = location.hostname || 'localhost';
+    if (opts.connectionURL) {
+      this.url = opts.connectionURL;
+    } else {
+      if (opts.useCurrentURL) {
+        this.url = protocol + location.hostname + (location.port ? ':' + location.port : '');
+      }
+      if (opts.port) {
+        this.url = `${protocol}${domain}:${opts.port}`;
       }
     }
+    this.authSent = false;
+    this.emitter = new events.EventEmitter();
   }
-  throw new Error();
-}
-function enclosesNot(a, b) {
-  var dr = a.r - b.r, dx = b.x - a.x, dy = b.y - a.y;
-  return dr < 0 || dr * dr < dx * dx + dy * dy;
-}
-function enclosesWeak(a, b) {
-  var dr = a.r - b.r + Math.max(a.r, b.r, 1) * 1e-9, dx = b.x - a.x, dy = b.y - a.y;
-  return dr > 0 && dr * dr > dx * dx + dy * dy;
-}
-function enclosesWeakAll(a, B) {
-  for (var i = 0; i < B.length; ++i) {
-    if (!enclosesWeak(a, B[i])) {
-      return false;
+  reconnect(fn) {
+    setTimeout(() => {
+      this.emitter.emit('reconnect', {
+        message: 'Trying to reconnect'
+      });
+      this.connect(fn);
+    }, 5000);
+  }
+  on(event, fn) {
+    this.emitter.on(event, fn);
+  }
+  connect(fn) {
+    setTimeout(() => {
+      log(`Connecting to FuseBox HMR at ${this.url}`);
+      this.client = new WebSocket(this.url);
+      this.bindEvents(fn);
+    }, 0);
+  }
+  close() {
+    this.client.close();
+  }
+  send(eventName, data) {
+    if (this.client.readyState === 1) {
+      this.client.send(JSON.stringify({
+        name: eventName,
+        payload: data || ({})
+      }));
     }
+  }
+  error(data) {
+    this.emitter.emit('error', data);
+  }
+  bindEvents(fn) {
+    this.client.onopen = event => {
+      log('Connection successful');
+      if (fn) {
+        fn(this);
+      }
+    };
+    this.client.onerror = event => {
+      this.error({
+        reason: event.reason,
+        message: 'Socket error'
+      });
+    };
+    this.client.onclose = event => {
+      this.emitter.emit('close', {
+        message: 'Socket closed'
+      });
+      if (event.code !== 1011) {
+        this.reconnect(fn);
+      }
+    };
+    this.client.onmessage = event => {
+      let data = event.data;
+      if (data) {
+        let item = JSON.parse(data);
+        this.emitter.emit(item.name, item.payload);
+      }
+    };
+  }
+}
+exports.SocketClient = SocketClient;
+
+},
+
+// node_modules/fuse-box/modules/events/index.js @13
+13: function(__fusereq, exports, module){
+function EventEmitter() {
+  this._events = this._events || ({});
+  this._maxListeners = this._maxListeners || undefined;
+}
+module.exports = EventEmitter;
+EventEmitter.EventEmitter = EventEmitter;
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+EventEmitter.defaultMaxListeners = 10;
+EventEmitter.prototype.setMaxListeners = function (n) {
+  if (!isNumber(n) || n < 0 || isNaN(n)) throw TypeError('n must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+EventEmitter.prototype.emit = function (type) {
+  var er, handler, len, args, i, listeners;
+  if (!this._events) this._events = {};
+  if (type === 'error') {
+    if (!this._events.error || isObject(this._events.error) && !this._events.error.length) {
+      er = arguments[1];
+      if (er instanceof Error) {
+        throw er;
+      }
+      throw TypeError('Uncaught, unspecified "error" event.');
+    }
+  }
+  handler = this._events[type];
+  if (isUndefined(handler)) return false;
+  if (isFunction(handler)) {
+    switch (arguments.length) {
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      default:
+        args = Array.prototype.slice.call(arguments, 1);
+        handler.apply(this, args);
+    }
+  } else if (isObject(handler)) {
+    args = Array.prototype.slice.call(arguments, 1);
+    listeners = handler.slice();
+    len = listeners.length;
+    for (i = 0; i < len; i++) listeners[i].apply(this, args);
   }
   return true;
-}
-function encloseBasis(B) {
-  switch (B.length) {
-    case 1:
-      return encloseBasis1(B[0]);
-    case 2:
-      return encloseBasis2(B[0], B[1]);
-    case 3:
-      return encloseBasis3(B[0], B[1], B[2]);
+};
+EventEmitter.prototype.addListener = function (type, listener) {
+  var m;
+  if (!isFunction(listener)) throw TypeError('listener must be a function');
+  if (!this._events) this._events = {};
+  if (this._events.newListener) this.emit('newListener', type, isFunction(listener.listener) ? listener.listener : listener);
+  if (!this._events[type]) this._events[type] = listener; else if (isObject(this._events[type])) this._events[type].push(listener); else this._events[type] = [this._events[type], listener];
+  if (isObject(this._events[type]) && !this._events[type].warned) {
+    if (!isUndefined(this._maxListeners)) {
+      m = this._maxListeners;
+    } else {
+      m = EventEmitter.defaultMaxListeners;
+    }
+    if (m && m > 0 && this._events[type].length > m) {
+      this._events[type].warned = true;
+      console.error('(node) warning: possible EventEmitter memory ' + 'leak detected. %d listeners added. ' + 'Use emitter.setMaxListeners() to increase limit.', this._events[type].length);
+      if (typeof console.trace === 'function') {
+        console.trace();
+      }
+    }
   }
+  return this;
+};
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+EventEmitter.prototype.once = function (type, listener) {
+  if (!isFunction(listener)) throw TypeError('listener must be a function');
+  var fired = false;
+  function g() {
+    this.removeListener(type, g);
+    if (!fired) {
+      fired = true;
+      listener.apply(this, arguments);
+    }
+  }
+  g.listener = listener;
+  this.on(type, g);
+  return this;
+};
+EventEmitter.prototype.removeListener = function (type, listener) {
+  var list, position, length, i;
+  if (!isFunction(listener)) throw TypeError('listener must be a function');
+  if (!this._events || !this._events[type]) return this;
+  list = this._events[type];
+  length = list.length;
+  position = -1;
+  if (list === listener || isFunction(list.listener) && list.listener === listener) {
+    delete this._events[type];
+    if (this._events.removeListener) this.emit('removeListener', type, listener);
+  } else if (isObject(list)) {
+    for (i = length; i-- > 0; ) {
+      if (list[i] === listener || list[i].listener && list[i].listener === listener) {
+        position = i;
+        break;
+      }
+    }
+    if (position < 0) return this;
+    if (list.length === 1) {
+      list.length = 0;
+      delete this._events[type];
+    } else {
+      list.splice(position, 1);
+    }
+    if (this._events.removeListener) this.emit('removeListener', type, listener);
+  }
+  return this;
+};
+EventEmitter.prototype.removeAllListeners = function (type) {
+  var key, listeners;
+  if (!this._events) return this;
+  if (!this._events.removeListener) {
+    if (arguments.length === 0) this._events = {}; else if (this._events[type]) delete this._events[type];
+    return this;
+  }
+  if (arguments.length === 0) {
+    for (key in this._events) {
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+    this.removeAllListeners('removeListener');
+    this._events = {};
+    return this;
+  }
+  listeners = this._events[type];
+  if (isFunction(listeners)) {
+    this.removeListener(type, listeners);
+  } else if (listeners) {
+    while (listeners.length) this.removeListener(type, listeners[listeners.length - 1]);
+  }
+  delete this._events[type];
+  return this;
+};
+EventEmitter.prototype.listeners = function (type) {
+  var ret;
+  if (!this._events || !this._events[type]) ret = []; else if (isFunction(this._events[type])) ret = [this._events[type]]; else ret = this._events[type].slice();
+  return ret;
+};
+EventEmitter.prototype.listenerCount = function (type) {
+  if (this._events) {
+    var evlistener = this._events[type];
+    if (isFunction(evlistener)) return 1; else if (evlistener) return evlistener.length;
+  }
+  return 0;
+};
+EventEmitter.listenerCount = function (emitter, type) {
+  return emitter.listenerCount(type);
+};
+function isFunction(arg) {
+  return typeof arg === 'function';
 }
-function encloseBasis1(a) {
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+function isUndefined(arg) {
+  return arg === void 0;
+}
+
+},
+
+// node_modules/fuse-box/modules/fuse-box-hot-reload/clientHotReload.ts @2
+2: function(__fusereq, exports, module){
+exports.__esModule = true;
+const {SocketClient} = __fusereq(3);
+function log(text) {
+  console.info(`%c${text}`, 'color: #237abe');
+}
+const STYLESHEET_EXTENSIONS = ['.css', '.scss', '.sass', '.less', '.styl'];
+function gatherSummary() {
+  const modules = [];
+  for (const id in __fuse.modules) {
+    modules.push(parseInt(id));
+  }
   return {
-    x: a.x,
-    y: a.y,
-    r: a.r
+    modules
   };
 }
-function encloseBasis2(a, b) {
-  var x1 = a.x, y1 = a.y, r1 = a.r, x2 = b.x, y2 = b.y, r2 = b.r, x21 = x2 - x1, y21 = y2 - y1, r21 = r2 - r1, l = Math.sqrt(x21 * x21 + y21 * y21);
+function createHMRHelper(payload) {
+  const {updates} = payload;
+  let isStylesheeetUpdate = true;
+  for (const item of updates) {
+    const file = item.path;
+    const s = file.match(/(\.\w+)$/i);
+    const extension = s[1];
+    if (!STYLESHEET_EXTENSIONS.includes(extension)) {
+      isStylesheeetUpdate = false;
+    }
+  }
   return {
-    x: (x1 + x2 + x21 / l * r21) / 2,
-    y: (y1 + y2 + y21 / l * r21) / 2,
-    r: (l + r1 + r2) / 2
-  };
-}
-function encloseBasis3(a, b, c) {
-  var x1 = a.x, y1 = a.y, r1 = a.r, x2 = b.x, y2 = b.y, r2 = b.r, x3 = c.x, y3 = c.y, r3 = c.r, a2 = x1 - x2, a3 = x1 - x3, b2 = y1 - y2, b3 = y1 - y3, c2 = r2 - r1, c3 = r3 - r1, d1 = x1 * x1 + y1 * y1 - r1 * r1, d2 = d1 - x2 * x2 - y2 * y2 + r2 * r2, d3 = d1 - x3 * x3 - y3 * y3 + r3 * r3, ab = a3 * b2 - a2 * b3, xa = (b2 * d3 - b3 * d2) / (ab * 2) - x1, xb = (b3 * c2 - b2 * c3) / ab, ya = (a3 * d2 - a2 * d3) / (ab * 2) - y1, yb = (a2 * c3 - a3 * c2) / ab, A = xb * xb + yb * yb - 1, B = 2 * (r1 + xa * xb + ya * yb), C = xa * xa + ya * ya - r1 * r1, r = -(A ? (B + Math.sqrt(B * B - 4 * A * C)) / (2 * A) : C / B);
-  return {
-    x: x1 + xa + xb * r,
-    y: y1 + ya + yb * r,
-    r: r
-  };
-}
-
-},
-
-// node_modules/d3-hierarchy/src/partition.js @55
-55: function(__fusereq, exports, module){
-exports.__esModule = true;
-var round_js_1 = __fusereq(141);
-var round_js_1d = __fuse.dt(round_js_1);
-var dice_js_1 = __fusereq(60);
-var dice_js_1d = __fuse.dt(dice_js_1);
-function __DefaultExport__() {
-  var dx = 1, dy = 1, padding = 0, round = false;
-  function partition(root) {
-    var n = root.height + 1;
-    root.x0 = root.y0 = padding;
-    root.x1 = dx;
-    root.y1 = dy / n;
-    root.eachBefore(positionNode(dy, n));
-    if (round) root.eachBefore(round_js_1d.default);
-    return root;
-  }
-  function positionNode(dy, n) {
-    return function (node) {
-      if (node.children) {
-        dice_js_1d.default(node, node.x0, dy * (node.depth + 1) / n, node.x1, dy * (node.depth + 2) / n);
+    isStylesheeetUpdate,
+    callEntries: () => {
+      const appEntries = [1];
+      for (const entryId of appEntries) {
+        __fuse.r(entryId);
       }
-      var x0 = node.x0, y0 = node.y0, x1 = node.x1 - padding, y1 = node.y1 - padding;
-      if (x1 < x0) x0 = x1 = (x0 + x1) / 2;
-      if (y1 < y0) y0 = y1 = (y0 + y1) / 2;
-      node.x0 = x0;
-      node.y0 = y0;
-      node.x1 = x1;
-      node.y1 = y1;
-    };
-  }
-  partition.round = function (x) {
-    return arguments.length ? (round = !!x, partition) : round;
-  };
-  partition.size = function (x) {
-    return arguments.length ? (dx = +x[0], dy = +x[1], partition) : [dx, dy];
-  };
-  partition.padding = function (x) {
-    return arguments.length ? (padding = +x, partition) : padding;
-  };
-  return partition;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/stratify.js @56
-56: function(__fusereq, exports, module){
-exports.__esModule = true;
-var accessors_js_1 = __fusereq(138);
-var index_js_1 = __fusereq(51);
-var preroot = {
-  depth: -1
-}, ambiguous = {};
-function defaultId(d) {
-  return d.id;
-}
-function defaultParentId(d) {
-  return d.parentId;
-}
-function __DefaultExport__() {
-  var id = defaultId, parentId = defaultParentId;
-  function stratify(data) {
-    var nodes = Array.from(data), n = nodes.length, d, i, root, parent, node, nodeId, nodeKey, nodeByKey = new Map();
-    for (i = 0; i < n; ++i) {
-      (d = nodes[i], node = nodes[i] = new index_js_1.Node(d));
-      if ((nodeId = id(d, i, data)) != null && (nodeId += "")) {
-        nodeKey = node.id = nodeId;
-        nodeByKey.set(nodeKey, nodeByKey.has(nodeKey) ? ambiguous : node);
+    },
+    callModules: modules => {
+      for (const item of modules) __fuse.r(item.id);
+    },
+    flushAll: () => {
+      __fuse.c = {};
+    },
+    flushModules: modules => {
+      for (const item of modules) {
+        __fuse.c[item.id] = undefined;
       }
-      if ((nodeId = parentId(d, i, data)) != null && (nodeId += "")) {
-        node.parent = nodeId;
+    },
+    updateModules: () => {
+      for (const update of updates) {
+        new Function(update.content)();
       }
     }
-    for (i = 0; i < n; ++i) {
-      node = nodes[i];
-      if (nodeId = node.parent) {
-        parent = nodeByKey.get(nodeId);
-        if (!parent) throw new Error("missing: " + nodeId);
-        if (parent === ambiguous) throw new Error("ambiguous: " + nodeId);
-        if (parent.children) parent.children.push(node); else parent.children = [node];
-        node.parent = parent;
-      } else {
-        if (root) throw new Error("multiple roots");
-        root = node;
-      }
-    }
-    if (!root) throw new Error("no root");
-    root.parent = preroot;
-    root.eachBefore(function (node) {
-      node.depth = node.parent.depth + 1;
-      --n;
-    }).eachBefore(index_js_1.computeHeight);
-    root.parent = null;
-    if (n > 0) throw new Error("cycle");
-    return root;
-  }
-  stratify.id = function (x) {
-    return arguments.length ? (id = accessors_js_1.required(x), stratify) : id;
   };
-  stratify.parentId = function (x) {
-    return arguments.length ? (parentId = accessors_js_1.required(x), stratify) : parentId;
-  };
-  return stratify;
 }
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/tree.js @57
-57: function(__fusereq, exports, module){
-exports.__esModule = true;
-var index_js_1 = __fusereq(51);
-function defaultSeparation(a, b) {
-  return a.parent === b.parent ? 1 : 2;
-}
-function nextLeft(v) {
-  var children = v.children;
-  return children ? children[0] : v.t;
-}
-function nextRight(v) {
-  var children = v.children;
-  return children ? children[children.length - 1] : v.t;
-}
-function moveSubtree(wm, wp, shift) {
-  var change = shift / (wp.i - wm.i);
-  wp.c -= change;
-  wp.s += shift;
-  wm.c += change;
-  wp.z += shift;
-  wp.m += shift;
-}
-function executeShifts(v) {
-  var shift = 0, change = 0, children = v.children, i = children.length, w;
-  while (--i >= 0) {
-    w = children[i];
-    w.z += shift;
-    w.m += shift;
-    shift += w.s + (change += w.c);
-  }
-}
-function nextAncestor(vim, v, ancestor) {
-  return vim.a.parent === v.parent ? vim.a : ancestor;
-}
-function TreeNode(node, i) {
-  this._ = node;
-  this.parent = null;
-  this.children = null;
-  this.A = null;
-  this.a = this;
-  this.z = 0;
-  this.m = 0;
-  this.c = 0;
-  this.s = 0;
-  this.t = null;
-  this.i = i;
-}
-TreeNode.prototype = Object.create(index_js_1.Node.prototype);
-function treeRoot(root) {
-  var tree = new TreeNode(root, 0), node, nodes = [tree], child, children, i, n;
-  while (node = nodes.pop()) {
-    if (children = node._.children) {
-      node.children = new Array(n = children.length);
-      for (i = n - 1; i >= 0; --i) {
-        nodes.push(child = node.children[i] = new TreeNode(children[i], i));
-        child.parent = node;
-      }
-    }
-  }
-  (tree.parent = new TreeNode(null, 0)).children = [tree];
-  return tree;
-}
-function __DefaultExport__() {
-  var separation = defaultSeparation, dx = 1, dy = 1, nodeSize = null;
-  function tree(root) {
-    var t = treeRoot(root);
-    (t.eachAfter(firstWalk), t.parent.m = -t.z);
-    t.eachBefore(secondWalk);
-    if (nodeSize) root.eachBefore(sizeNode); else {
-      var left = root, right = root, bottom = root;
-      root.eachBefore(function (node) {
-        if (node.x < left.x) left = node;
-        if (node.x > right.x) right = node;
-        if (node.depth > bottom.depth) bottom = node;
-      });
-      var s = left === right ? 1 : separation(left, right) / 2, tx = s - left.x, kx = dx / (right.x + s + tx), ky = dy / (bottom.depth || 1);
-      root.eachBefore(function (node) {
-        node.x = (node.x + tx) * kx;
-        node.y = node.depth * ky;
-      });
-    }
-    return root;
-  }
-  function firstWalk(v) {
-    var children = v.children, siblings = v.parent.children, w = v.i ? siblings[v.i - 1] : null;
-    if (children) {
-      executeShifts(v);
-      var midpoint = (children[0].z + children[children.length - 1].z) / 2;
-      if (w) {
-        v.z = w.z + separation(v._, w._);
-        v.m = v.z - midpoint;
-      } else {
-        v.z = midpoint;
-      }
-    } else if (w) {
-      v.z = w.z + separation(v._, w._);
-    }
-    v.parent.A = apportion(v, w, v.parent.A || siblings[0]);
-  }
-  function secondWalk(v) {
-    v._.x = v.z + v.parent.m;
-    v.m += v.parent.m;
-  }
-  function apportion(v, w, ancestor) {
-    if (w) {
-      var vip = v, vop = v, vim = w, vom = vip.parent.children[0], sip = vip.m, sop = vop.m, sim = vim.m, som = vom.m, shift;
-      while ((vim = nextRight(vim), vip = nextLeft(vip), vim && vip)) {
-        vom = nextLeft(vom);
-        vop = nextRight(vop);
-        vop.a = v;
-        shift = vim.z + sim - vip.z - sip + separation(vim._, vip._);
-        if (shift > 0) {
-          moveSubtree(nextAncestor(vim, v, ancestor), v, shift);
-          sip += shift;
-          sop += shift;
-        }
-        sim += vim.m;
-        sip += vip.m;
-        som += vom.m;
-        sop += vop.m;
-      }
-      if (vim && !nextRight(vop)) {
-        vop.t = vim;
-        vop.m += sim - sop;
-      }
-      if (vip && !nextLeft(vom)) {
-        vom.t = vip;
-        vom.m += sip - som;
-        ancestor = v;
-      }
-    }
-    return ancestor;
-  }
-  function sizeNode(node) {
-    node.x *= dx;
-    node.y = node.depth * dy;
-  }
-  tree.separation = function (x) {
-    return arguments.length ? (separation = x, tree) : separation;
-  };
-  tree.size = function (x) {
-    return arguments.length ? (nodeSize = false, dx = +x[0], dy = +x[1], tree) : nodeSize ? null : [dx, dy];
-  };
-  tree.nodeSize = function (x) {
-    return arguments.length ? (nodeSize = true, dx = +x[0], dy = +x[1], tree) : nodeSize ? [dx, dy] : null;
-  };
-  return tree;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/treemap/index.js @58
-58: function(__fusereq, exports, module){
-exports.__esModule = true;
-var round_js_1 = __fusereq(141);
-var round_js_1d = __fuse.dt(round_js_1);
-var squarify_js_1 = __fusereq(63);
-var squarify_js_1d = __fuse.dt(squarify_js_1);
-var accessors_js_1 = __fusereq(138);
-var constant_js_1 = __fusereq(140);
-var constant_js_1d = __fuse.dt(constant_js_1);
-function __DefaultExport__() {
-  var tile = squarify_js_1d.default, round = false, dx = 1, dy = 1, paddingStack = [0], paddingInner = constant_js_1.constantZero, paddingTop = constant_js_1.constantZero, paddingRight = constant_js_1.constantZero, paddingBottom = constant_js_1.constantZero, paddingLeft = constant_js_1.constantZero;
-  function treemap(root) {
-    root.x0 = root.y0 = 0;
-    root.x1 = dx;
-    root.y1 = dy;
-    root.eachBefore(positionNode);
-    paddingStack = [0];
-    if (round) root.eachBefore(round_js_1d.default);
-    return root;
-  }
-  function positionNode(node) {
-    var p = paddingStack[node.depth], x0 = node.x0 + p, y0 = node.y0 + p, x1 = node.x1 - p, y1 = node.y1 - p;
-    if (x1 < x0) x0 = x1 = (x0 + x1) / 2;
-    if (y1 < y0) y0 = y1 = (y0 + y1) / 2;
-    node.x0 = x0;
-    node.y0 = y0;
-    node.x1 = x1;
-    node.y1 = y1;
-    if (node.children) {
-      p = paddingStack[node.depth + 1] = paddingInner(node) / 2;
-      x0 += paddingLeft(node) - p;
-      y0 += paddingTop(node) - p;
-      x1 -= paddingRight(node) - p;
-      y1 -= paddingBottom(node) - p;
-      if (x1 < x0) x0 = x1 = (x0 + x1) / 2;
-      if (y1 < y0) y0 = y1 = (y0 + y1) / 2;
-      tile(node, x0, y0, x1, y1);
-    }
-  }
-  treemap.round = function (x) {
-    return arguments.length ? (round = !!x, treemap) : round;
-  };
-  treemap.size = function (x) {
-    return arguments.length ? (dx = +x[0], dy = +x[1], treemap) : [dx, dy];
-  };
-  treemap.tile = function (x) {
-    return arguments.length ? (tile = accessors_js_1.required(x), treemap) : tile;
-  };
-  treemap.padding = function (x) {
-    return arguments.length ? treemap.paddingInner(x).paddingOuter(x) : treemap.paddingInner();
-  };
-  treemap.paddingInner = function (x) {
-    return arguments.length ? (paddingInner = typeof x === "function" ? x : constant_js_1d.default(+x), treemap) : paddingInner;
-  };
-  treemap.paddingOuter = function (x) {
-    return arguments.length ? treemap.paddingTop(x).paddingRight(x).paddingBottom(x).paddingLeft(x) : treemap.paddingTop();
-  };
-  treemap.paddingTop = function (x) {
-    return arguments.length ? (paddingTop = typeof x === "function" ? x : constant_js_1d.default(+x), treemap) : paddingTop;
-  };
-  treemap.paddingRight = function (x) {
-    return arguments.length ? (paddingRight = typeof x === "function" ? x : constant_js_1d.default(+x), treemap) : paddingRight;
-  };
-  treemap.paddingBottom = function (x) {
-    return arguments.length ? (paddingBottom = typeof x === "function" ? x : constant_js_1d.default(+x), treemap) : paddingBottom;
-  };
-  treemap.paddingLeft = function (x) {
-    return arguments.length ? (paddingLeft = typeof x === "function" ? x : constant_js_1d.default(+x), treemap) : paddingLeft;
-  };
-  return treemap;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/treemap/binary.js @59
-59: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(parent, x0, y0, x1, y1) {
-  var nodes = parent.children, i, n = nodes.length, sum, sums = new Array(n + 1);
-  for (sums[0] = sum = i = 0; i < n; ++i) {
-    sums[i + 1] = sum += nodes[i].value;
-  }
-  partition(0, n, parent.value, x0, y0, x1, y1);
-  function partition(i, j, value, x0, y0, x1, y1) {
-    if (i >= j - 1) {
-      var node = nodes[i];
-      (node.x0 = x0, node.y0 = y0);
-      (node.x1 = x1, node.y1 = y1);
+exports.connect = opts => {
+  let client = new SocketClient(opts);
+  client.connect();
+  client.on('get-summary', data => {
+    const {id} = data;
+    const summary = gatherSummary();
+    client.send('summary', {
+      id,
+      summary
+    });
+  });
+  client.on('reload', () => {
+    window.location.reload();
+  });
+  client.on('hmr', payload => {
+    const {updates} = payload;
+    const hmr = createHMRHelper(payload);
+    const hmrModuleId = undefined;
+    if (hmrModuleId) {
+      const hmrModule = __fuse.r(hmrModuleId);
+      if (!hmrModule.default) throw new Error('An HMR plugin must export a default function');
+      hmrModule.default(payload, hmr);
       return;
     }
-    var valueOffset = sums[i], valueTarget = value / 2 + valueOffset, k = i + 1, hi = j - 1;
-    while (k < hi) {
-      var mid = k + hi >>> 1;
-      if (sums[mid] < valueTarget) k = mid + 1; else hi = mid;
-    }
-    if (valueTarget - sums[k - 1] < sums[k] - valueTarget && i + 1 < k) --k;
-    var valueLeft = sums[k] - valueOffset, valueRight = value - valueLeft;
-    if (x1 - x0 > y1 - y0) {
-      var xk = value ? (x0 * valueRight + x1 * valueLeft) / value : x1;
-      partition(i, k, valueLeft, x0, y0, xk, y1);
-      partition(k, j, valueRight, xk, y0, x1, y1);
+    hmr.updateModules();
+    if (hmr.isStylesheeetUpdate) {
+      log(`Flushing ${updates.map(item => item.path)}`);
+      hmr.flushModules(updates);
+      log(`Calling modules ${updates.map(item => item.path)}`);
+      hmr.callModules(updates);
     } else {
-      var yk = value ? (y0 * valueRight + y1 * valueLeft) / value : y1;
-      partition(i, k, valueLeft, x0, y0, x1, yk);
-      partition(k, j, valueRight, x0, yk, x1, y1);
-    }
-  }
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/treemap/dice.js @60
-60: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(parent, x0, y0, x1, y1) {
-  var nodes = parent.children, node, i = -1, n = nodes.length, k = parent.value && (x1 - x0) / parent.value;
-  while (++i < n) {
-    (node = nodes[i], node.y0 = y0, node.y1 = y1);
-    (node.x0 = x0, node.x1 = x0 += node.value * k);
-  }
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/treemap/slice.js @61
-61: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(parent, x0, y0, x1, y1) {
-  var nodes = parent.children, node, i = -1, n = nodes.length, k = parent.value && (y1 - y0) / parent.value;
-  while (++i < n) {
-    (node = nodes[i], node.x0 = x0, node.x1 = x1);
-    (node.y0 = y0, node.y1 = y0 += node.value * k);
-  }
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/treemap/sliceDice.js @62
-62: function(__fusereq, exports, module){
-exports.__esModule = true;
-var dice_js_1 = __fusereq(60);
-var dice_js_1d = __fuse.dt(dice_js_1);
-var slice_js_1 = __fusereq(61);
-var slice_js_1d = __fuse.dt(slice_js_1);
-function __DefaultExport__(parent, x0, y0, x1, y1) {
-  (parent.depth & 1 ? slice_js_1d.default : dice_js_1d.default)(parent, x0, y0, x1, y1);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/treemap/squarify.js @63
-63: function(__fusereq, exports, module){
-exports.__esModule = true;
-var dice_js_1 = __fusereq(60);
-var dice_js_1d = __fuse.dt(dice_js_1);
-var slice_js_1 = __fusereq(61);
-var slice_js_1d = __fuse.dt(slice_js_1);
-exports.phi = (1 + Math.sqrt(5)) / 2;
-function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
-  var rows = [], nodes = parent.children, row, nodeValue, i0 = 0, i1 = 0, n = nodes.length, dx, dy, value = parent.value, sumValue, minValue, maxValue, newRatio, minRatio, alpha, beta;
-  while (i0 < n) {
-    (dx = x1 - x0, dy = y1 - y0);
-    do sumValue = nodes[i1++].value; while (!sumValue && i1 < n);
-    minValue = maxValue = sumValue;
-    alpha = Math.max(dy / dx, dx / dy) / (value * ratio);
-    beta = sumValue * sumValue * alpha;
-    minRatio = Math.max(maxValue / beta, beta / minValue);
-    for (; i1 < n; ++i1) {
-      sumValue += nodeValue = nodes[i1].value;
-      if (nodeValue < minValue) minValue = nodeValue;
-      if (nodeValue > maxValue) maxValue = nodeValue;
-      beta = sumValue * sumValue * alpha;
-      newRatio = Math.max(maxValue / beta, beta / minValue);
-      if (newRatio > minRatio) {
-        sumValue -= nodeValue;
-        break;
-      }
-      minRatio = newRatio;
-    }
-    rows.push(row = {
-      value: sumValue,
-      dice: dx < dy,
-      children: nodes.slice(i0, i1)
-    });
-    if (row.dice) dice_js_1d.default(row, x0, y0, x1, value ? y0 += dy * sumValue / value : y1); else slice_js_1d.default(row, x0, y0, value ? x0 += dx * sumValue / value : x1, y1);
-    (value -= sumValue, i0 = i1);
-  }
-  return rows;
-}
-exports.squarifyRatio = squarifyRatio;
-exports.default = (function custom(ratio) {
-  function squarify(parent, x0, y0, x1, y1) {
-    squarifyRatio(ratio, parent, x0, y0, x1, y1);
-  }
-  squarify.ratio = function (x) {
-    return custom((x = +x) > 1 ? x : 1);
-  };
-  return squarify;
-})(exports.phi);
-
-},
-
-// node_modules/d3-hierarchy/src/treemap/resquarify.js @64
-64: function(__fusereq, exports, module){
-exports.__esModule = true;
-var dice_js_1 = __fusereq(60);
-var dice_js_1d = __fuse.dt(dice_js_1);
-var slice_js_1 = __fusereq(61);
-var slice_js_1d = __fuse.dt(slice_js_1);
-var squarify_js_1 = __fusereq(63);
-exports.default = (function custom(ratio) {
-  function resquarify(parent, x0, y0, x1, y1) {
-    if ((rows = parent._squarify) && rows.ratio === ratio) {
-      var rows, row, nodes, i, j = -1, n, m = rows.length, value = parent.value;
-      while (++j < m) {
-        (row = rows[j], nodes = row.children);
-        for ((i = row.value = 0, n = nodes.length); i < n; ++i) row.value += nodes[i].value;
-        if (row.dice) dice_js_1d.default(row, x0, y0, x1, value ? y0 += (y1 - y0) * row.value / value : y1); else slice_js_1d.default(row, x0, y0, value ? x0 += (x1 - x0) * row.value / value : x1, y1);
-        value -= row.value;
-      }
-    } else {
-      parent._squarify = rows = squarify_js_1.squarifyRatio(ratio, parent, x0, y0, x1, y1);
-      rows.ratio = ratio;
-    }
-  }
-  resquarify.ratio = function (x) {
-    return custom((x = +x) > 1 ? x : 1);
-  };
-  return resquarify;
-})(squarify_js_1.phi);
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/count.js @125
-125: function(__fusereq, exports, module){
-exports.__esModule = true;
-function count(node) {
-  var sum = 0, children = node.children, i = children && children.length;
-  if (!i) sum = 1; else while (--i >= 0) sum += children[i].value;
-  node.value = sum;
-}
-function __DefaultExport__() {
-  return this.eachAfter(count);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/each.js @126
-126: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(callback, that) {
-  let index = -1;
-  for (const node of this) {
-    callback.call(that, node, ++index, this);
-  }
-  return this;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/eachBefore.js @127
-127: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(callback, that) {
-  var node = this, nodes = [node], children, i, index = -1;
-  while (node = nodes.pop()) {
-    callback.call(that, node, ++index, this);
-    if (children = node.children) {
-      for (i = children.length - 1; i >= 0; --i) {
-        nodes.push(children[i]);
-      }
-    }
-  }
-  return this;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/eachAfter.js @128
-128: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(callback, that) {
-  var node = this, nodes = [node], next = [], children, i, n, index = -1;
-  while (node = nodes.pop()) {
-    next.push(node);
-    if (children = node.children) {
-      for ((i = 0, n = children.length); i < n; ++i) {
-        nodes.push(children[i]);
-      }
-    }
-  }
-  while (node = next.pop()) {
-    callback.call(that, node, ++index, this);
-  }
-  return this;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/find.js @129
-129: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(callback, that) {
-  let index = -1;
-  for (const node of this) {
-    if (callback.call(that, node, ++index, this)) {
-      return node;
-    }
-  }
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/sum.js @130
-130: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(value) {
-  return this.eachAfter(function (node) {
-    var sum = +value(node.data) || 0, children = node.children, i = children && children.length;
-    while (--i >= 0) sum += children[i].value;
-    node.value = sum;
-  });
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/sort.js @131
-131: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(compare) {
-  return this.eachBefore(function (node) {
-    if (node.children) {
-      node.children.sort(compare);
+      log(`Flushing all`);
+      hmr.flushAll();
+      log(`Calling entries all`);
+      hmr.callEntries();
     }
   });
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/path.js @132
-132: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(end) {
-  var start = this, ancestor = leastCommonAncestor(start, end), nodes = [start];
-  while (start !== ancestor) {
-    start = start.parent;
-    nodes.push(start);
-  }
-  var k = nodes.length;
-  while (end !== ancestor) {
-    nodes.splice(k, 0, end);
-    end = end.parent;
-  }
-  return nodes;
-}
-exports.default = __DefaultExport__;
-function leastCommonAncestor(a, b) {
-  if (a === b) return a;
-  var aNodes = a.ancestors(), bNodes = b.ancestors(), c = null;
-  a = aNodes.pop();
-  b = bNodes.pop();
-  while (a === b) {
-    c = a;
-    a = aNodes.pop();
-    b = bNodes.pop();
-  }
-  return c;
-}
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/ancestors.js @133
-133: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__() {
-  var node = this, nodes = [node];
-  while (node = node.parent) {
-    nodes.push(node);
-  }
-  return nodes;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/descendants.js @134
-134: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__() {
-  return Array.from(this);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/leaves.js @135
-135: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__() {
-  var leaves = [];
-  this.eachBefore(function (node) {
-    if (!node.children) {
-      leaves.push(node);
-    }
-  });
-  return leaves;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/links.js @136
-136: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__() {
-  var root = this, links = [];
-  root.each(function (node) {
-    if (node !== root) {
-      links.push({
-        source: node.parent,
-        target: node
-      });
-    }
-  });
-  return links;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/hierarchy/iterator.js @137
-137: function(__fusereq, exports, module){
-exports.__esModule = true;
-function* __DefaultExport__() {
-  var node = this, current, next = [node], children, i, n;
-  do {
-    (current = next.reverse(), next = []);
-    while (node = current.pop()) {
-      yield node;
-      if (children = node.children) {
-        for ((i = 0, n = children.length); i < n; ++i) {
-          next.push(children[i]);
-        }
-      }
-    }
-  } while (next.length);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/accessors.js @138
-138: function(__fusereq, exports, module){
-function optional(f) {
-  return f == null ? null : required(f);
-}
-exports.optional = optional;
-function required(f) {
-  if (typeof f !== "function") throw new Error();
-  return f;
-}
-exports.required = required;
-
-},
-
-// node_modules/d3-hierarchy/src/array.js @139
-139: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(x) {
-  return typeof x === "object" && ("length" in x) ? x : Array.from(x);
-}
-exports.default = __DefaultExport__;
-function shuffle(array) {
-  var m = array.length, t, i;
-  while (m) {
-    i = Math.random() * m-- | 0;
-    t = array[m];
-    array[m] = array[i];
-    array[i] = t;
-  }
-  return array;
-}
-exports.shuffle = shuffle;
-
-},
-
-// node_modules/d3-hierarchy/src/constant.js @140
-140: function(__fusereq, exports, module){
-exports.__esModule = true;
-function constantZero() {
-  return 0;
-}
-exports.constantZero = constantZero;
-function __DefaultExport__(x) {
-  return function () {
-    return x;
-  };
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-hierarchy/src/treemap/round.js @141
-141: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(node) {
-  node.x0 = Math.round(node.x0);
-  node.y0 = Math.round(node.y0);
-  node.x1 = Math.round(node.x1);
-  node.y1 = Math.round(node.y1);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-path/src/index.js @178
-178: function(__fusereq, exports, module){
-exports.__esModule = true;
-var path_js_1 = __fusereq(189);
-var path_js_1d = __fuse.dt(path_js_1);
-exports.path = path_js_1d.default;
-
-},
-
-// node_modules/d3-path/src/path.js @189
-189: function(__fusereq, exports, module){
-exports.__esModule = true;
-const pi = Math.PI, tau = 2 * pi, epsilon = 1e-6, tauEpsilon = tau - epsilon;
-function Path() {
-  this._x0 = this._y0 = this._x1 = this._y1 = null;
-  this._ = "";
-}
-function path() {
-  return new Path();
-}
-Path.prototype = path.prototype = {
-  constructor: Path,
-  moveTo: function (x, y) {
-    this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y);
-  },
-  closePath: function () {
-    if (this._x1 !== null) {
-      (this._x1 = this._x0, this._y1 = this._y0);
-      this._ += "Z";
-    }
-  },
-  lineTo: function (x, y) {
-    this._ += "L" + (this._x1 = +x) + "," + (this._y1 = +y);
-  },
-  quadraticCurveTo: function (x1, y1, x, y) {
-    this._ += "Q" + +x1 + "," + +y1 + "," + (this._x1 = +x) + "," + (this._y1 = +y);
-  },
-  bezierCurveTo: function (x1, y1, x2, y2, x, y) {
-    this._ += "C" + +x1 + "," + +y1 + "," + +x2 + "," + +y2 + "," + (this._x1 = +x) + "," + (this._y1 = +y);
-  },
-  arcTo: function (x1, y1, x2, y2, r) {
-    (x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r);
-    var x0 = this._x1, y0 = this._y1, x21 = x2 - x1, y21 = y2 - y1, x01 = x0 - x1, y01 = y0 - y1, l01_2 = x01 * x01 + y01 * y01;
-    if (r < 0) throw new Error("negative radius: " + r);
-    if (this._x1 === null) {
-      this._ += "M" + (this._x1 = x1) + "," + (this._y1 = y1);
-    } else if (!(l01_2 > epsilon)) ; else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
-      this._ += "L" + (this._x1 = x1) + "," + (this._y1 = y1);
-    } else {
-      var x20 = x2 - x0, y20 = y2 - y0, l21_2 = x21 * x21 + y21 * y21, l20_2 = x20 * x20 + y20 * y20, l21 = Math.sqrt(l21_2), l01 = Math.sqrt(l01_2), l = r * Math.tan((pi - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2), t01 = l / l01, t21 = l / l21;
-      if (Math.abs(t01 - 1) > epsilon) {
-        this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01);
-      }
-      this._ += "A" + r + "," + r + ",0,0," + +(y01 * x20 > x01 * y20) + "," + (this._x1 = x1 + t21 * x21) + "," + (this._y1 = y1 + t21 * y21);
-    }
-  },
-  arc: function (x, y, r, a0, a1, ccw) {
-    (x = +x, y = +y, r = +r, ccw = !!ccw);
-    var dx = r * Math.cos(a0), dy = r * Math.sin(a0), x0 = x + dx, y0 = y + dy, cw = 1 ^ ccw, da = ccw ? a0 - a1 : a1 - a0;
-    if (r < 0) throw new Error("negative radius: " + r);
-    if (this._x1 === null) {
-      this._ += "M" + x0 + "," + y0;
-    } else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
-      this._ += "L" + x0 + "," + y0;
-    }
-    if (!r) return;
-    if (da < 0) da = da % tau + tau;
-    if (da > tauEpsilon) {
-      this._ += "A" + r + "," + r + ",0,1," + cw + "," + (x - dx) + "," + (y - dy) + "A" + r + "," + r + ",0,1," + cw + "," + (this._x1 = x0) + "," + (this._y1 = y0);
-    } else if (da > epsilon) {
-      this._ += "A" + r + "," + r + ",0," + +(da >= pi) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
-    }
-  },
-  rect: function (x, y, w, h) {
-    this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y) + "h" + +w + "v" + +h + "h" + -w + "Z";
-  },
-  toString: function () {
-    return this._;
-  }
 };
-exports.default = path;
-
-},
-
-// node_modules/d3-shape/src/index.js @48
-48: function(__fusereq, exports, module){
-exports.__esModule = true;
-var arc_js_1 = __fusereq(81);
-var arc_js_1d = __fuse.dt(arc_js_1);
-exports.arc = arc_js_1d.default;
-var area_js_1 = __fusereq(82);
-var area_js_1d = __fuse.dt(area_js_1);
-exports.area = area_js_1d.default;
-var line_js_1 = __fusereq(83);
-var line_js_1d = __fuse.dt(line_js_1);
-exports.line = line_js_1d.default;
-var pie_js_1 = __fusereq(84);
-var pie_js_1d = __fuse.dt(pie_js_1);
-exports.pie = pie_js_1d.default;
-var areaRadial_js_1 = __fusereq(85);
-var areaRadial_js_1d = __fuse.dt(areaRadial_js_1);
-exports.areaRadial = areaRadial_js_1d.default;
-var areaRadial_js_1d = __fuse.dt(areaRadial_js_1);
-exports.radialArea = areaRadial_js_1d.default;
-var lineRadial_js_1 = __fusereq(86);
-var lineRadial_js_1d = __fuse.dt(lineRadial_js_1);
-exports.lineRadial = lineRadial_js_1d.default;
-var lineRadial_js_1d = __fuse.dt(lineRadial_js_1);
-exports.radialLine = lineRadial_js_1d.default;
-var pointRadial_js_1 = __fusereq(87);
-var pointRadial_js_1d = __fuse.dt(pointRadial_js_1);
-exports.pointRadial = pointRadial_js_1d.default;
-var index_js_1 = __fusereq(88);
-exports.linkHorizontal = index_js_1.linkHorizontal;
-exports.linkVertical = index_js_1.linkVertical;
-exports.linkRadial = index_js_1.linkRadial;
-var symbol_js_1 = __fusereq(89);
-var symbol_js_1d = __fuse.dt(symbol_js_1);
-exports.symbol = symbol_js_1d.default;
-exports.symbols = symbol_js_1.symbols;
-var circle_js_1 = __fusereq(90);
-var circle_js_1d = __fuse.dt(circle_js_1);
-exports.symbolCircle = circle_js_1d.default;
-var cross_js_1 = __fusereq(91);
-var cross_js_1d = __fuse.dt(cross_js_1);
-exports.symbolCross = cross_js_1d.default;
-var diamond_js_1 = __fusereq(92);
-var diamond_js_1d = __fuse.dt(diamond_js_1);
-exports.symbolDiamond = diamond_js_1d.default;
-var square_js_1 = __fusereq(93);
-var square_js_1d = __fuse.dt(square_js_1);
-exports.symbolSquare = square_js_1d.default;
-var star_js_1 = __fusereq(94);
-var star_js_1d = __fuse.dt(star_js_1);
-exports.symbolStar = star_js_1d.default;
-var triangle_js_1 = __fusereq(95);
-var triangle_js_1d = __fuse.dt(triangle_js_1);
-exports.symbolTriangle = triangle_js_1d.default;
-var wye_js_1 = __fusereq(96);
-var wye_js_1d = __fuse.dt(wye_js_1);
-exports.symbolWye = wye_js_1d.default;
-var basisClosed_js_1 = __fusereq(97);
-var basisClosed_js_1d = __fuse.dt(basisClosed_js_1);
-exports.curveBasisClosed = basisClosed_js_1d.default;
-var basisOpen_js_1 = __fusereq(98);
-var basisOpen_js_1d = __fuse.dt(basisOpen_js_1);
-exports.curveBasisOpen = basisOpen_js_1d.default;
-var basis_js_1 = __fusereq(99);
-var basis_js_1d = __fuse.dt(basis_js_1);
-exports.curveBasis = basis_js_1d.default;
-var bump_js_1 = __fusereq(100);
-exports.curveBumpX = bump_js_1.bumpX;
-exports.curveBumpY = bump_js_1.bumpY;
-var bundle_js_1 = __fusereq(101);
-var bundle_js_1d = __fuse.dt(bundle_js_1);
-exports.curveBundle = bundle_js_1d.default;
-var cardinalClosed_js_1 = __fusereq(102);
-var cardinalClosed_js_1d = __fuse.dt(cardinalClosed_js_1);
-exports.curveCardinalClosed = cardinalClosed_js_1d.default;
-var cardinalOpen_js_1 = __fusereq(103);
-var cardinalOpen_js_1d = __fuse.dt(cardinalOpen_js_1);
-exports.curveCardinalOpen = cardinalOpen_js_1d.default;
-var cardinal_js_1 = __fusereq(104);
-var cardinal_js_1d = __fuse.dt(cardinal_js_1);
-exports.curveCardinal = cardinal_js_1d.default;
-var catmullRomClosed_js_1 = __fusereq(105);
-var catmullRomClosed_js_1d = __fuse.dt(catmullRomClosed_js_1);
-exports.curveCatmullRomClosed = catmullRomClosed_js_1d.default;
-var catmullRomOpen_js_1 = __fusereq(106);
-var catmullRomOpen_js_1d = __fuse.dt(catmullRomOpen_js_1);
-exports.curveCatmullRomOpen = catmullRomOpen_js_1d.default;
-var catmullRom_js_1 = __fusereq(107);
-var catmullRom_js_1d = __fuse.dt(catmullRom_js_1);
-exports.curveCatmullRom = catmullRom_js_1d.default;
-var linearClosed_js_1 = __fusereq(108);
-var linearClosed_js_1d = __fuse.dt(linearClosed_js_1);
-exports.curveLinearClosed = linearClosed_js_1d.default;
-var linear_js_1 = __fusereq(109);
-var linear_js_1d = __fuse.dt(linear_js_1);
-exports.curveLinear = linear_js_1d.default;
-var monotone_js_1 = __fusereq(110);
-exports.curveMonotoneX = monotone_js_1.monotoneX;
-exports.curveMonotoneY = monotone_js_1.monotoneY;
-var natural_js_1 = __fusereq(111);
-var natural_js_1d = __fuse.dt(natural_js_1);
-exports.curveNatural = natural_js_1d.default;
-var step_js_1 = __fusereq(112);
-var step_js_1d = __fuse.dt(step_js_1);
-exports.curveStep = step_js_1d.default;
-exports.curveStepAfter = step_js_1.stepAfter;
-exports.curveStepBefore = step_js_1.stepBefore;
-var stack_js_1 = __fusereq(113);
-var stack_js_1d = __fuse.dt(stack_js_1);
-exports.stack = stack_js_1d.default;
-var expand_js_1 = __fusereq(114);
-var expand_js_1d = __fuse.dt(expand_js_1);
-exports.stackOffsetExpand = expand_js_1d.default;
-var diverging_js_1 = __fusereq(115);
-var diverging_js_1d = __fuse.dt(diverging_js_1);
-exports.stackOffsetDiverging = diverging_js_1d.default;
-var none_js_1 = __fusereq(116);
-var none_js_1d = __fuse.dt(none_js_1);
-exports.stackOffsetNone = none_js_1d.default;
-var silhouette_js_1 = __fusereq(117);
-var silhouette_js_1d = __fuse.dt(silhouette_js_1);
-exports.stackOffsetSilhouette = silhouette_js_1d.default;
-var wiggle_js_1 = __fusereq(118);
-var wiggle_js_1d = __fuse.dt(wiggle_js_1);
-exports.stackOffsetWiggle = wiggle_js_1d.default;
-var appearance_js_1 = __fusereq(119);
-var appearance_js_1d = __fuse.dt(appearance_js_1);
-exports.stackOrderAppearance = appearance_js_1d.default;
-var ascending_js_1 = __fusereq(120);
-var ascending_js_1d = __fuse.dt(ascending_js_1);
-exports.stackOrderAscending = ascending_js_1d.default;
-var descending_js_1 = __fusereq(121);
-var descending_js_1d = __fuse.dt(descending_js_1);
-exports.stackOrderDescending = descending_js_1d.default;
-var insideOut_js_1 = __fusereq(122);
-var insideOut_js_1d = __fuse.dt(insideOut_js_1);
-exports.stackOrderInsideOut = insideOut_js_1d.default;
-var none_js_2 = __fusereq(123);
-var none_js_2d = __fuse.dt(none_js_2);
-exports.stackOrderNone = none_js_2d.default;
-var reverse_js_1 = __fusereq(124);
-var reverse_js_1d = __fuse.dt(reverse_js_1);
-exports.stackOrderReverse = reverse_js_1d.default;
-
-},
-
-// node_modules/d3-shape/src/arc.js @81
-81: function(__fusereq, exports, module){
-exports.__esModule = true;
-var d3_path_1 = __fusereq(178);
-var constant_js_1 = __fusereq(180);
-var constant_js_1d = __fuse.dt(constant_js_1);
-var math_js_1 = __fusereq(182);
-function arcInnerRadius(d) {
-  return d.innerRadius;
-}
-function arcOuterRadius(d) {
-  return d.outerRadius;
-}
-function arcStartAngle(d) {
-  return d.startAngle;
-}
-function arcEndAngle(d) {
-  return d.endAngle;
-}
-function arcPadAngle(d) {
-  return d && d.padAngle;
-}
-function intersect(x0, y0, x1, y1, x2, y2, x3, y3) {
-  var x10 = x1 - x0, y10 = y1 - y0, x32 = x3 - x2, y32 = y3 - y2, t = y32 * x10 - x32 * y10;
-  if (t * t < math_js_1.epsilon) return;
-  t = (x32 * (y0 - y2) - y32 * (x0 - x2)) / t;
-  return [x0 + t * x10, y0 + t * y10];
-}
-function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
-  var x01 = x0 - x1, y01 = y0 - y1, lo = (cw ? rc : -rc) / math_js_1.sqrt(x01 * x01 + y01 * y01), ox = lo * y01, oy = -lo * x01, x11 = x0 + ox, y11 = y0 + oy, x10 = x1 + ox, y10 = y1 + oy, x00 = (x11 + x10) / 2, y00 = (y11 + y10) / 2, dx = x10 - x11, dy = y10 - y11, d2 = dx * dx + dy * dy, r = r1 - rc, D = x11 * y10 - x10 * y11, d = (dy < 0 ? -1 : 1) * math_js_1.sqrt(math_js_1.max(0, r * r * d2 - D * D)), cx0 = (D * dy - dx * d) / d2, cy0 = (-D * dx - dy * d) / d2, cx1 = (D * dy + dx * d) / d2, cy1 = (-D * dx + dy * d) / d2, dx0 = cx0 - x00, dy0 = cy0 - y00, dx1 = cx1 - x00, dy1 = cy1 - y00;
-  if (dx0 * dx0 + dy0 * dy0 > dx1 * dx1 + dy1 * dy1) (cx0 = cx1, cy0 = cy1);
-  return {
-    cx: cx0,
-    cy: cy0,
-    x01: -ox,
-    y01: -oy,
-    x11: cx0 * (r1 / r - 1),
-    y11: cy0 * (r1 / r - 1)
-  };
-}
-function __DefaultExport__() {
-  var innerRadius = arcInnerRadius, outerRadius = arcOuterRadius, cornerRadius = constant_js_1d.default(0), padRadius = null, startAngle = arcStartAngle, endAngle = arcEndAngle, padAngle = arcPadAngle, context = null;
-  function arc() {
-    var buffer, r, r0 = +innerRadius.apply(this, arguments), r1 = +outerRadius.apply(this, arguments), a0 = startAngle.apply(this, arguments) - math_js_1.halfPi, a1 = endAngle.apply(this, arguments) - math_js_1.halfPi, da = math_js_1.abs(a1 - a0), cw = a1 > a0;
-    if (!context) context = buffer = d3_path_1.path();
-    if (r1 < r0) (r = r1, r1 = r0, r0 = r);
-    if (!(r1 > math_js_1.epsilon)) context.moveTo(0, 0); else if (da > math_js_1.tau - math_js_1.epsilon) {
-      context.moveTo(r1 * math_js_1.cos(a0), r1 * math_js_1.sin(a0));
-      context.arc(0, 0, r1, a0, a1, !cw);
-      if (r0 > math_js_1.epsilon) {
-        context.moveTo(r0 * math_js_1.cos(a1), r0 * math_js_1.sin(a1));
-        context.arc(0, 0, r0, a1, a0, cw);
-      }
-    } else {
-      var a01 = a0, a11 = a1, a00 = a0, a10 = a1, da0 = da, da1 = da, ap = padAngle.apply(this, arguments) / 2, rp = ap > math_js_1.epsilon && (padRadius ? +padRadius.apply(this, arguments) : math_js_1.sqrt(r0 * r0 + r1 * r1)), rc = math_js_1.min(math_js_1.abs(r1 - r0) / 2, +cornerRadius.apply(this, arguments)), rc0 = rc, rc1 = rc, t0, t1;
-      if (rp > math_js_1.epsilon) {
-        var p0 = math_js_1.asin(rp / r0 * math_js_1.sin(ap)), p1 = math_js_1.asin(rp / r1 * math_js_1.sin(ap));
-        if ((da0 -= p0 * 2) > math_js_1.epsilon) (p0 *= cw ? 1 : -1, a00 += p0, a10 -= p0); else (da0 = 0, a00 = a10 = (a0 + a1) / 2);
-        if ((da1 -= p1 * 2) > math_js_1.epsilon) (p1 *= cw ? 1 : -1, a01 += p1, a11 -= p1); else (da1 = 0, a01 = a11 = (a0 + a1) / 2);
-      }
-      var x01 = r1 * math_js_1.cos(a01), y01 = r1 * math_js_1.sin(a01), x10 = r0 * math_js_1.cos(a10), y10 = r0 * math_js_1.sin(a10);
-      if (rc > math_js_1.epsilon) {
-        var x11 = r1 * math_js_1.cos(a11), y11 = r1 * math_js_1.sin(a11), x00 = r0 * math_js_1.cos(a00), y00 = r0 * math_js_1.sin(a00), oc;
-        if (da < math_js_1.pi && (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10))) {
-          var ax = x01 - oc[0], ay = y01 - oc[1], bx = x11 - oc[0], by = y11 - oc[1], kc = 1 / math_js_1.sin(math_js_1.acos((ax * bx + ay * by) / (math_js_1.sqrt(ax * ax + ay * ay) * math_js_1.sqrt(bx * bx + by * by))) / 2), lc = math_js_1.sqrt(oc[0] * oc[0] + oc[1] * oc[1]);
-          rc0 = math_js_1.min(rc, (r0 - lc) / (kc - 1));
-          rc1 = math_js_1.min(rc, (r1 - lc) / (kc + 1));
-        }
-      }
-      if (!(da1 > math_js_1.epsilon)) context.moveTo(x01, y01); else if (rc1 > math_js_1.epsilon) {
-        t0 = cornerTangents(x00, y00, x01, y01, r1, rc1, cw);
-        t1 = cornerTangents(x11, y11, x10, y10, r1, rc1, cw);
-        context.moveTo(t0.cx + t0.x01, t0.cy + t0.y01);
-        if (rc1 < rc) context.arc(t0.cx, t0.cy, rc1, math_js_1.atan2(t0.y01, t0.x01), math_js_1.atan2(t1.y01, t1.x01), !cw); else {
-          context.arc(t0.cx, t0.cy, rc1, math_js_1.atan2(t0.y01, t0.x01), math_js_1.atan2(t0.y11, t0.x11), !cw);
-          context.arc(0, 0, r1, math_js_1.atan2(t0.cy + t0.y11, t0.cx + t0.x11), math_js_1.atan2(t1.cy + t1.y11, t1.cx + t1.x11), !cw);
-          context.arc(t1.cx, t1.cy, rc1, math_js_1.atan2(t1.y11, t1.x11), math_js_1.atan2(t1.y01, t1.x01), !cw);
-        }
-      } else (context.moveTo(x01, y01), context.arc(0, 0, r1, a01, a11, !cw));
-      if (!(r0 > math_js_1.epsilon) || !(da0 > math_js_1.epsilon)) context.lineTo(x10, y10); else if (rc0 > math_js_1.epsilon) {
-        t0 = cornerTangents(x10, y10, x11, y11, r0, -rc0, cw);
-        t1 = cornerTangents(x01, y01, x00, y00, r0, -rc0, cw);
-        context.lineTo(t0.cx + t0.x01, t0.cy + t0.y01);
-        if (rc0 < rc) context.arc(t0.cx, t0.cy, rc0, math_js_1.atan2(t0.y01, t0.x01), math_js_1.atan2(t1.y01, t1.x01), !cw); else {
-          context.arc(t0.cx, t0.cy, rc0, math_js_1.atan2(t0.y01, t0.x01), math_js_1.atan2(t0.y11, t0.x11), !cw);
-          context.arc(0, 0, r0, math_js_1.atan2(t0.cy + t0.y11, t0.cx + t0.x11), math_js_1.atan2(t1.cy + t1.y11, t1.cx + t1.x11), cw);
-          context.arc(t1.cx, t1.cy, rc0, math_js_1.atan2(t1.y11, t1.x11), math_js_1.atan2(t1.y01, t1.x01), !cw);
-        }
-      } else context.arc(0, 0, r0, a10, a00, cw);
-    }
-    context.closePath();
-    if (buffer) return (context = null, buffer + "" || null);
-  }
-  arc.centroid = function () {
-    var r = (+innerRadius.apply(this, arguments) + +outerRadius.apply(this, arguments)) / 2, a = (+startAngle.apply(this, arguments) + +endAngle.apply(this, arguments)) / 2 - math_js_1.pi / 2;
-    return [math_js_1.cos(a) * r, math_js_1.sin(a) * r];
-  };
-  arc.innerRadius = function (_) {
-    return arguments.length ? (innerRadius = typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : innerRadius;
-  };
-  arc.outerRadius = function (_) {
-    return arguments.length ? (outerRadius = typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : outerRadius;
-  };
-  arc.cornerRadius = function (_) {
-    return arguments.length ? (cornerRadius = typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : cornerRadius;
-  };
-  arc.padRadius = function (_) {
-    return arguments.length ? (padRadius = _ == null ? null : typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : padRadius;
-  };
-  arc.startAngle = function (_) {
-    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : startAngle;
-  };
-  arc.endAngle = function (_) {
-    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : endAngle;
-  };
-  arc.padAngle = function (_) {
-    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant_js_1d.default(+_), arc) : padAngle;
-  };
-  arc.context = function (_) {
-    return arguments.length ? (context = _ == null ? null : _, arc) : context;
-  };
-  return arc;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/area.js @82
-82: function(__fusereq, exports, module){
-exports.__esModule = true;
-var d3_path_1 = __fusereq(178);
-var array_js_1 = __fusereq(179);
-var array_js_1d = __fuse.dt(array_js_1);
-var constant_js_1 = __fusereq(180);
-var constant_js_1d = __fuse.dt(constant_js_1);
-var linear_js_1 = __fusereq(109);
-var linear_js_1d = __fuse.dt(linear_js_1);
-var line_js_1 = __fusereq(83);
-var line_js_1d = __fuse.dt(line_js_1);
-var point_js_1 = __fusereq(181);
-function __DefaultExport__(x0, y0, y1) {
-  var x1 = null, defined = constant_js_1d.default(true), context = null, curve = linear_js_1d.default, output = null;
-  x0 = typeof x0 === "function" ? x0 : x0 === undefined ? point_js_1.x : constant_js_1d.default(+x0);
-  y0 = typeof y0 === "function" ? y0 : y0 === undefined ? constant_js_1d.default(0) : constant_js_1d.default(+y0);
-  y1 = typeof y1 === "function" ? y1 : y1 === undefined ? point_js_1.y : constant_js_1d.default(+y1);
-  function area(data) {
-    var i, j, k, n = (data = array_js_1d.default(data)).length, d, defined0 = false, buffer, x0z = new Array(n), y0z = new Array(n);
-    if (context == null) output = curve(buffer = d3_path_1.path());
-    for (i = 0; i <= n; ++i) {
-      if (!(i < n && defined(d = data[i], i, data)) === defined0) {
-        if (defined0 = !defined0) {
-          j = i;
-          output.areaStart();
-          output.lineStart();
-        } else {
-          output.lineEnd();
-          output.lineStart();
-          for (k = i - 1; k >= j; --k) {
-            output.point(x0z[k], y0z[k]);
-          }
-          output.lineEnd();
-          output.areaEnd();
-        }
-      }
-      if (defined0) {
-        (x0z[i] = +x0(d, i, data), y0z[i] = +y0(d, i, data));
-        output.point(x1 ? +x1(d, i, data) : x0z[i], y1 ? +y1(d, i, data) : y0z[i]);
-      }
-    }
-    if (buffer) return (output = null, buffer + "" || null);
-  }
-  function arealine() {
-    return line_js_1d.default().defined(defined).curve(curve).context(context);
-  }
-  area.x = function (_) {
-    return arguments.length ? (x0 = typeof _ === "function" ? _ : constant_js_1d.default(+_), x1 = null, area) : x0;
-  };
-  area.x0 = function (_) {
-    return arguments.length ? (x0 = typeof _ === "function" ? _ : constant_js_1d.default(+_), area) : x0;
-  };
-  area.x1 = function (_) {
-    return arguments.length ? (x1 = _ == null ? null : typeof _ === "function" ? _ : constant_js_1d.default(+_), area) : x1;
-  };
-  area.y = function (_) {
-    return arguments.length ? (y0 = typeof _ === "function" ? _ : constant_js_1d.default(+_), y1 = null, area) : y0;
-  };
-  area.y0 = function (_) {
-    return arguments.length ? (y0 = typeof _ === "function" ? _ : constant_js_1d.default(+_), area) : y0;
-  };
-  area.y1 = function (_) {
-    return arguments.length ? (y1 = _ == null ? null : typeof _ === "function" ? _ : constant_js_1d.default(+_), area) : y1;
-  };
-  area.lineX0 = area.lineY0 = function () {
-    return arealine().x(x0).y(y0);
-  };
-  area.lineY1 = function () {
-    return arealine().x(x0).y(y1);
-  };
-  area.lineX1 = function () {
-    return arealine().x(x1).y(y0);
-  };
-  area.defined = function (_) {
-    return arguments.length ? (defined = typeof _ === "function" ? _ : constant_js_1d.default(!!_), area) : defined;
-  };
-  area.curve = function (_) {
-    return arguments.length ? (curve = _, context != null && (output = curve(context)), area) : curve;
-  };
-  area.context = function (_) {
-    return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), area) : context;
-  };
-  return area;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/line.js @83
-83: function(__fusereq, exports, module){
-exports.__esModule = true;
-var d3_path_1 = __fusereq(178);
-var array_js_1 = __fusereq(179);
-var array_js_1d = __fuse.dt(array_js_1);
-var constant_js_1 = __fusereq(180);
-var constant_js_1d = __fuse.dt(constant_js_1);
-var linear_js_1 = __fusereq(109);
-var linear_js_1d = __fuse.dt(linear_js_1);
-var point_js_1 = __fusereq(181);
-function __DefaultExport__(x, y) {
-  var defined = constant_js_1d.default(true), context = null, curve = linear_js_1d.default, output = null;
-  x = typeof x === "function" ? x : x === undefined ? point_js_1.x : constant_js_1d.default(x);
-  y = typeof y === "function" ? y : y === undefined ? point_js_1.y : constant_js_1d.default(y);
-  function line(data) {
-    var i, n = (data = array_js_1d.default(data)).length, d, defined0 = false, buffer;
-    if (context == null) output = curve(buffer = d3_path_1.path());
-    for (i = 0; i <= n; ++i) {
-      if (!(i < n && defined(d = data[i], i, data)) === defined0) {
-        if (defined0 = !defined0) output.lineStart(); else output.lineEnd();
-      }
-      if (defined0) output.point(+x(d, i, data), +y(d, i, data));
-    }
-    if (buffer) return (output = null, buffer + "" || null);
-  }
-  line.x = function (_) {
-    return arguments.length ? (x = typeof _ === "function" ? _ : constant_js_1d.default(+_), line) : x;
-  };
-  line.y = function (_) {
-    return arguments.length ? (y = typeof _ === "function" ? _ : constant_js_1d.default(+_), line) : y;
-  };
-  line.defined = function (_) {
-    return arguments.length ? (defined = typeof _ === "function" ? _ : constant_js_1d.default(!!_), line) : defined;
-  };
-  line.curve = function (_) {
-    return arguments.length ? (curve = _, context != null && (output = curve(context)), line) : curve;
-  };
-  line.context = function (_) {
-    return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), line) : context;
-  };
-  return line;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/pie.js @84
-84: function(__fusereq, exports, module){
-exports.__esModule = true;
-var array_js_1 = __fusereq(179);
-var array_js_1d = __fuse.dt(array_js_1);
-var constant_js_1 = __fusereq(180);
-var constant_js_1d = __fuse.dt(constant_js_1);
-var descending_js_1 = __fusereq(183);
-var descending_js_1d = __fuse.dt(descending_js_1);
-var identity_js_1 = __fusereq(184);
-var identity_js_1d = __fuse.dt(identity_js_1);
-var math_js_1 = __fusereq(182);
-function __DefaultExport__() {
-  var value = identity_js_1d.default, sortValues = descending_js_1d.default, sort = null, startAngle = constant_js_1d.default(0), endAngle = constant_js_1d.default(math_js_1.tau), padAngle = constant_js_1d.default(0);
-  function pie(data) {
-    var i, n = (data = array_js_1d.default(data)).length, j, k, sum = 0, index = new Array(n), arcs = new Array(n), a0 = +startAngle.apply(this, arguments), da = Math.min(math_js_1.tau, Math.max(-math_js_1.tau, endAngle.apply(this, arguments) - a0)), a1, p = Math.min(Math.abs(da) / n, padAngle.apply(this, arguments)), pa = p * (da < 0 ? -1 : 1), v;
-    for (i = 0; i < n; ++i) {
-      if ((v = arcs[index[i] = i] = +value(data[i], i, data)) > 0) {
-        sum += v;
-      }
-    }
-    if (sortValues != null) index.sort(function (i, j) {
-      return sortValues(arcs[i], arcs[j]);
-    }); else if (sort != null) index.sort(function (i, j) {
-      return sort(data[i], data[j]);
-    });
-    for ((i = 0, k = sum ? (da - n * pa) / sum : 0); i < n; (++i, a0 = a1)) {
-      (j = index[i], v = arcs[j], a1 = a0 + (v > 0 ? v * k : 0) + pa, arcs[j] = {
-        data: data[j],
-        index: i,
-        value: v,
-        startAngle: a0,
-        endAngle: a1,
-        padAngle: p
-      });
-    }
-    return arcs;
-  }
-  pie.value = function (_) {
-    return arguments.length ? (value = typeof _ === "function" ? _ : constant_js_1d.default(+_), pie) : value;
-  };
-  pie.sortValues = function (_) {
-    return arguments.length ? (sortValues = _, sort = null, pie) : sortValues;
-  };
-  pie.sort = function (_) {
-    return arguments.length ? (sort = _, sortValues = null, pie) : sort;
-  };
-  pie.startAngle = function (_) {
-    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant_js_1d.default(+_), pie) : startAngle;
-  };
-  pie.endAngle = function (_) {
-    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant_js_1d.default(+_), pie) : endAngle;
-  };
-  pie.padAngle = function (_) {
-    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant_js_1d.default(+_), pie) : padAngle;
-  };
-  return pie;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/areaRadial.js @85
-85: function(__fusereq, exports, module){
-exports.__esModule = true;
-var radial_js_1 = __fusereq(185);
-var radial_js_1d = __fuse.dt(radial_js_1);
-var area_js_1 = __fusereq(82);
-var area_js_1d = __fuse.dt(area_js_1);
-var lineRadial_js_1 = __fusereq(86);
-function __DefaultExport__() {
-  var a = area_js_1d.default().curve(radial_js_1.curveRadialLinear), c = a.curve, x0 = a.lineX0, x1 = a.lineX1, y0 = a.lineY0, y1 = a.lineY1;
-  (a.angle = a.x, delete a.x);
-  (a.startAngle = a.x0, delete a.x0);
-  (a.endAngle = a.x1, delete a.x1);
-  (a.radius = a.y, delete a.y);
-  (a.innerRadius = a.y0, delete a.y0);
-  (a.outerRadius = a.y1, delete a.y1);
-  (a.lineStartAngle = function () {
-    return lineRadial_js_1.lineRadial(x0());
-  }, delete a.lineX0);
-  (a.lineEndAngle = function () {
-    return lineRadial_js_1.lineRadial(x1());
-  }, delete a.lineX1);
-  (a.lineInnerRadius = function () {
-    return lineRadial_js_1.lineRadial(y0());
-  }, delete a.lineY0);
-  (a.lineOuterRadius = function () {
-    return lineRadial_js_1.lineRadial(y1());
-  }, delete a.lineY1);
-  a.curve = function (_) {
-    return arguments.length ? c(radial_js_1d.default(_)) : c()._curve;
-  };
-  return a;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/lineRadial.js @86
-86: function(__fusereq, exports, module){
-exports.__esModule = true;
-var radial_js_1 = __fusereq(185);
-var radial_js_1d = __fuse.dt(radial_js_1);
-var line_js_1 = __fusereq(83);
-var line_js_1d = __fuse.dt(line_js_1);
-function lineRadial(l) {
-  var c = l.curve;
-  (l.angle = l.x, delete l.x);
-  (l.radius = l.y, delete l.y);
-  l.curve = function (_) {
-    return arguments.length ? c(radial_js_1d.default(_)) : c()._curve;
-  };
-  return l;
-}
-exports.lineRadial = lineRadial;
-function __DefaultExport__() {
-  return lineRadial(line_js_1d.default().curve(radial_js_1.curveRadialLinear));
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/pointRadial.js @87
-87: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(x, y) {
-  return [(y = +y) * Math.cos(x -= Math.PI / 2), y * Math.sin(x)];
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/link/index.js @88
-88: function(__fusereq, exports, module){
-exports.__esModule = true;
-var d3_path_1 = __fusereq(178);
-var array_js_1 = __fusereq(179);
-var constant_js_1 = __fusereq(180);
-var constant_js_1d = __fuse.dt(constant_js_1);
-var point_js_1 = __fusereq(181);
-var pointRadial_js_1 = __fusereq(87);
-var pointRadial_js_1d = __fuse.dt(pointRadial_js_1);
-function linkSource(d) {
-  return d.source;
-}
-function linkTarget(d) {
-  return d.target;
-}
-function link(curve) {
-  var source = linkSource, target = linkTarget, x = point_js_1.x, y = point_js_1.y, context = null;
-  function link() {
-    var buffer, argv = array_js_1.slice.call(arguments), s = source.apply(this, argv), t = target.apply(this, argv);
-    if (!context) context = buffer = d3_path_1.path();
-    curve(context, +x.apply(this, (argv[0] = s, argv)), +y.apply(this, argv), +x.apply(this, (argv[0] = t, argv)), +y.apply(this, argv));
-    if (buffer) return (context = null, buffer + "" || null);
-  }
-  link.source = function (_) {
-    return arguments.length ? (source = _, link) : source;
-  };
-  link.target = function (_) {
-    return arguments.length ? (target = _, link) : target;
-  };
-  link.x = function (_) {
-    return arguments.length ? (x = typeof _ === "function" ? _ : constant_js_1d.default(+_), link) : x;
-  };
-  link.y = function (_) {
-    return arguments.length ? (y = typeof _ === "function" ? _ : constant_js_1d.default(+_), link) : y;
-  };
-  link.context = function (_) {
-    return arguments.length ? (context = _ == null ? null : _, link) : context;
-  };
-  return link;
-}
-function curveHorizontal(context, x0, y0, x1, y1) {
-  context.moveTo(x0, y0);
-  context.bezierCurveTo(x0 = (x0 + x1) / 2, y0, x0, y1, x1, y1);
-}
-function curveVertical(context, x0, y0, x1, y1) {
-  context.moveTo(x0, y0);
-  context.bezierCurveTo(x0, y0 = (y0 + y1) / 2, x1, y0, x1, y1);
-}
-function curveRadial(context, x0, y0, x1, y1) {
-  var p0 = pointRadial_js_1d.default(x0, y0), p1 = pointRadial_js_1d.default(x0, y0 = (y0 + y1) / 2), p2 = pointRadial_js_1d.default(x1, y0), p3 = pointRadial_js_1d.default(x1, y1);
-  context.moveTo(p0[0], p0[1]);
-  context.bezierCurveTo(p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]);
-}
-function linkHorizontal() {
-  return link(curveHorizontal);
-}
-exports.linkHorizontal = linkHorizontal;
-function linkVertical() {
-  return link(curveVertical);
-}
-exports.linkVertical = linkVertical;
-function linkRadial() {
-  var l = link(curveRadial);
-  (l.angle = l.x, delete l.x);
-  (l.radius = l.y, delete l.y);
-  return l;
-}
-exports.linkRadial = linkRadial;
-
-},
-
-// node_modules/d3-shape/src/symbol.js @89
-89: function(__fusereq, exports, module){
-exports.__esModule = true;
-var d3_path_1 = __fusereq(178);
-var circle_js_1 = __fusereq(90);
-var circle_js_1d = __fuse.dt(circle_js_1);
-var cross_js_1 = __fusereq(91);
-var cross_js_1d = __fuse.dt(cross_js_1);
-var diamond_js_1 = __fusereq(92);
-var diamond_js_1d = __fuse.dt(diamond_js_1);
-var star_js_1 = __fusereq(94);
-var star_js_1d = __fuse.dt(star_js_1);
-var square_js_1 = __fusereq(93);
-var square_js_1d = __fuse.dt(square_js_1);
-var triangle_js_1 = __fusereq(95);
-var triangle_js_1d = __fuse.dt(triangle_js_1);
-var wye_js_1 = __fusereq(96);
-var wye_js_1d = __fuse.dt(wye_js_1);
-var constant_js_1 = __fusereq(180);
-var constant_js_1d = __fuse.dt(constant_js_1);
-exports.symbols = [circle_js_1d.default, cross_js_1d.default, diamond_js_1d.default, square_js_1d.default, star_js_1d.default, triangle_js_1d.default, wye_js_1d.default];
-function __DefaultExport__(type, size) {
-  var context = null;
-  type = typeof type === "function" ? type : constant_js_1d.default(type || circle_js_1d.default);
-  size = typeof size === "function" ? size : constant_js_1d.default(size === undefined ? 64 : +size);
-  function symbol() {
-    var buffer;
-    if (!context) context = buffer = d3_path_1.path();
-    type.apply(this, arguments).draw(context, +size.apply(this, arguments));
-    if (buffer) return (context = null, buffer + "" || null);
-  }
-  symbol.type = function (_) {
-    return arguments.length ? (type = typeof _ === "function" ? _ : constant_js_1d.default(_), symbol) : type;
-  };
-  symbol.size = function (_) {
-    return arguments.length ? (size = typeof _ === "function" ? _ : constant_js_1d.default(+_), symbol) : size;
-  };
-  symbol.context = function (_) {
-    return arguments.length ? (context = _ == null ? null : _, symbol) : context;
-  };
-  return symbol;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/symbol/circle.js @90
-90: function(__fusereq, exports, module){
-exports.__esModule = true;
-var math_js_1 = __fusereq(182);
-exports.default = {
-  draw: function (context, size) {
-    var r = Math.sqrt(size / math_js_1.pi);
-    context.moveTo(r, 0);
-    context.arc(0, 0, r, 0, math_js_1.tau);
-  }
-};
-
-},
-
-// node_modules/d3-shape/src/symbol/cross.js @91
-91: function(__fusereq, exports, module){
-exports.__esModule = true;
-exports.default = {
-  draw: function (context, size) {
-    var r = Math.sqrt(size / 5) / 2;
-    context.moveTo(-3 * r, -r);
-    context.lineTo(-r, -r);
-    context.lineTo(-r, -3 * r);
-    context.lineTo(r, -3 * r);
-    context.lineTo(r, -r);
-    context.lineTo(3 * r, -r);
-    context.lineTo(3 * r, r);
-    context.lineTo(r, r);
-    context.lineTo(r, 3 * r);
-    context.lineTo(-r, 3 * r);
-    context.lineTo(-r, r);
-    context.lineTo(-3 * r, r);
-    context.closePath();
-  }
-};
-
-},
-
-// node_modules/d3-shape/src/symbol/diamond.js @92
-92: function(__fusereq, exports, module){
-exports.__esModule = true;
-var tan30 = Math.sqrt(1 / 3), tan30_2 = tan30 * 2;
-exports.default = {
-  draw: function (context, size) {
-    var y = Math.sqrt(size / tan30_2), x = y * tan30;
-    context.moveTo(0, -y);
-    context.lineTo(x, 0);
-    context.lineTo(0, y);
-    context.lineTo(-x, 0);
-    context.closePath();
-  }
-};
-
-},
-
-// node_modules/d3-shape/src/symbol/square.js @93
-93: function(__fusereq, exports, module){
-exports.__esModule = true;
-exports.default = {
-  draw: function (context, size) {
-    var w = Math.sqrt(size), x = -w / 2;
-    context.rect(x, x, w, w);
-  }
-};
-
-},
-
-// node_modules/d3-shape/src/symbol/star.js @94
-94: function(__fusereq, exports, module){
-exports.__esModule = true;
-var math_js_1 = __fusereq(182);
-var ka = 0.89081309152928522810, kr = Math.sin(math_js_1.pi / 10) / Math.sin(7 * math_js_1.pi / 10), kx = Math.sin(math_js_1.tau / 10) * kr, ky = -Math.cos(math_js_1.tau / 10) * kr;
-exports.default = {
-  draw: function (context, size) {
-    var r = Math.sqrt(size * ka), x = kx * r, y = ky * r;
-    context.moveTo(0, -r);
-    context.lineTo(x, y);
-    for (var i = 1; i < 5; ++i) {
-      var a = math_js_1.tau * i / 5, c = Math.cos(a), s = Math.sin(a);
-      context.lineTo(s * r, -c * r);
-      context.lineTo(c * x - s * y, s * x + c * y);
-    }
-    context.closePath();
-  }
-};
-
-},
-
-// node_modules/d3-shape/src/symbol/triangle.js @95
-95: function(__fusereq, exports, module){
-exports.__esModule = true;
-var sqrt3 = Math.sqrt(3);
-exports.default = {
-  draw: function (context, size) {
-    var y = -Math.sqrt(size / (sqrt3 * 3));
-    context.moveTo(0, y * 2);
-    context.lineTo(-sqrt3 * y, -y);
-    context.lineTo(sqrt3 * y, -y);
-    context.closePath();
-  }
-};
-
-},
-
-// node_modules/d3-shape/src/symbol/wye.js @96
-96: function(__fusereq, exports, module){
-exports.__esModule = true;
-var c = -0.5, s = Math.sqrt(3) / 2, k = 1 / Math.sqrt(12), a = (k / 2 + 1) * 3;
-exports.default = {
-  draw: function (context, size) {
-    var r = Math.sqrt(size / a), x0 = r / 2, y0 = r * k, x1 = x0, y1 = r * k + r, x2 = -x1, y2 = y1;
-    context.moveTo(x0, y0);
-    context.lineTo(x1, y1);
-    context.lineTo(x2, y2);
-    context.lineTo(c * x0 - s * y0, s * x0 + c * y0);
-    context.lineTo(c * x1 - s * y1, s * x1 + c * y1);
-    context.lineTo(c * x2 - s * y2, s * x2 + c * y2);
-    context.lineTo(c * x0 + s * y0, c * y0 - s * x0);
-    context.lineTo(c * x1 + s * y1, c * y1 - s * x1);
-    context.lineTo(c * x2 + s * y2, c * y2 - s * x2);
-    context.closePath();
-  }
-};
-
-},
-
-// node_modules/d3-shape/src/curve/basisClosed.js @97
-97: function(__fusereq, exports, module){
-exports.__esModule = true;
-var noop_js_1 = __fusereq(186);
-var noop_js_1d = __fuse.dt(noop_js_1);
-var basis_js_1 = __fusereq(99);
-function BasisClosed(context) {
-  this._context = context;
-}
-BasisClosed.prototype = {
-  areaStart: noop_js_1d.default,
-  areaEnd: noop_js_1d.default,
-  lineStart: function () {
-    this._x0 = this._x1 = this._x2 = this._x3 = this._x4 = this._y0 = this._y1 = this._y2 = this._y3 = this._y4 = NaN;
-    this._point = 0;
-  },
-  lineEnd: function () {
-    switch (this._point) {
-      case 1:
-        {
-          this._context.moveTo(this._x2, this._y2);
-          this._context.closePath();
-          break;
-        }
-      case 2:
-        {
-          this._context.moveTo((this._x2 + 2 * this._x3) / 3, (this._y2 + 2 * this._y3) / 3);
-          this._context.lineTo((this._x3 + 2 * this._x2) / 3, (this._y3 + 2 * this._y2) / 3);
-          this._context.closePath();
-          break;
-        }
-      case 3:
-        {
-          this.point(this._x2, this._y2);
-          this.point(this._x3, this._y3);
-          this.point(this._x4, this._y4);
-          break;
-        }
-    }
-  },
-  point: function (x, y) {
-    (x = +x, y = +y);
-    switch (this._point) {
-      case 0:
-        this._point = 1;
-        (this._x2 = x, this._y2 = y);
-        break;
-      case 1:
-        this._point = 2;
-        (this._x3 = x, this._y3 = y);
-        break;
-      case 2:
-        this._point = 3;
-        (this._x4 = x, this._y4 = y);
-        this._context.moveTo((this._x0 + 4 * this._x1 + x) / 6, (this._y0 + 4 * this._y1 + y) / 6);
-        break;
-      default:
-        basis_js_1.point(this, x, y);
-        break;
-    }
-    (this._x0 = this._x1, this._x1 = x);
-    (this._y0 = this._y1, this._y1 = y);
-  }
-};
-function __DefaultExport__(context) {
-  return new BasisClosed(context);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/curve/basisOpen.js @98
-98: function(__fusereq, exports, module){
-exports.__esModule = true;
-var basis_js_1 = __fusereq(99);
-function BasisOpen(context) {
-  this._context = context;
-}
-BasisOpen.prototype = {
-  areaStart: function () {
-    this._line = 0;
-  },
-  areaEnd: function () {
-    this._line = NaN;
-  },
-  lineStart: function () {
-    this._x0 = this._x1 = this._y0 = this._y1 = NaN;
-    this._point = 0;
-  },
-  lineEnd: function () {
-    if (this._line || this._line !== 0 && this._point === 3) this._context.closePath();
-    this._line = 1 - this._line;
-  },
-  point: function (x, y) {
-    (x = +x, y = +y);
-    switch (this._point) {
-      case 0:
-        this._point = 1;
-        break;
-      case 1:
-        this._point = 2;
-        break;
-      case 2:
-        this._point = 3;
-        var x0 = (this._x0 + 4 * this._x1 + x) / 6, y0 = (this._y0 + 4 * this._y1 + y) / 6;
-        this._line ? this._context.lineTo(x0, y0) : this._context.moveTo(x0, y0);
-        break;
-      case 3:
-        this._point = 4;
-      default:
-        basis_js_1.point(this, x, y);
-        break;
-    }
-    (this._x0 = this._x1, this._x1 = x);
-    (this._y0 = this._y1, this._y1 = y);
-  }
-};
-function __DefaultExport__(context) {
-  return new BasisOpen(context);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/curve/basis.js @99
-99: function(__fusereq, exports, module){
-exports.__esModule = true;
-function point(that, x, y) {
-  that._context.bezierCurveTo((2 * that._x0 + that._x1) / 3, (2 * that._y0 + that._y1) / 3, (that._x0 + 2 * that._x1) / 3, (that._y0 + 2 * that._y1) / 3, (that._x0 + 4 * that._x1 + x) / 6, (that._y0 + 4 * that._y1 + y) / 6);
-}
-exports.point = point;
-function Basis(context) {
-  this._context = context;
-}
-exports.Basis = Basis;
-Basis.prototype = {
-  areaStart: function () {
-    this._line = 0;
-  },
-  areaEnd: function () {
-    this._line = NaN;
-  },
-  lineStart: function () {
-    this._x0 = this._x1 = this._y0 = this._y1 = NaN;
-    this._point = 0;
-  },
-  lineEnd: function () {
-    switch (this._point) {
-      case 3:
-        point(this, this._x1, this._y1);
-      case 2:
-        this._context.lineTo(this._x1, this._y1);
-        break;
-    }
-    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-    this._line = 1 - this._line;
-  },
-  point: function (x, y) {
-    (x = +x, y = +y);
-    switch (this._point) {
-      case 0:
-        this._point = 1;
-        this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
-        break;
-      case 1:
-        this._point = 2;
-        break;
-      case 2:
-        this._point = 3;
-        this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6);
-      default:
-        point(this, x, y);
-        break;
-    }
-    (this._x0 = this._x1, this._x1 = x);
-    (this._y0 = this._y1, this._y1 = y);
-  }
-};
-function __DefaultExport__(context) {
-  return new Basis(context);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/curve/bump.js @100
-100: function(__fusereq, exports, module){
-class Bump {
-  constructor(context, x) {
-    this._context = context;
-    this._x = x;
-  }
-  areaStart() {
-    this._line = 0;
-  }
-  areaEnd() {
-    this._line = NaN;
-  }
-  lineStart() {
-    this._point = 0;
-  }
-  lineEnd() {
-    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-    this._line = 1 - this._line;
-  }
-  point(x, y) {
-    (x = +x, y = +y);
-    switch (this._point) {
-      case 0:
-        {
-          this._point = 1;
-          if (this._line) this._context.lineTo(x, y); else this._context.moveTo(x, y);
-          break;
-        }
-      case 1:
-        this._point = 2;
-      default:
-        {
-          if (this._x) this._context.bezierCurveTo(this._x0 = (this._x0 + x) / 2, this._y0, this._x0, y, x, y); else this._context.bezierCurveTo(this._x0, this._y0 = (this._y0 + y) / 2, x, this._y0, x, y);
-          break;
-        }
-    }
-    (this._x0 = x, this._y0 = y);
-  }
-}
-function bumpX(context) {
-  return new Bump(context, true);
-}
-exports.bumpX = bumpX;
-function bumpY(context) {
-  return new Bump(context, false);
-}
-exports.bumpY = bumpY;
-
-},
-
-// node_modules/d3-shape/src/curve/bundle.js @101
-101: function(__fusereq, exports, module){
-exports.__esModule = true;
-var basis_js_1 = __fusereq(99);
-function Bundle(context, beta) {
-  this._basis = new basis_js_1.Basis(context);
-  this._beta = beta;
-}
-Bundle.prototype = {
-  lineStart: function () {
-    this._x = [];
-    this._y = [];
-    this._basis.lineStart();
-  },
-  lineEnd: function () {
-    var x = this._x, y = this._y, j = x.length - 1;
-    if (j > 0) {
-      var x0 = x[0], y0 = y[0], dx = x[j] - x0, dy = y[j] - y0, i = -1, t;
-      while (++i <= j) {
-        t = i / j;
-        this._basis.point(this._beta * x[i] + (1 - this._beta) * (x0 + t * dx), this._beta * y[i] + (1 - this._beta) * (y0 + t * dy));
-      }
-    }
-    this._x = this._y = null;
-    this._basis.lineEnd();
-  },
-  point: function (x, y) {
-    this._x.push(+x);
-    this._y.push(+y);
-  }
-};
-exports.default = (function custom(beta) {
-  function bundle(context) {
-    return beta === 1 ? new basis_js_1.Basis(context) : new Bundle(context, beta);
-  }
-  bundle.beta = function (beta) {
-    return custom(+beta);
-  };
-  return bundle;
-})(0.85);
-
-},
-
-// node_modules/d3-shape/src/curve/cardinalClosed.js @102
-102: function(__fusereq, exports, module){
-exports.__esModule = true;
-var noop_js_1 = __fusereq(186);
-var noop_js_1d = __fuse.dt(noop_js_1);
-var cardinal_js_1 = __fusereq(104);
-function CardinalClosed(context, tension) {
-  this._context = context;
-  this._k = (1 - tension) / 6;
-}
-exports.CardinalClosed = CardinalClosed;
-CardinalClosed.prototype = {
-  areaStart: noop_js_1d.default,
-  areaEnd: noop_js_1d.default,
-  lineStart: function () {
-    this._x0 = this._x1 = this._x2 = this._x3 = this._x4 = this._x5 = this._y0 = this._y1 = this._y2 = this._y3 = this._y4 = this._y5 = NaN;
-    this._point = 0;
-  },
-  lineEnd: function () {
-    switch (this._point) {
-      case 1:
-        {
-          this._context.moveTo(this._x3, this._y3);
-          this._context.closePath();
-          break;
-        }
-      case 2:
-        {
-          this._context.lineTo(this._x3, this._y3);
-          this._context.closePath();
-          break;
-        }
-      case 3:
-        {
-          this.point(this._x3, this._y3);
-          this.point(this._x4, this._y4);
-          this.point(this._x5, this._y5);
-          break;
-        }
-    }
-  },
-  point: function (x, y) {
-    (x = +x, y = +y);
-    switch (this._point) {
-      case 0:
-        this._point = 1;
-        (this._x3 = x, this._y3 = y);
-        break;
-      case 1:
-        this._point = 2;
-        this._context.moveTo(this._x4 = x, this._y4 = y);
-        break;
-      case 2:
-        this._point = 3;
-        (this._x5 = x, this._y5 = y);
-        break;
-      default:
-        cardinal_js_1.point(this, x, y);
-        break;
-    }
-    (this._x0 = this._x1, this._x1 = this._x2, this._x2 = x);
-    (this._y0 = this._y1, this._y1 = this._y2, this._y2 = y);
-  }
-};
-exports.default = (function custom(tension) {
-  function cardinal(context) {
-    return new CardinalClosed(context, tension);
-  }
-  cardinal.tension = function (tension) {
-    return custom(+tension);
-  };
-  return cardinal;
-})(0);
-
-},
-
-// node_modules/d3-shape/src/curve/cardinalOpen.js @103
-103: function(__fusereq, exports, module){
-exports.__esModule = true;
-var cardinal_js_1 = __fusereq(104);
-function CardinalOpen(context, tension) {
-  this._context = context;
-  this._k = (1 - tension) / 6;
-}
-exports.CardinalOpen = CardinalOpen;
-CardinalOpen.prototype = {
-  areaStart: function () {
-    this._line = 0;
-  },
-  areaEnd: function () {
-    this._line = NaN;
-  },
-  lineStart: function () {
-    this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
-    this._point = 0;
-  },
-  lineEnd: function () {
-    if (this._line || this._line !== 0 && this._point === 3) this._context.closePath();
-    this._line = 1 - this._line;
-  },
-  point: function (x, y) {
-    (x = +x, y = +y);
-    switch (this._point) {
-      case 0:
-        this._point = 1;
-        break;
-      case 1:
-        this._point = 2;
-        break;
-      case 2:
-        this._point = 3;
-        this._line ? this._context.lineTo(this._x2, this._y2) : this._context.moveTo(this._x2, this._y2);
-        break;
-      case 3:
-        this._point = 4;
-      default:
-        cardinal_js_1.point(this, x, y);
-        break;
-    }
-    (this._x0 = this._x1, this._x1 = this._x2, this._x2 = x);
-    (this._y0 = this._y1, this._y1 = this._y2, this._y2 = y);
-  }
-};
-exports.default = (function custom(tension) {
-  function cardinal(context) {
-    return new CardinalOpen(context, tension);
-  }
-  cardinal.tension = function (tension) {
-    return custom(+tension);
-  };
-  return cardinal;
-})(0);
-
-},
-
-// node_modules/d3-shape/src/curve/cardinal.js @104
-104: function(__fusereq, exports, module){
-exports.__esModule = true;
-function point(that, x, y) {
-  that._context.bezierCurveTo(that._x1 + that._k * (that._x2 - that._x0), that._y1 + that._k * (that._y2 - that._y0), that._x2 + that._k * (that._x1 - x), that._y2 + that._k * (that._y1 - y), that._x2, that._y2);
-}
-exports.point = point;
-function Cardinal(context, tension) {
-  this._context = context;
-  this._k = (1 - tension) / 6;
-}
-exports.Cardinal = Cardinal;
-Cardinal.prototype = {
-  areaStart: function () {
-    this._line = 0;
-  },
-  areaEnd: function () {
-    this._line = NaN;
-  },
-  lineStart: function () {
-    this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
-    this._point = 0;
-  },
-  lineEnd: function () {
-    switch (this._point) {
-      case 2:
-        this._context.lineTo(this._x2, this._y2);
-        break;
-      case 3:
-        point(this, this._x1, this._y1);
-        break;
-    }
-    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-    this._line = 1 - this._line;
-  },
-  point: function (x, y) {
-    (x = +x, y = +y);
-    switch (this._point) {
-      case 0:
-        this._point = 1;
-        this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
-        break;
-      case 1:
-        this._point = 2;
-        (this._x1 = x, this._y1 = y);
-        break;
-      case 2:
-        this._point = 3;
-      default:
-        point(this, x, y);
-        break;
-    }
-    (this._x0 = this._x1, this._x1 = this._x2, this._x2 = x);
-    (this._y0 = this._y1, this._y1 = this._y2, this._y2 = y);
-  }
-};
-exports.default = (function custom(tension) {
-  function cardinal(context) {
-    return new Cardinal(context, tension);
-  }
-  cardinal.tension = function (tension) {
-    return custom(+tension);
-  };
-  return cardinal;
-})(0);
-
-},
-
-// node_modules/d3-shape/src/curve/catmullRomClosed.js @105
-105: function(__fusereq, exports, module){
-exports.__esModule = true;
-var cardinalClosed_js_1 = __fusereq(102);
-var noop_js_1 = __fusereq(186);
-var noop_js_1d = __fuse.dt(noop_js_1);
-var catmullRom_js_1 = __fusereq(107);
-function CatmullRomClosed(context, alpha) {
-  this._context = context;
-  this._alpha = alpha;
-}
-CatmullRomClosed.prototype = {
-  areaStart: noop_js_1d.default,
-  areaEnd: noop_js_1d.default,
-  lineStart: function () {
-    this._x0 = this._x1 = this._x2 = this._x3 = this._x4 = this._x5 = this._y0 = this._y1 = this._y2 = this._y3 = this._y4 = this._y5 = NaN;
-    this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
-  },
-  lineEnd: function () {
-    switch (this._point) {
-      case 1:
-        {
-          this._context.moveTo(this._x3, this._y3);
-          this._context.closePath();
-          break;
-        }
-      case 2:
-        {
-          this._context.lineTo(this._x3, this._y3);
-          this._context.closePath();
-          break;
-        }
-      case 3:
-        {
-          this.point(this._x3, this._y3);
-          this.point(this._x4, this._y4);
-          this.point(this._x5, this._y5);
-          break;
-        }
-    }
-  },
-  point: function (x, y) {
-    (x = +x, y = +y);
-    if (this._point) {
-      var x23 = this._x2 - x, y23 = this._y2 - y;
-      this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
-    }
-    switch (this._point) {
-      case 0:
-        this._point = 1;
-        (this._x3 = x, this._y3 = y);
-        break;
-      case 1:
-        this._point = 2;
-        this._context.moveTo(this._x4 = x, this._y4 = y);
-        break;
-      case 2:
-        this._point = 3;
-        (this._x5 = x, this._y5 = y);
-        break;
-      default:
-        catmullRom_js_1.point(this, x, y);
-        break;
-    }
-    (this._l01_a = this._l12_a, this._l12_a = this._l23_a);
-    (this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a);
-    (this._x0 = this._x1, this._x1 = this._x2, this._x2 = x);
-    (this._y0 = this._y1, this._y1 = this._y2, this._y2 = y);
-  }
-};
-exports.default = (function custom(alpha) {
-  function catmullRom(context) {
-    return alpha ? new CatmullRomClosed(context, alpha) : new cardinalClosed_js_1.CardinalClosed(context, 0);
-  }
-  catmullRom.alpha = function (alpha) {
-    return custom(+alpha);
-  };
-  return catmullRom;
-})(0.5);
-
-},
-
-// node_modules/d3-shape/src/curve/catmullRomOpen.js @106
-106: function(__fusereq, exports, module){
-exports.__esModule = true;
-var cardinalOpen_js_1 = __fusereq(103);
-var catmullRom_js_1 = __fusereq(107);
-function CatmullRomOpen(context, alpha) {
-  this._context = context;
-  this._alpha = alpha;
-}
-CatmullRomOpen.prototype = {
-  areaStart: function () {
-    this._line = 0;
-  },
-  areaEnd: function () {
-    this._line = NaN;
-  },
-  lineStart: function () {
-    this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
-    this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
-  },
-  lineEnd: function () {
-    if (this._line || this._line !== 0 && this._point === 3) this._context.closePath();
-    this._line = 1 - this._line;
-  },
-  point: function (x, y) {
-    (x = +x, y = +y);
-    if (this._point) {
-      var x23 = this._x2 - x, y23 = this._y2 - y;
-      this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
-    }
-    switch (this._point) {
-      case 0:
-        this._point = 1;
-        break;
-      case 1:
-        this._point = 2;
-        break;
-      case 2:
-        this._point = 3;
-        this._line ? this._context.lineTo(this._x2, this._y2) : this._context.moveTo(this._x2, this._y2);
-        break;
-      case 3:
-        this._point = 4;
-      default:
-        catmullRom_js_1.point(this, x, y);
-        break;
-    }
-    (this._l01_a = this._l12_a, this._l12_a = this._l23_a);
-    (this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a);
-    (this._x0 = this._x1, this._x1 = this._x2, this._x2 = x);
-    (this._y0 = this._y1, this._y1 = this._y2, this._y2 = y);
-  }
-};
-exports.default = (function custom(alpha) {
-  function catmullRom(context) {
-    return alpha ? new CatmullRomOpen(context, alpha) : new cardinalOpen_js_1.CardinalOpen(context, 0);
-  }
-  catmullRom.alpha = function (alpha) {
-    return custom(+alpha);
-  };
-  return catmullRom;
-})(0.5);
-
-},
-
-// node_modules/d3-shape/src/curve/catmullRom.js @107
-107: function(__fusereq, exports, module){
-exports.__esModule = true;
-var math_js_1 = __fusereq(182);
-var cardinal_js_1 = __fusereq(104);
-function point(that, x, y) {
-  var x1 = that._x1, y1 = that._y1, x2 = that._x2, y2 = that._y2;
-  if (that._l01_a > math_js_1.epsilon) {
-    var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a, n = 3 * that._l01_a * (that._l01_a + that._l12_a);
-    x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n;
-    y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n;
-  }
-  if (that._l23_a > math_js_1.epsilon) {
-    var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a, m = 3 * that._l23_a * (that._l23_a + that._l12_a);
-    x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m;
-    y2 = (y2 * b + that._y1 * that._l23_2a - y * that._l12_2a) / m;
-  }
-  that._context.bezierCurveTo(x1, y1, x2, y2, that._x2, that._y2);
-}
-exports.point = point;
-function CatmullRom(context, alpha) {
-  this._context = context;
-  this._alpha = alpha;
-}
-CatmullRom.prototype = {
-  areaStart: function () {
-    this._line = 0;
-  },
-  areaEnd: function () {
-    this._line = NaN;
-  },
-  lineStart: function () {
-    this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
-    this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
-  },
-  lineEnd: function () {
-    switch (this._point) {
-      case 2:
-        this._context.lineTo(this._x2, this._y2);
-        break;
-      case 3:
-        this.point(this._x2, this._y2);
-        break;
-    }
-    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-    this._line = 1 - this._line;
-  },
-  point: function (x, y) {
-    (x = +x, y = +y);
-    if (this._point) {
-      var x23 = this._x2 - x, y23 = this._y2 - y;
-      this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
-    }
-    switch (this._point) {
-      case 0:
-        this._point = 1;
-        this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
-        break;
-      case 1:
-        this._point = 2;
-        break;
-      case 2:
-        this._point = 3;
-      default:
-        point(this, x, y);
-        break;
-    }
-    (this._l01_a = this._l12_a, this._l12_a = this._l23_a);
-    (this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a);
-    (this._x0 = this._x1, this._x1 = this._x2, this._x2 = x);
-    (this._y0 = this._y1, this._y1 = this._y2, this._y2 = y);
-  }
-};
-exports.default = (function custom(alpha) {
-  function catmullRom(context) {
-    return alpha ? new CatmullRom(context, alpha) : new cardinal_js_1.Cardinal(context, 0);
-  }
-  catmullRom.alpha = function (alpha) {
-    return custom(+alpha);
-  };
-  return catmullRom;
-})(0.5);
-
-},
-
-// node_modules/d3-shape/src/curve/linearClosed.js @108
-108: function(__fusereq, exports, module){
-exports.__esModule = true;
-var noop_js_1 = __fusereq(186);
-var noop_js_1d = __fuse.dt(noop_js_1);
-function LinearClosed(context) {
-  this._context = context;
-}
-LinearClosed.prototype = {
-  areaStart: noop_js_1d.default,
-  areaEnd: noop_js_1d.default,
-  lineStart: function () {
-    this._point = 0;
-  },
-  lineEnd: function () {
-    if (this._point) this._context.closePath();
-  },
-  point: function (x, y) {
-    (x = +x, y = +y);
-    if (this._point) this._context.lineTo(x, y); else (this._point = 1, this._context.moveTo(x, y));
-  }
-};
-function __DefaultExport__(context) {
-  return new LinearClosed(context);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/curve/linear.js @109
-109: function(__fusereq, exports, module){
-exports.__esModule = true;
-function Linear(context) {
-  this._context = context;
-}
-Linear.prototype = {
-  areaStart: function () {
-    this._line = 0;
-  },
-  areaEnd: function () {
-    this._line = NaN;
-  },
-  lineStart: function () {
-    this._point = 0;
-  },
-  lineEnd: function () {
-    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-    this._line = 1 - this._line;
-  },
-  point: function (x, y) {
-    (x = +x, y = +y);
-    switch (this._point) {
-      case 0:
-        this._point = 1;
-        this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
-        break;
-      case 1:
-        this._point = 2;
-      default:
-        this._context.lineTo(x, y);
-        break;
-    }
-  }
-};
-function __DefaultExport__(context) {
-  return new Linear(context);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/curve/monotone.js @110
-110: function(__fusereq, exports, module){
-function sign(x) {
-  return x < 0 ? -1 : 1;
-}
-function slope3(that, x2, y2) {
-  var h0 = that._x1 - that._x0, h1 = x2 - that._x1, s0 = (that._y1 - that._y0) / (h0 || h1 < 0 && -0), s1 = (y2 - that._y1) / (h1 || h0 < 0 && -0), p = (s0 * h1 + s1 * h0) / (h0 + h1);
-  return (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0;
-}
-function slope2(that, t) {
-  var h = that._x1 - that._x0;
-  return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
-}
-function point(that, t0, t1) {
-  var x0 = that._x0, y0 = that._y0, x1 = that._x1, y1 = that._y1, dx = (x1 - x0) / 3;
-  that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
-}
-function MonotoneX(context) {
-  this._context = context;
-}
-MonotoneX.prototype = {
-  areaStart: function () {
-    this._line = 0;
-  },
-  areaEnd: function () {
-    this._line = NaN;
-  },
-  lineStart: function () {
-    this._x0 = this._x1 = this._y0 = this._y1 = this._t0 = NaN;
-    this._point = 0;
-  },
-  lineEnd: function () {
-    switch (this._point) {
-      case 2:
-        this._context.lineTo(this._x1, this._y1);
-        break;
-      case 3:
-        point(this, this._t0, slope2(this, this._t0));
-        break;
-    }
-    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-    this._line = 1 - this._line;
-  },
-  point: function (x, y) {
-    var t1 = NaN;
-    (x = +x, y = +y);
-    if (x === this._x1 && y === this._y1) return;
-    switch (this._point) {
-      case 0:
-        this._point = 1;
-        this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
-        break;
-      case 1:
-        this._point = 2;
-        break;
-      case 2:
-        this._point = 3;
-        point(this, slope2(this, t1 = slope3(this, x, y)), t1);
-        break;
-      default:
-        point(this, this._t0, t1 = slope3(this, x, y));
-        break;
-    }
-    (this._x0 = this._x1, this._x1 = x);
-    (this._y0 = this._y1, this._y1 = y);
-    this._t0 = t1;
-  }
-};
-function MonotoneY(context) {
-  this._context = new ReflectContext(context);
-}
-(MonotoneY.prototype = Object.create(MonotoneX.prototype)).point = function (x, y) {
-  MonotoneX.prototype.point.call(this, y, x);
-};
-function ReflectContext(context) {
-  this._context = context;
-}
-ReflectContext.prototype = {
-  moveTo: function (x, y) {
-    this._context.moveTo(y, x);
-  },
-  closePath: function () {
-    this._context.closePath();
-  },
-  lineTo: function (x, y) {
-    this._context.lineTo(y, x);
-  },
-  bezierCurveTo: function (x1, y1, x2, y2, x, y) {
-    this._context.bezierCurveTo(y1, x1, y2, x2, y, x);
-  }
-};
-function monotoneX(context) {
-  return new MonotoneX(context);
-}
-exports.monotoneX = monotoneX;
-function monotoneY(context) {
-  return new MonotoneY(context);
-}
-exports.monotoneY = monotoneY;
-
-},
-
-// node_modules/d3-shape/src/curve/natural.js @111
-111: function(__fusereq, exports, module){
-exports.__esModule = true;
-function Natural(context) {
-  this._context = context;
-}
-Natural.prototype = {
-  areaStart: function () {
-    this._line = 0;
-  },
-  areaEnd: function () {
-    this._line = NaN;
-  },
-  lineStart: function () {
-    this._x = [];
-    this._y = [];
-  },
-  lineEnd: function () {
-    var x = this._x, y = this._y, n = x.length;
-    if (n) {
-      this._line ? this._context.lineTo(x[0], y[0]) : this._context.moveTo(x[0], y[0]);
-      if (n === 2) {
-        this._context.lineTo(x[1], y[1]);
-      } else {
-        var px = controlPoints(x), py = controlPoints(y);
-        for (var i0 = 0, i1 = 1; i1 < n; (++i0, ++i1)) {
-          this._context.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x[i1], y[i1]);
-        }
-      }
-    }
-    if (this._line || this._line !== 0 && n === 1) this._context.closePath();
-    this._line = 1 - this._line;
-    this._x = this._y = null;
-  },
-  point: function (x, y) {
-    this._x.push(+x);
-    this._y.push(+y);
-  }
-};
-function controlPoints(x) {
-  var i, n = x.length - 1, m, a = new Array(n), b = new Array(n), r = new Array(n);
-  (a[0] = 0, b[0] = 2, r[0] = x[0] + 2 * x[1]);
-  for (i = 1; i < n - 1; ++i) (a[i] = 1, b[i] = 4, r[i] = 4 * x[i] + 2 * x[i + 1]);
-  (a[n - 1] = 2, b[n - 1] = 7, r[n - 1] = 8 * x[n - 1] + x[n]);
-  for (i = 1; i < n; ++i) (m = a[i] / b[i - 1], b[i] -= m, r[i] -= m * r[i - 1]);
-  a[n - 1] = r[n - 1] / b[n - 1];
-  for (i = n - 2; i >= 0; --i) a[i] = (r[i] - a[i + 1]) / b[i];
-  b[n - 1] = (x[n] + a[n - 1]) / 2;
-  for (i = 0; i < n - 1; ++i) b[i] = 2 * x[i + 1] - a[i + 1];
-  return [a, b];
-}
-function __DefaultExport__(context) {
-  return new Natural(context);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/curve/step.js @112
-112: function(__fusereq, exports, module){
-exports.__esModule = true;
-function Step(context, t) {
-  this._context = context;
-  this._t = t;
-}
-Step.prototype = {
-  areaStart: function () {
-    this._line = 0;
-  },
-  areaEnd: function () {
-    this._line = NaN;
-  },
-  lineStart: function () {
-    this._x = this._y = NaN;
-    this._point = 0;
-  },
-  lineEnd: function () {
-    if (0 < this._t && this._t < 1 && this._point === 2) this._context.lineTo(this._x, this._y);
-    if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-    if (this._line >= 0) (this._t = 1 - this._t, this._line = 1 - this._line);
-  },
-  point: function (x, y) {
-    (x = +x, y = +y);
-    switch (this._point) {
-      case 0:
-        this._point = 1;
-        this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
-        break;
-      case 1:
-        this._point = 2;
-      default:
-        {
-          if (this._t <= 0) {
-            this._context.lineTo(this._x, y);
-            this._context.lineTo(x, y);
-          } else {
-            var x1 = this._x * (1 - this._t) + x * this._t;
-            this._context.lineTo(x1, this._y);
-            this._context.lineTo(x1, y);
-          }
-          break;
-        }
-    }
-    (this._x = x, this._y = y);
-  }
-};
-function __DefaultExport__(context) {
-  return new Step(context, 0.5);
-}
-exports.default = __DefaultExport__;
-function stepBefore(context) {
-  return new Step(context, 0);
-}
-exports.stepBefore = stepBefore;
-function stepAfter(context) {
-  return new Step(context, 1);
-}
-exports.stepAfter = stepAfter;
-
-},
-
-// node_modules/d3-shape/src/stack.js @113
-113: function(__fusereq, exports, module){
-exports.__esModule = true;
-var array_js_1 = __fusereq(179);
-var array_js_1d = __fuse.dt(array_js_1);
-var constant_js_1 = __fusereq(180);
-var constant_js_1d = __fuse.dt(constant_js_1);
-var none_js_1 = __fusereq(116);
-var none_js_1d = __fuse.dt(none_js_1);
-var none_js_2 = __fusereq(123);
-var none_js_2d = __fuse.dt(none_js_2);
-function stackValue(d, key) {
-  return d[key];
-}
-function stackSeries(key) {
-  const series = [];
-  series.key = key;
-  return series;
-}
-function __DefaultExport__() {
-  var keys = constant_js_1d.default([]), order = none_js_2d.default, offset = none_js_1d.default, value = stackValue;
-  function stack(data) {
-    var sz = Array.from(keys.apply(this, arguments), stackSeries), i, n = sz.length, j = -1, oz;
-    for (const d of data) {
-      for ((i = 0, ++j); i < n; ++i) {
-        (sz[i][j] = [0, +value(d, sz[i].key, j, data)]).data = d;
-      }
-    }
-    for ((i = 0, oz = array_js_1d.default(order(sz))); i < n; ++i) {
-      sz[oz[i]].index = i;
-    }
-    offset(sz, oz);
-    return sz;
-  }
-  stack.keys = function (_) {
-    return arguments.length ? (keys = typeof _ === "function" ? _ : constant_js_1d.default(Array.from(_)), stack) : keys;
-  };
-  stack.value = function (_) {
-    return arguments.length ? (value = typeof _ === "function" ? _ : constant_js_1d.default(+_), stack) : value;
-  };
-  stack.order = function (_) {
-    return arguments.length ? (order = _ == null ? none_js_2d.default : typeof _ === "function" ? _ : constant_js_1d.default(Array.from(_)), stack) : order;
-  };
-  stack.offset = function (_) {
-    return arguments.length ? (offset = _ == null ? none_js_1d.default : _, stack) : offset;
-  };
-  return stack;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/offset/expand.js @114
-114: function(__fusereq, exports, module){
-exports.__esModule = true;
-var none_js_1 = __fusereq(116);
-var none_js_1d = __fuse.dt(none_js_1);
-function __DefaultExport__(series, order) {
-  if (!((n = series.length) > 0)) return;
-  for (var i, n, j = 0, m = series[0].length, y; j < m; ++j) {
-    for (y = i = 0; i < n; ++i) y += series[i][j][1] || 0;
-    if (y) for (i = 0; i < n; ++i) series[i][j][1] /= y;
-  }
-  none_js_1d.default(series, order);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/offset/diverging.js @115
-115: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(series, order) {
-  if (!((n = series.length) > 0)) return;
-  for (var i, j = 0, d, dy, yp, yn, n, m = series[order[0]].length; j < m; ++j) {
-    for ((yp = yn = 0, i = 0); i < n; ++i) {
-      if ((dy = (d = series[order[i]][j])[1] - d[0]) > 0) {
-        (d[0] = yp, d[1] = yp += dy);
-      } else if (dy < 0) {
-        (d[1] = yn, d[0] = yn += dy);
-      } else {
-        (d[0] = 0, d[1] = dy);
-      }
-    }
-  }
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/offset/none.js @116
-116: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(series, order) {
-  if (!((n = series.length) > 1)) return;
-  for (var i = 1, j, s0, s1 = series[order[0]], n, m = s1.length; i < n; ++i) {
-    (s0 = s1, s1 = series[order[i]]);
-    for (j = 0; j < m; ++j) {
-      s1[j][1] += s1[j][0] = isNaN(s0[j][1]) ? s0[j][0] : s0[j][1];
-    }
-  }
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/offset/silhouette.js @117
-117: function(__fusereq, exports, module){
-exports.__esModule = true;
-var none_js_1 = __fusereq(116);
-var none_js_1d = __fuse.dt(none_js_1);
-function __DefaultExport__(series, order) {
-  if (!((n = series.length) > 0)) return;
-  for (var j = 0, s0 = series[order[0]], n, m = s0.length; j < m; ++j) {
-    for (var i = 0, y = 0; i < n; ++i) y += series[i][j][1] || 0;
-    s0[j][1] += s0[j][0] = -y / 2;
-  }
-  none_js_1d.default(series, order);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/offset/wiggle.js @118
-118: function(__fusereq, exports, module){
-exports.__esModule = true;
-var none_js_1 = __fusereq(116);
-var none_js_1d = __fuse.dt(none_js_1);
-function __DefaultExport__(series, order) {
-  if (!((n = series.length) > 0) || !((m = (s0 = series[order[0]]).length) > 0)) return;
-  for (var y = 0, j = 1, s0, m, n; j < m; ++j) {
-    for (var i = 0, s1 = 0, s2 = 0; i < n; ++i) {
-      var si = series[order[i]], sij0 = si[j][1] || 0, sij1 = si[j - 1][1] || 0, s3 = (sij0 - sij1) / 2;
-      for (var k = 0; k < i; ++k) {
-        var sk = series[order[k]], skj0 = sk[j][1] || 0, skj1 = sk[j - 1][1] || 0;
-        s3 += skj0 - skj1;
-      }
-      (s1 += sij0, s2 += s3 * sij0);
-    }
-    s0[j - 1][1] += s0[j - 1][0] = y;
-    if (s1) y -= s2 / s1;
-  }
-  s0[j - 1][1] += s0[j - 1][0] = y;
-  none_js_1d.default(series, order);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/order/appearance.js @119
-119: function(__fusereq, exports, module){
-exports.__esModule = true;
-var none_js_1 = __fusereq(123);
-var none_js_1d = __fuse.dt(none_js_1);
-function __DefaultExport__(series) {
-  var peaks = series.map(peak);
-  return none_js_1d.default(series).sort(function (a, b) {
-    return peaks[a] - peaks[b];
-  });
-}
-exports.default = __DefaultExport__;
-function peak(series) {
-  var i = -1, j = 0, n = series.length, vi, vj = -Infinity;
-  while (++i < n) if ((vi = +series[i][1]) > vj) (vj = vi, j = i);
-  return j;
-}
-
-},
-
-// node_modules/d3-shape/src/order/ascending.js @120
-120: function(__fusereq, exports, module){
-exports.__esModule = true;
-var none_js_1 = __fusereq(123);
-var none_js_1d = __fuse.dt(none_js_1);
-function __DefaultExport__(series) {
-  var sums = series.map(sum);
-  return none_js_1d.default(series).sort(function (a, b) {
-    return sums[a] - sums[b];
-  });
-}
-exports.default = __DefaultExport__;
-function sum(series) {
-  var s = 0, i = -1, n = series.length, v;
-  while (++i < n) if (v = +series[i][1]) s += v;
-  return s;
-}
-exports.sum = sum;
-
-},
-
-// node_modules/d3-shape/src/order/descending.js @121
-121: function(__fusereq, exports, module){
-exports.__esModule = true;
-var ascending_js_1 = __fusereq(120);
-var ascending_js_1d = __fuse.dt(ascending_js_1);
-function __DefaultExport__(series) {
-  return ascending_js_1d.default(series).reverse();
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/order/insideOut.js @122
-122: function(__fusereq, exports, module){
-exports.__esModule = true;
-var appearance_js_1 = __fusereq(119);
-var appearance_js_1d = __fuse.dt(appearance_js_1);
-var ascending_js_1 = __fusereq(120);
-function __DefaultExport__(series) {
-  var n = series.length, i, j, sums = series.map(ascending_js_1.sum), order = appearance_js_1d.default(series), top = 0, bottom = 0, tops = [], bottoms = [];
-  for (i = 0; i < n; ++i) {
-    j = order[i];
-    if (top < bottom) {
-      top += sums[j];
-      tops.push(j);
-    } else {
-      bottom += sums[j];
-      bottoms.push(j);
-    }
-  }
-  return bottoms.reverse().concat(tops);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/order/none.js @123
-123: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(series) {
-  var n = series.length, o = new Array(n);
-  while (--n >= 0) o[n] = n;
-  return o;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/order/reverse.js @124
-124: function(__fusereq, exports, module){
-exports.__esModule = true;
-var none_js_1 = __fusereq(123);
-var none_js_1d = __fuse.dt(none_js_1);
-function __DefaultExport__(series) {
-  return none_js_1d.default(series).reverse();
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/array.js @179
-179: function(__fusereq, exports, module){
-exports.__esModule = true;
-exports.slice = Array.prototype.slice;
-function __DefaultExport__(x) {
-  return typeof x === "object" && ("length" in x) ? x : Array.from(x);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/constant.js @180
-180: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(x) {
-  return function constant() {
-    return x;
-  };
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/point.js @181
-181: function(__fusereq, exports, module){
-function x(p) {
-  return p[0];
-}
-exports.x = x;
-function y(p) {
-  return p[1];
-}
-exports.y = y;
-
-},
-
-// node_modules/d3-shape/src/math.js @182
-182: function(__fusereq, exports, module){
-exports.__esModule = true;
-exports.abs = Math.abs;
-exports.atan2 = Math.atan2;
-exports.cos = Math.cos;
-exports.max = Math.max;
-exports.min = Math.min;
-exports.sin = Math.sin;
-exports.sqrt = Math.sqrt;
-exports.epsilon = 1e-12;
-exports.pi = Math.PI;
-exports.halfPi = exports.pi / 2;
-exports.tau = 2 * exports.pi;
-function acos(x) {
-  return x > 1 ? 0 : x < -1 ? exports.pi : Math.acos(x);
-}
-exports.acos = acos;
-function asin(x) {
-  return x >= 1 ? exports.halfPi : x <= -1 ? -exports.halfPi : Math.asin(x);
-}
-exports.asin = asin;
-
-},
-
-// node_modules/d3-shape/src/descending.js @183
-183: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(a, b) {
-  return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/identity.js @184
-184: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(d) {
-  return d;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-shape/src/curve/radial.js @185
-185: function(__fusereq, exports, module){
-exports.__esModule = true;
-var linear_js_1 = __fusereq(109);
-var linear_js_1d = __fuse.dt(linear_js_1);
-exports.curveRadialLinear = curveRadial(linear_js_1d.default);
-function Radial(curve) {
-  this._curve = curve;
-}
-Radial.prototype = {
-  areaStart: function () {
-    this._curve.areaStart();
-  },
-  areaEnd: function () {
-    this._curve.areaEnd();
-  },
-  lineStart: function () {
-    this._curve.lineStart();
-  },
-  lineEnd: function () {
-    this._curve.lineEnd();
-  },
-  point: function (a, r) {
-    this._curve.point(r * Math.sin(a), r * -Math.cos(a));
-  }
-};
-function curveRadial(curve) {
-  function radial(context) {
-    return new Radial(curve(context));
-  }
-  radial._curve = curve;
-  return radial;
-}
-exports.default = curveRadial;
-
-},
-
-// node_modules/d3-shape/src/noop.js @186
-186: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__() {}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/index.js @47
-47: function(__fusereq, exports, module){
-exports.__esModule = true;
-var create_js_1 = __fusereq(66);
-var create_js_1d = __fuse.dt(create_js_1);
-exports.create = create_js_1d.default;
-var creator_js_1 = __fusereq(67);
-var creator_js_1d = __fuse.dt(creator_js_1);
-exports.creator = creator_js_1d.default;
-var local_js_1 = __fusereq(68);
-var local_js_1d = __fuse.dt(local_js_1);
-exports.local = local_js_1d.default;
-var matcher_js_1 = __fusereq(69);
-var matcher_js_1d = __fuse.dt(matcher_js_1);
-exports.matcher = matcher_js_1d.default;
-var namespace_js_1 = __fusereq(70);
-var namespace_js_1d = __fuse.dt(namespace_js_1);
-exports.namespace = namespace_js_1d.default;
-var namespaces_js_1 = __fusereq(71);
-var namespaces_js_1d = __fuse.dt(namespaces_js_1);
-exports.namespaces = namespaces_js_1d.default;
-var pointer_js_1 = __fusereq(72);
-var pointer_js_1d = __fuse.dt(pointer_js_1);
-exports.pointer = pointer_js_1d.default;
-var pointers_js_1 = __fusereq(73);
-var pointers_js_1d = __fuse.dt(pointers_js_1);
-exports.pointers = pointers_js_1d.default;
-var select_js_1 = __fusereq(74);
-var select_js_1d = __fuse.dt(select_js_1);
-exports.select = select_js_1d.default;
-var selectAll_js_1 = __fusereq(75);
-var selectAll_js_1d = __fuse.dt(selectAll_js_1);
-exports.selectAll = selectAll_js_1d.default;
-var index_js_1 = __fusereq(76);
-var index_js_1d = __fuse.dt(index_js_1);
-exports.selection = index_js_1d.default;
-var selector_js_1 = __fusereq(77);
-var selector_js_1d = __fuse.dt(selector_js_1);
-exports.selector = selector_js_1d.default;
-var selectorAll_js_1 = __fusereq(78);
-var selectorAll_js_1d = __fuse.dt(selectorAll_js_1);
-exports.selectorAll = selectorAll_js_1d.default;
-var style_js_1 = __fusereq(79);
-exports.style = style_js_1.styleValue;
-var window_js_1 = __fusereq(80);
-var window_js_1d = __fuse.dt(window_js_1);
-exports.window = window_js_1d.default;
-
-},
-
-// node_modules/d3-selection/src/create.js @66
-66: function(__fusereq, exports, module){
-exports.__esModule = true;
-var creator_js_1 = __fusereq(67);
-var creator_js_1d = __fuse.dt(creator_js_1);
-var select_js_1 = __fusereq(74);
-var select_js_1d = __fuse.dt(select_js_1);
-function __DefaultExport__(name) {
-  return select_js_1d.default(creator_js_1d.default(name).call(document.documentElement));
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/creator.js @67
-67: function(__fusereq, exports, module){
-exports.__esModule = true;
-var namespace_js_1 = __fusereq(70);
-var namespace_js_1d = __fuse.dt(namespace_js_1);
-var namespaces_js_1 = __fusereq(71);
-function creatorInherit(name) {
-  return function () {
-    var document = this.ownerDocument, uri = this.namespaceURI;
-    return uri === namespaces_js_1.xhtml && document.documentElement.namespaceURI === namespaces_js_1.xhtml ? document.createElement(name) : document.createElementNS(uri, name);
-  };
-}
-function creatorFixed(fullname) {
-  return function () {
-    return this.ownerDocument.createElementNS(fullname.space, fullname.local);
-  };
-}
-function __DefaultExport__(name) {
-  var fullname = namespace_js_1d.default(name);
-  return (fullname.local ? creatorFixed : creatorInherit)(fullname);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/local.js @68
-68: function(__fusereq, exports, module){
-exports.__esModule = true;
-var nextId = 0;
-function local() {
-  return new Local();
-}
-exports.default = local;
-function Local() {
-  this._ = "@" + (++nextId).toString(36);
-}
-Local.prototype = local.prototype = {
-  constructor: Local,
-  get: function (node) {
-    var id = this._;
-    while (!((id in node))) if (!(node = node.parentNode)) return;
-    return node[id];
-  },
-  set: function (node, value) {
-    return node[this._] = value;
-  },
-  remove: function (node) {
-    return (this._ in node) && delete node[this._];
-  },
-  toString: function () {
-    return this._;
-  }
-};
-
-},
-
-// node_modules/d3-selection/src/matcher.js @69
-69: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(selector) {
-  return function () {
-    return this.matches(selector);
-  };
-}
-exports.default = __DefaultExport__;
-function childMatcher(selector) {
-  return function (node) {
-    return node.matches(selector);
-  };
-}
-exports.childMatcher = childMatcher;
-
-},
-
-// node_modules/d3-selection/src/namespace.js @70
-70: function(__fusereq, exports, module){
-exports.__esModule = true;
-var namespaces_js_1 = __fusereq(71);
-var namespaces_js_1d = __fuse.dt(namespaces_js_1);
-function __DefaultExport__(name) {
-  var prefix = name += "", i = prefix.indexOf(":");
-  if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
-  return namespaces_js_1d.default.hasOwnProperty(prefix) ? {
-    space: namespaces_js_1d.default[prefix],
-    local: name
-  } : name;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/namespaces.js @71
-71: function(__fusereq, exports, module){
-exports.__esModule = true;
-exports.xhtml = "http://www.w3.org/1999/xhtml";
-exports.default = {
-  svg: "http://www.w3.org/2000/svg",
-  xhtml: exports.xhtml,
-  xlink: "http://www.w3.org/1999/xlink",
-  xml: "http://www.w3.org/XML/1998/namespace",
-  xmlns: "http://www.w3.org/2000/xmlns/"
-};
-
-},
-
-// node_modules/d3-selection/src/pointer.js @72
-72: function(__fusereq, exports, module){
-exports.__esModule = true;
-var sourceEvent_js_1 = __fusereq(143);
-var sourceEvent_js_1d = __fuse.dt(sourceEvent_js_1);
-function __DefaultExport__(event, node) {
-  event = sourceEvent_js_1d.default(event);
-  if (node === undefined) node = event.currentTarget;
-  if (node) {
-    var svg = node.ownerSVGElement || node;
-    if (svg.createSVGPoint) {
-      var point = svg.createSVGPoint();
-      (point.x = event.clientX, point.y = event.clientY);
-      point = point.matrixTransform(node.getScreenCTM().inverse());
-      return [point.x, point.y];
-    }
-    if (node.getBoundingClientRect) {
-      var rect = node.getBoundingClientRect();
-      return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop];
-    }
-  }
-  return [event.pageX, event.pageY];
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/pointers.js @73
-73: function(__fusereq, exports, module){
-exports.__esModule = true;
-var pointer_js_1 = __fusereq(72);
-var pointer_js_1d = __fuse.dt(pointer_js_1);
-var sourceEvent_js_1 = __fusereq(143);
-var sourceEvent_js_1d = __fuse.dt(sourceEvent_js_1);
-function __DefaultExport__(events, node) {
-  if (events.target) {
-    events = sourceEvent_js_1d.default(events);
-    if (node === undefined) node = events.currentTarget;
-    events = events.touches || [events];
-  }
-  return Array.from(events, event => pointer_js_1d.default(event, node));
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/select.js @74
-74: function(__fusereq, exports, module){
-exports.__esModule = true;
-var index_js_1 = __fusereq(76);
-function __DefaultExport__(selector) {
-  return typeof selector === "string" ? new index_js_1.Selection([[document.querySelector(selector)]], [document.documentElement]) : new index_js_1.Selection([[selector]], index_js_1.root);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selectAll.js @75
-75: function(__fusereq, exports, module){
-exports.__esModule = true;
-var array_js_1 = __fusereq(144);
-var array_js_1d = __fuse.dt(array_js_1);
-var index_js_1 = __fusereq(76);
-function __DefaultExport__(selector) {
-  return typeof selector === "string" ? new index_js_1.Selection([document.querySelectorAll(selector)], [document.documentElement]) : new index_js_1.Selection([selector == null ? [] : array_js_1d.default(selector)], index_js_1.root);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/index.js @76
-76: function(__fusereq, exports, module){
-exports.__esModule = true;
-var select_js_1 = __fusereq(145);
-var select_js_1d = __fuse.dt(select_js_1);
-var selectAll_js_1 = __fusereq(146);
-var selectAll_js_1d = __fuse.dt(selectAll_js_1);
-var selectChild_js_1 = __fusereq(147);
-var selectChild_js_1d = __fuse.dt(selectChild_js_1);
-var selectChildren_js_1 = __fusereq(148);
-var selectChildren_js_1d = __fuse.dt(selectChildren_js_1);
-var filter_js_1 = __fusereq(149);
-var filter_js_1d = __fuse.dt(filter_js_1);
-var data_js_1 = __fusereq(150);
-var data_js_1d = __fuse.dt(data_js_1);
-var enter_js_1 = __fusereq(151);
-var enter_js_1d = __fuse.dt(enter_js_1);
-var exit_js_1 = __fusereq(152);
-var exit_js_1d = __fuse.dt(exit_js_1);
-var join_js_1 = __fusereq(153);
-var join_js_1d = __fuse.dt(join_js_1);
-var merge_js_1 = __fusereq(154);
-var merge_js_1d = __fuse.dt(merge_js_1);
-var order_js_1 = __fusereq(155);
-var order_js_1d = __fuse.dt(order_js_1);
-var sort_js_1 = __fusereq(156);
-var sort_js_1d = __fuse.dt(sort_js_1);
-var call_js_1 = __fusereq(157);
-var call_js_1d = __fuse.dt(call_js_1);
-var nodes_js_1 = __fusereq(158);
-var nodes_js_1d = __fuse.dt(nodes_js_1);
-var node_js_1 = __fusereq(159);
-var node_js_1d = __fuse.dt(node_js_1);
-var size_js_1 = __fusereq(160);
-var size_js_1d = __fuse.dt(size_js_1);
-var empty_js_1 = __fusereq(161);
-var empty_js_1d = __fuse.dt(empty_js_1);
-var each_js_1 = __fusereq(162);
-var each_js_1d = __fuse.dt(each_js_1);
-var attr_js_1 = __fusereq(163);
-var attr_js_1d = __fuse.dt(attr_js_1);
-var style_js_1 = __fusereq(79);
-var style_js_1d = __fuse.dt(style_js_1);
-var property_js_1 = __fusereq(164);
-var property_js_1d = __fuse.dt(property_js_1);
-var classed_js_1 = __fusereq(165);
-var classed_js_1d = __fuse.dt(classed_js_1);
-var text_js_1 = __fusereq(166);
-var text_js_1d = __fuse.dt(text_js_1);
-var html_js_1 = __fusereq(167);
-var html_js_1d = __fuse.dt(html_js_1);
-var raise_js_1 = __fusereq(168);
-var raise_js_1d = __fuse.dt(raise_js_1);
-var lower_js_1 = __fusereq(169);
-var lower_js_1d = __fuse.dt(lower_js_1);
-var append_js_1 = __fusereq(170);
-var append_js_1d = __fuse.dt(append_js_1);
-var insert_js_1 = __fusereq(171);
-var insert_js_1d = __fuse.dt(insert_js_1);
-var remove_js_1 = __fusereq(172);
-var remove_js_1d = __fuse.dt(remove_js_1);
-var clone_js_1 = __fusereq(173);
-var clone_js_1d = __fuse.dt(clone_js_1);
-var datum_js_1 = __fusereq(174);
-var datum_js_1d = __fuse.dt(datum_js_1);
-var on_js_1 = __fusereq(175);
-var on_js_1d = __fuse.dt(on_js_1);
-var dispatch_js_1 = __fusereq(176);
-var dispatch_js_1d = __fuse.dt(dispatch_js_1);
-var iterator_js_1 = __fusereq(177);
-var iterator_js_1d = __fuse.dt(iterator_js_1);
-exports.root = [null];
-function Selection(groups, parents) {
-  this._groups = groups;
-  this._parents = parents;
-}
-exports.Selection = Selection;
-function selection() {
-  return new Selection([[document.documentElement]], exports.root);
-}
-function selection_selection() {
-  return this;
-}
-Selection.prototype = selection.prototype = {
-  constructor: Selection,
-  select: select_js_1d.default,
-  selectAll: selectAll_js_1d.default,
-  selectChild: selectChild_js_1d.default,
-  selectChildren: selectChildren_js_1d.default,
-  filter: filter_js_1d.default,
-  data: data_js_1d.default,
-  enter: enter_js_1d.default,
-  exit: exit_js_1d.default,
-  join: join_js_1d.default,
-  merge: merge_js_1d.default,
-  selection: selection_selection,
-  order: order_js_1d.default,
-  sort: sort_js_1d.default,
-  call: call_js_1d.default,
-  nodes: nodes_js_1d.default,
-  node: node_js_1d.default,
-  size: size_js_1d.default,
-  empty: empty_js_1d.default,
-  each: each_js_1d.default,
-  attr: attr_js_1d.default,
-  style: style_js_1d.default,
-  property: property_js_1d.default,
-  classed: classed_js_1d.default,
-  text: text_js_1d.default,
-  html: html_js_1d.default,
-  raise: raise_js_1d.default,
-  lower: lower_js_1d.default,
-  append: append_js_1d.default,
-  insert: insert_js_1d.default,
-  remove: remove_js_1d.default,
-  clone: clone_js_1d.default,
-  datum: datum_js_1d.default,
-  on: on_js_1d.default,
-  dispatch: dispatch_js_1d.default,
-  [Symbol.iterator]: iterator_js_1d.default
-};
-exports.default = selection;
-
-},
-
-// node_modules/d3-selection/src/selector.js @77
-77: function(__fusereq, exports, module){
-exports.__esModule = true;
-function none() {}
-function __DefaultExport__(selector) {
-  return selector == null ? none : function () {
-    return this.querySelector(selector);
-  };
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selectorAll.js @78
-78: function(__fusereq, exports, module){
-exports.__esModule = true;
-function empty() {
-  return [];
-}
-function __DefaultExport__(selector) {
-  return selector == null ? empty : function () {
-    return this.querySelectorAll(selector);
-  };
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/style.js @79
-79: function(__fusereq, exports, module){
-exports.__esModule = true;
-var window_js_1 = __fusereq(80);
-var window_js_1d = __fuse.dt(window_js_1);
-function styleRemove(name) {
-  return function () {
-    this.style.removeProperty(name);
-  };
-}
-function styleConstant(name, value, priority) {
-  return function () {
-    this.style.setProperty(name, value, priority);
-  };
-}
-function styleFunction(name, value, priority) {
-  return function () {
-    var v = value.apply(this, arguments);
-    if (v == null) this.style.removeProperty(name); else this.style.setProperty(name, v, priority);
-  };
-}
-function __DefaultExport__(name, value, priority) {
-  return arguments.length > 1 ? this.each((value == null ? styleRemove : typeof value === "function" ? styleFunction : styleConstant)(name, value, priority == null ? "" : priority)) : styleValue(this.node(), name);
-}
-exports.default = __DefaultExport__;
-function styleValue(node, name) {
-  return node.style.getPropertyValue(name) || window_js_1d.default(node).getComputedStyle(node, null).getPropertyValue(name);
-}
-exports.styleValue = styleValue;
-
-},
-
-// node_modules/d3-selection/src/window.js @80
-80: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(node) {
-  return node.ownerDocument && node.ownerDocument.defaultView || node.document && node || node.defaultView;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/sourceEvent.js @143
-143: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(event) {
-  let sourceEvent;
-  while (sourceEvent = event.sourceEvent) event = sourceEvent;
-  return event;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/array.js @144
-144: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(x) {
-  return typeof x === "object" && ("length" in x) ? x : Array.from(x);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/select.js @145
-145: function(__fusereq, exports, module){
-exports.__esModule = true;
-var index_js_1 = __fusereq(76);
-var selector_js_1 = __fusereq(77);
-var selector_js_1d = __fuse.dt(selector_js_1);
-function __DefaultExport__(select) {
-  if (typeof select !== "function") select = selector_js_1d.default(select);
-  for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
-    for (var group = groups[j], n = group.length, subgroup = subgroups[j] = new Array(n), node, subnode, i = 0; i < n; ++i) {
-      if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
-        if (("__data__" in node)) subnode.__data__ = node.__data__;
-        subgroup[i] = subnode;
-      }
-    }
-  }
-  return new index_js_1.Selection(subgroups, this._parents);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/selectAll.js @146
-146: function(__fusereq, exports, module){
-exports.__esModule = true;
-var index_js_1 = __fusereq(76);
-var array_js_1 = __fusereq(144);
-var array_js_1d = __fuse.dt(array_js_1);
-var selectorAll_js_1 = __fusereq(78);
-var selectorAll_js_1d = __fuse.dt(selectorAll_js_1);
-function arrayAll(select) {
-  return function () {
-    var group = select.apply(this, arguments);
-    return group == null ? [] : array_js_1d.default(group);
-  };
-}
-function __DefaultExport__(select) {
-  if (typeof select === "function") select = arrayAll(select); else select = selectorAll_js_1d.default(select);
-  for (var groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
-    for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
-      if (node = group[i]) {
-        subgroups.push(select.call(node, node.__data__, i, group));
-        parents.push(node);
-      }
-    }
-  }
-  return new index_js_1.Selection(subgroups, parents);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/selectChild.js @147
-147: function(__fusereq, exports, module){
-exports.__esModule = true;
-var matcher_js_1 = __fusereq(69);
-var find = Array.prototype.find;
-function childFind(match) {
-  return function () {
-    return find.call(this.children, match);
-  };
-}
-function childFirst() {
-  return this.firstElementChild;
-}
-function __DefaultExport__(match) {
-  return this.select(match == null ? childFirst : childFind(typeof match === "function" ? match : matcher_js_1.childMatcher(match)));
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/selectChildren.js @148
-148: function(__fusereq, exports, module){
-exports.__esModule = true;
-var matcher_js_1 = __fusereq(69);
-var filter = Array.prototype.filter;
-function children() {
-  return this.children;
-}
-function childrenFilter(match) {
-  return function () {
-    return filter.call(this.children, match);
-  };
-}
-function __DefaultExport__(match) {
-  return this.selectAll(match == null ? children : childrenFilter(typeof match === "function" ? match : matcher_js_1.childMatcher(match)));
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/filter.js @149
-149: function(__fusereq, exports, module){
-exports.__esModule = true;
-var index_js_1 = __fusereq(76);
-var matcher_js_1 = __fusereq(69);
-var matcher_js_1d = __fuse.dt(matcher_js_1);
-function __DefaultExport__(match) {
-  if (typeof match !== "function") match = matcher_js_1d.default(match);
-  for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
-    for (var group = groups[j], n = group.length, subgroup = subgroups[j] = [], node, i = 0; i < n; ++i) {
-      if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
-        subgroup.push(node);
-      }
-    }
-  }
-  return new index_js_1.Selection(subgroups, this._parents);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/data.js @150
-150: function(__fusereq, exports, module){
-exports.__esModule = true;
-var index_js_1 = __fusereq(76);
-var enter_js_1 = __fusereq(151);
-var array_js_1 = __fusereq(144);
-var array_js_1d = __fuse.dt(array_js_1);
-var constant_js_1 = __fusereq(188);
-var constant_js_1d = __fuse.dt(constant_js_1);
-function bindIndex(parent, group, enter, update, exit, data) {
-  var i = 0, node, groupLength = group.length, dataLength = data.length;
-  for (; i < dataLength; ++i) {
-    if (node = group[i]) {
-      node.__data__ = data[i];
-      update[i] = node;
-    } else {
-      enter[i] = new enter_js_1.EnterNode(parent, data[i]);
-    }
-  }
-  for (; i < groupLength; ++i) {
-    if (node = group[i]) {
-      exit[i] = node;
-    }
-  }
-}
-function bindKey(parent, group, enter, update, exit, data, key) {
-  var i, node, nodeByKeyValue = new Map(), groupLength = group.length, dataLength = data.length, keyValues = new Array(groupLength), keyValue;
-  for (i = 0; i < groupLength; ++i) {
-    if (node = group[i]) {
-      keyValues[i] = keyValue = key.call(node, node.__data__, i, group) + "";
-      if (nodeByKeyValue.has(keyValue)) {
-        exit[i] = node;
-      } else {
-        nodeByKeyValue.set(keyValue, node);
-      }
-    }
-  }
-  for (i = 0; i < dataLength; ++i) {
-    keyValue = key.call(parent, data[i], i, data) + "";
-    if (node = nodeByKeyValue.get(keyValue)) {
-      update[i] = node;
-      node.__data__ = data[i];
-      nodeByKeyValue.delete(keyValue);
-    } else {
-      enter[i] = new enter_js_1.EnterNode(parent, data[i]);
-    }
-  }
-  for (i = 0; i < groupLength; ++i) {
-    if ((node = group[i]) && nodeByKeyValue.get(keyValues[i]) === node) {
-      exit[i] = node;
-    }
-  }
-}
-function datum(node) {
-  return node.__data__;
-}
-function __DefaultExport__(value, key) {
-  if (!arguments.length) return Array.from(this, datum);
-  var bind = key ? bindKey : bindIndex, parents = this._parents, groups = this._groups;
-  if (typeof value !== "function") value = constant_js_1d.default(value);
-  for (var m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
-    var parent = parents[j], group = groups[j], groupLength = group.length, data = array_js_1d.default(value.call(parent, parent && parent.__data__, j, parents)), dataLength = data.length, enterGroup = enter[j] = new Array(dataLength), updateGroup = update[j] = new Array(dataLength), exitGroup = exit[j] = new Array(groupLength);
-    bind(parent, group, enterGroup, updateGroup, exitGroup, data, key);
-    for (var i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
-      if (previous = enterGroup[i0]) {
-        if (i0 >= i1) i1 = i0 + 1;
-        while (!(next = updateGroup[i1]) && ++i1 < dataLength) ;
-        previous._next = next || null;
-      }
-    }
-  }
-  update = new index_js_1.Selection(update, parents);
-  update._enter = enter;
-  update._exit = exit;
-  return update;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/enter.js @151
-151: function(__fusereq, exports, module){
-exports.__esModule = true;
-var sparse_js_1 = __fusereq(187);
-var sparse_js_1d = __fuse.dt(sparse_js_1);
-var index_js_1 = __fusereq(76);
-function __DefaultExport__() {
-  return new index_js_1.Selection(this._enter || this._groups.map(sparse_js_1d.default), this._parents);
-}
-exports.default = __DefaultExport__;
-function EnterNode(parent, datum) {
-  this.ownerDocument = parent.ownerDocument;
-  this.namespaceURI = parent.namespaceURI;
-  this._next = null;
-  this._parent = parent;
-  this.__data__ = datum;
-}
-exports.EnterNode = EnterNode;
-EnterNode.prototype = {
-  constructor: EnterNode,
-  appendChild: function (child) {
-    return this._parent.insertBefore(child, this._next);
-  },
-  insertBefore: function (child, next) {
-    return this._parent.insertBefore(child, next);
-  },
-  querySelector: function (selector) {
-    return this._parent.querySelector(selector);
-  },
-  querySelectorAll: function (selector) {
-    return this._parent.querySelectorAll(selector);
-  }
-};
-
-},
-
-// node_modules/d3-selection/src/selection/exit.js @152
-152: function(__fusereq, exports, module){
-exports.__esModule = true;
-var sparse_js_1 = __fusereq(187);
-var sparse_js_1d = __fuse.dt(sparse_js_1);
-var index_js_1 = __fusereq(76);
-function __DefaultExport__() {
-  return new index_js_1.Selection(this._exit || this._groups.map(sparse_js_1d.default), this._parents);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/join.js @153
-153: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(onenter, onupdate, onexit) {
-  var enter = this.enter(), update = this, exit = this.exit();
-  enter = typeof onenter === "function" ? onenter(enter) : enter.append(onenter + "");
-  if (onupdate != null) update = onupdate(update);
-  if (onexit == null) exit.remove(); else onexit(exit);
-  return enter && update ? enter.merge(update).order() : update;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/merge.js @154
-154: function(__fusereq, exports, module){
-exports.__esModule = true;
-var index_js_1 = __fusereq(76);
-function __DefaultExport__(selection) {
-  if (!(selection instanceof index_js_1.Selection)) throw new Error("invalid merge");
-  for (var groups0 = this._groups, groups1 = selection._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
-    for (var group0 = groups0[j], group1 = groups1[j], n = group0.length, merge = merges[j] = new Array(n), node, i = 0; i < n; ++i) {
-      if (node = group0[i] || group1[i]) {
-        merge[i] = node;
-      }
-    }
-  }
-  for (; j < m0; ++j) {
-    merges[j] = groups0[j];
-  }
-  return new index_js_1.Selection(merges, this._parents);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/order.js @155
-155: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__() {
-  for (var groups = this._groups, j = -1, m = groups.length; ++j < m; ) {
-    for (var group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0; ) {
-      if (node = group[i]) {
-        if (next && node.compareDocumentPosition(next) ^ 4) next.parentNode.insertBefore(node, next);
-        next = node;
-      }
-    }
-  }
-  return this;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/sort.js @156
-156: function(__fusereq, exports, module){
-exports.__esModule = true;
-var index_js_1 = __fusereq(76);
-function __DefaultExport__(compare) {
-  if (!compare) compare = ascending;
-  function compareNode(a, b) {
-    return a && b ? compare(a.__data__, b.__data__) : !a - !b;
-  }
-  for (var groups = this._groups, m = groups.length, sortgroups = new Array(m), j = 0; j < m; ++j) {
-    for (var group = groups[j], n = group.length, sortgroup = sortgroups[j] = new Array(n), node, i = 0; i < n; ++i) {
-      if (node = group[i]) {
-        sortgroup[i] = node;
-      }
-    }
-    sortgroup.sort(compareNode);
-  }
-  return new index_js_1.Selection(sortgroups, this._parents).order();
-}
-exports.default = __DefaultExport__;
-function ascending(a, b) {
-  return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
-}
-
-},
-
-// node_modules/d3-selection/src/selection/call.js @157
-157: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__() {
-  var callback = arguments[0];
-  arguments[0] = this;
-  callback.apply(null, arguments);
-  return this;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/nodes.js @158
-158: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__() {
-  return Array.from(this);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/node.js @159
-159: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__() {
-  for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
-    for (var group = groups[j], i = 0, n = group.length; i < n; ++i) {
-      var node = group[i];
-      if (node) return node;
-    }
-  }
-  return null;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/size.js @160
-160: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__() {
-  let size = 0;
-  for (const node of this) ++size;
-  return size;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/empty.js @161
-161: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__() {
-  return !this.node();
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/each.js @162
-162: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(callback) {
-  for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
-    for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
-      if (node = group[i]) callback.call(node, node.__data__, i, group);
-    }
-  }
-  return this;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/attr.js @163
-163: function(__fusereq, exports, module){
-exports.__esModule = true;
-var namespace_js_1 = __fusereq(70);
-var namespace_js_1d = __fuse.dt(namespace_js_1);
-function attrRemove(name) {
-  return function () {
-    this.removeAttribute(name);
-  };
-}
-function attrRemoveNS(fullname) {
-  return function () {
-    this.removeAttributeNS(fullname.space, fullname.local);
-  };
-}
-function attrConstant(name, value) {
-  return function () {
-    this.setAttribute(name, value);
-  };
-}
-function attrConstantNS(fullname, value) {
-  return function () {
-    this.setAttributeNS(fullname.space, fullname.local, value);
-  };
-}
-function attrFunction(name, value) {
-  return function () {
-    var v = value.apply(this, arguments);
-    if (v == null) this.removeAttribute(name); else this.setAttribute(name, v);
-  };
-}
-function attrFunctionNS(fullname, value) {
-  return function () {
-    var v = value.apply(this, arguments);
-    if (v == null) this.removeAttributeNS(fullname.space, fullname.local); else this.setAttributeNS(fullname.space, fullname.local, v);
-  };
-}
-function __DefaultExport__(name, value) {
-  var fullname = namespace_js_1d.default(name);
-  if (arguments.length < 2) {
-    var node = this.node();
-    return fullname.local ? node.getAttributeNS(fullname.space, fullname.local) : node.getAttribute(fullname);
-  }
-  return this.each((value == null ? fullname.local ? attrRemoveNS : attrRemove : typeof value === "function" ? fullname.local ? attrFunctionNS : attrFunction : fullname.local ? attrConstantNS : attrConstant)(fullname, value));
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/property.js @164
-164: function(__fusereq, exports, module){
-exports.__esModule = true;
-function propertyRemove(name) {
-  return function () {
-    delete this[name];
-  };
-}
-function propertyConstant(name, value) {
-  return function () {
-    this[name] = value;
-  };
-}
-function propertyFunction(name, value) {
-  return function () {
-    var v = value.apply(this, arguments);
-    if (v == null) delete this[name]; else this[name] = v;
-  };
-}
-function __DefaultExport__(name, value) {
-  return arguments.length > 1 ? this.each((value == null ? propertyRemove : typeof value === "function" ? propertyFunction : propertyConstant)(name, value)) : this.node()[name];
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/classed.js @165
-165: function(__fusereq, exports, module){
-exports.__esModule = true;
-function classArray(string) {
-  return string.trim().split(/^|\s+/);
-}
-function classList(node) {
-  return node.classList || new ClassList(node);
-}
-function ClassList(node) {
-  this._node = node;
-  this._names = classArray(node.getAttribute("class") || "");
-}
-ClassList.prototype = {
-  add: function (name) {
-    var i = this._names.indexOf(name);
-    if (i < 0) {
-      this._names.push(name);
-      this._node.setAttribute("class", this._names.join(" "));
-    }
-  },
-  remove: function (name) {
-    var i = this._names.indexOf(name);
-    if (i >= 0) {
-      this._names.splice(i, 1);
-      this._node.setAttribute("class", this._names.join(" "));
-    }
-  },
-  contains: function (name) {
-    return this._names.indexOf(name) >= 0;
-  }
-};
-function classedAdd(node, names) {
-  var list = classList(node), i = -1, n = names.length;
-  while (++i < n) list.add(names[i]);
-}
-function classedRemove(node, names) {
-  var list = classList(node), i = -1, n = names.length;
-  while (++i < n) list.remove(names[i]);
-}
-function classedTrue(names) {
-  return function () {
-    classedAdd(this, names);
-  };
-}
-function classedFalse(names) {
-  return function () {
-    classedRemove(this, names);
-  };
-}
-function classedFunction(names, value) {
-  return function () {
-    (value.apply(this, arguments) ? classedAdd : classedRemove)(this, names);
-  };
-}
-function __DefaultExport__(name, value) {
-  var names = classArray(name + "");
-  if (arguments.length < 2) {
-    var list = classList(this.node()), i = -1, n = names.length;
-    while (++i < n) if (!list.contains(names[i])) return false;
-    return true;
-  }
-  return this.each((typeof value === "function" ? classedFunction : value ? classedTrue : classedFalse)(names, value));
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/text.js @166
-166: function(__fusereq, exports, module){
-exports.__esModule = true;
-function textRemove() {
-  this.textContent = "";
-}
-function textConstant(value) {
-  return function () {
-    this.textContent = value;
-  };
-}
-function textFunction(value) {
-  return function () {
-    var v = value.apply(this, arguments);
-    this.textContent = v == null ? "" : v;
-  };
-}
-function __DefaultExport__(value) {
-  return arguments.length ? this.each(value == null ? textRemove : (typeof value === "function" ? textFunction : textConstant)(value)) : this.node().textContent;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/html.js @167
-167: function(__fusereq, exports, module){
-exports.__esModule = true;
-function htmlRemove() {
-  this.innerHTML = "";
-}
-function htmlConstant(value) {
-  return function () {
-    this.innerHTML = value;
-  };
-}
-function htmlFunction(value) {
-  return function () {
-    var v = value.apply(this, arguments);
-    this.innerHTML = v == null ? "" : v;
-  };
-}
-function __DefaultExport__(value) {
-  return arguments.length ? this.each(value == null ? htmlRemove : (typeof value === "function" ? htmlFunction : htmlConstant)(value)) : this.node().innerHTML;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/raise.js @168
-168: function(__fusereq, exports, module){
-exports.__esModule = true;
-function raise() {
-  if (this.nextSibling) this.parentNode.appendChild(this);
-}
-function __DefaultExport__() {
-  return this.each(raise);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/lower.js @169
-169: function(__fusereq, exports, module){
-exports.__esModule = true;
-function lower() {
-  if (this.previousSibling) this.parentNode.insertBefore(this, this.parentNode.firstChild);
-}
-function __DefaultExport__() {
-  return this.each(lower);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/append.js @170
-170: function(__fusereq, exports, module){
-exports.__esModule = true;
-var creator_js_1 = __fusereq(67);
-var creator_js_1d = __fuse.dt(creator_js_1);
-function __DefaultExport__(name) {
-  var create = typeof name === "function" ? name : creator_js_1d.default(name);
-  return this.select(function () {
-    return this.appendChild(create.apply(this, arguments));
-  });
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/insert.js @171
-171: function(__fusereq, exports, module){
-exports.__esModule = true;
-var creator_js_1 = __fusereq(67);
-var creator_js_1d = __fuse.dt(creator_js_1);
-var selector_js_1 = __fusereq(77);
-var selector_js_1d = __fuse.dt(selector_js_1);
-function constantNull() {
-  return null;
-}
-function __DefaultExport__(name, before) {
-  var create = typeof name === "function" ? name : creator_js_1d.default(name), select = before == null ? constantNull : typeof before === "function" ? before : selector_js_1d.default(before);
-  return this.select(function () {
-    return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null);
-  });
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/remove.js @172
-172: function(__fusereq, exports, module){
-exports.__esModule = true;
-function remove() {
-  var parent = this.parentNode;
-  if (parent) parent.removeChild(this);
-}
-function __DefaultExport__() {
-  return this.each(remove);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/clone.js @173
-173: function(__fusereq, exports, module){
-exports.__esModule = true;
-function selection_cloneShallow() {
-  var clone = this.cloneNode(false), parent = this.parentNode;
-  return parent ? parent.insertBefore(clone, this.nextSibling) : clone;
-}
-function selection_cloneDeep() {
-  var clone = this.cloneNode(true), parent = this.parentNode;
-  return parent ? parent.insertBefore(clone, this.nextSibling) : clone;
-}
-function __DefaultExport__(deep) {
-  return this.select(deep ? selection_cloneDeep : selection_cloneShallow);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/datum.js @174
-174: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(value) {
-  return arguments.length ? this.property("__data__", value) : this.node().__data__;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/on.js @175
-175: function(__fusereq, exports, module){
-exports.__esModule = true;
-function contextListener(listener) {
-  return function (event) {
-    listener.call(this, event, this.__data__);
-  };
-}
-function parseTypenames(typenames) {
-  return typenames.trim().split(/^|\s+/).map(function (t) {
-    var name = "", i = t.indexOf(".");
-    if (i >= 0) (name = t.slice(i + 1), t = t.slice(0, i));
-    return {
-      type: t,
-      name: name
-    };
-  });
-}
-function onRemove(typename) {
-  return function () {
-    var on = this.__on;
-    if (!on) return;
-    for (var j = 0, i = -1, m = on.length, o; j < m; ++j) {
-      if ((o = on[j], (!typename.type || o.type === typename.type) && o.name === typename.name)) {
-        this.removeEventListener(o.type, o.listener, o.options);
-      } else {
-        on[++i] = o;
-      }
-    }
-    if (++i) on.length = i; else delete this.__on;
-  };
-}
-function onAdd(typename, value, options) {
-  return function () {
-    var on = this.__on, o, listener = contextListener(value);
-    if (on) for (var j = 0, m = on.length; j < m; ++j) {
-      if ((o = on[j]).type === typename.type && o.name === typename.name) {
-        this.removeEventListener(o.type, o.listener, o.options);
-        this.addEventListener(o.type, o.listener = listener, o.options = options);
-        o.value = value;
-        return;
-      }
-    }
-    this.addEventListener(typename.type, listener, options);
-    o = {
-      type: typename.type,
-      name: typename.name,
-      value: value,
-      listener: listener,
-      options: options
-    };
-    if (!on) this.__on = [o]; else on.push(o);
-  };
-}
-function __DefaultExport__(typename, value, options) {
-  var typenames = parseTypenames(typename + ""), i, n = typenames.length, t;
-  if (arguments.length < 2) {
-    var on = this.node().__on;
-    if (on) for (var j = 0, m = on.length, o; j < m; ++j) {
-      for ((i = 0, o = on[j]); i < n; ++i) {
-        if ((t = typenames[i]).type === o.type && t.name === o.name) {
-          return o.value;
-        }
-      }
-    }
-    return;
-  }
-  on = value ? onAdd : onRemove;
-  for (i = 0; i < n; ++i) this.each(on(typenames[i], value, options));
-  return this;
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/dispatch.js @176
-176: function(__fusereq, exports, module){
-exports.__esModule = true;
-var window_js_1 = __fusereq(80);
-var window_js_1d = __fuse.dt(window_js_1);
-function dispatchEvent(node, type, params) {
-  var window = window_js_1d.default(node), event = window.CustomEvent;
-  if (typeof event === "function") {
-    event = new event(type, params);
-  } else {
-    event = window.document.createEvent("Event");
-    if (params) (event.initEvent(type, params.bubbles, params.cancelable), event.detail = params.detail); else event.initEvent(type, false, false);
-  }
-  node.dispatchEvent(event);
-}
-function dispatchConstant(type, params) {
-  return function () {
-    return dispatchEvent(this, type, params);
-  };
-}
-function dispatchFunction(type, params) {
-  return function () {
-    return dispatchEvent(this, type, params.apply(this, arguments));
-  };
-}
-function __DefaultExport__(type, params) {
-  return this.each((typeof params === "function" ? dispatchFunction : dispatchConstant)(type, params));
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/iterator.js @177
-177: function(__fusereq, exports, module){
-exports.__esModule = true;
-function* __DefaultExport__() {
-  for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
-    for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
-      if (node = group[i]) yield node;
-    }
-  }
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/selection/sparse.js @187
-187: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(update) {
-  return new Array(update.length);
-}
-exports.default = __DefaultExport__;
-
-},
-
-// node_modules/d3-selection/src/constant.js @188
-188: function(__fusereq, exports, module){
-exports.__esModule = true;
-function __DefaultExport__(x) {
-  return function () {
-    return x;
-  };
-}
-exports.default = __DefaultExport__;
 
 }
 }, function(){

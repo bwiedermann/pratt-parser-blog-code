@@ -1,7 +1,14 @@
 import * as AST from './ast';
 
 export function findBases(node: AST.Node, dependsMap: {[key: string]: string[]}): string[] {
-    return baseMap[node.nodeType].findBase(node, dependsMap); 
+
+    if (node == undefined || node.nodeType == undefined){
+        return [];
+    } else{
+        return baseMap[node.nodeType]!.findBase(node, dependsMap); 
+    }
+
+    
 }
 
 export interface BaseFinder {
