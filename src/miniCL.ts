@@ -40,7 +40,19 @@ export const miniCL: StreamParser<State> = {
   const typeDiagnostics = typeErrors.map(makeDiagnostic(view));
   const mudDiagnostics = mudErrors.map(makeDiagnostic(view, 'warning'));
 
-  return parseDiagnostics.concat(typeDiagnostics).concat(mudDiagnostics);
+  // CodeMirror requires diagnostics to be sorted by the `from` attribute.
+  return parseDiagnostics
+          .concat(typeDiagnostics)
+          .concat(mudDiagnostics)
+          .sort((a, b) => {
+            if (a.from < b.from) {
+              return -1;
+            } else if (a.from > b.from) {
+              return 1;
+            } else {
+              return 0;
+            }
+          }); 
 }
 
 /**
