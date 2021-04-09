@@ -31,9 +31,10 @@ export type BinaryOperationNode = {
   operator: BinaryOperationTokenType;
   left: AnalyzedNode;
   right: AnalyzedNode;
-  outputType: Possible<ValueType> | undefined;
+  outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
+  value: number | boolean | undefined;
 };
 
 // This supports only builtin functions (defined in typechecker.ts)
@@ -44,6 +45,7 @@ export type FunctionNode = {
   outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
+  value: number | boolean | undefined; // the builtin functions we have that return values are only numbers or booleans
 }
 
 // This only allows one predicate-consequent pair per choose node
@@ -54,6 +56,7 @@ export type ChooseNode = {
   outputType: Possible<ValueType>;
   pos: Position
   nodeId: string;
+  value: number | boolean | undefined;
 }
 
 export type VariableAssignmentNode = {
@@ -63,6 +66,7 @@ export type VariableAssignmentNode = {
   outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
+  value: number | boolean | undefined;
 }
 
 export type IdentifierNode = {
@@ -72,6 +76,7 @@ export type IdentifierNode = {
   outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
+  value: number | boolean | undefined;
 }
 
 export type AnalyzedNode = 

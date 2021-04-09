@@ -1,6 +1,7 @@
 import {Position} from './position';
 import * as AST from './ast';
 import * as AnalyzedTree from './analyzedTree';
+import {constCheckNode} from './constantChecker';
 
 export function typecheck(nodes: AST.Node[], registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}):
                           {errors: TypeError[], aTree: AnalyzedTree.AnalyzedNode[]} {
@@ -9,6 +10,9 @@ export function typecheck(nodes: AST.Node[], registeredNodes: {[key: string]: An
 
   nodes.forEach(node => {
     let {errors, aNode} = typecheckNode(node, registeredNodes);
+    if (errors.length == 0) {
+      constCheckNode(aNode, registeredNodes);
+    }
     aNodes.push(aNode);
     totalErrors = totalErrors.concat(errors);
   });
@@ -110,10 +114,12 @@ class CheckBinary implements TypeChecker {
         constType: 'Constant' as 'Constant'
       },
       pos: node.pos,
-      nodeId: node.nodeId
+      nodeId: node.nodeId,
+      value: undefined
     };
 
     registeredNodes[newNode.nodeId] = newNode;
+
 
     return {errors: [], aNode: newNode};
   }
@@ -153,7 +159,8 @@ class CheckFunction implements TypeChecker {
         constType: 'Constant' as 'Constant'
       },
       pos: node.pos,
-      nodeId: node.nodeId
+      nodeId: node.nodeId,
+      value: undefined
     };
 
     // If this is a builtin function, check it has the correct argument types
@@ -213,7 +220,8 @@ class CheckChoose implements TypeChecker {
         constType: 'Constant' as 'Constant'
       },
       pos: node.pos,
-      nodeId: node.nodeId
+      nodeId: node.nodeId,
+      value: undefined
     };
 
     registeredNodes[newNode.nodeId] = newNode;
@@ -242,7 +250,8 @@ class CheckVariable implements TypeChecker {
         constType: 'Constant' as 'Constant'
       },
       pos: node.pos,
-      nodeId: node.nodeId
+      nodeId: node.nodeId,
+      value: undefined
     };
 
     registeredNodes[newNode.nodeId] = newNode;
@@ -275,7 +284,8 @@ class CheckIdentifier implements TypeChecker {
         constType: 'Constant' as 'Constant'
       },
       pos: node.pos,
-      nodeId: node.nodeId
+      nodeId: node.nodeId,
+      value: undefined
     };
 
     registeredNodes[newNode.nodeId] = newNode;
@@ -289,7 +299,7 @@ export const builtins : {[name: string]: {inputType: AST.ValueType, resultType: 
   "IsDefined": {inputType: 'any', resultType: 'boolean', status: "Definitely", constType: "Constant"},
   "Inverse": {inputType: 'number', resultType: 'number', status: "Variable", constType: "Constant"},
   "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined", constType: "Non-Constant"},
-  "Sink": {inputType: 'any', resultType: 'any', status: "Variable", constType: "Constant"},
+  "Sink": {inputType: 'any', resultType: 'any', status: "Maybe-Undefined", constType: "Constant"},
   "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Variable", constType: "Constant"},
   "X": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
   "Y": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},

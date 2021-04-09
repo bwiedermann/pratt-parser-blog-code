@@ -137,14 +137,9 @@ class MudCheckFunction implements MudChecker {
         
         // If the function is variable, then its status depends on its argument's status
         if (builtins[functionName].status == "Variable") {
-
-          // If the argument is constant, we can use it to evaluate the oepration
           if (node.args[0].outputType.constType == 'Constant') {
-
-            const result = evaluate(node);
-
             // If the result is undefined, warn the author
-            if (result) {
+            if (node.value != undefined) {
               node.outputType.status = "Definitely";
             } else {
               node.outputType.status = "Def-Undefined";
@@ -153,7 +148,6 @@ class MudCheckFunction implements MudChecker {
           } else {
             node.outputType.status = node.args[0]?.outputType?.status;
           }
-
         }
         else {
           node.outputType.status = builtins[functionName].status;
@@ -299,20 +293,4 @@ function handleCheck(consequent: AnalyzedTree.AnalyzedNode,
   return contained;
 }
 
-// This funciton simulates running the body of a miniCL function (like Inverse(x))
-function evaluate(node: AnalyzedTree.FunctionNode): boolean {
-  // 0 is the only input to Inverse that makes it undefined
-  if (node.name == "Inverse") {
-    if (node.args[0].value == 0) {
-      return false;
-    }
-  }
-  // A negative number is the only input to Sqrt that makes it undefined
-  if (node.name == "Sqrt") {
-    if (node.args[0].value < 0) {
-      return false;
-    }
-  }
-  // No other functions can have inputs that make them definitely undefined
-  return true;
-}
+
