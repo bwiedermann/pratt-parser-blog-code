@@ -124,16 +124,21 @@ export class FunctionParselet implements InitialParselet {
 
     const position = token2pos(token);
     const id = pos2string(position);
+    let args : AST.Node[] = [];
 
     // All functions have at least one argument inside parens
     tokens.expectToken('(');
-    const arg1 = parser.parse(tokens, 0, varMap);  // allow for one argument
-    let args = [arg1];
-    // ParseOrderedPair is the only function that takes two arguments
-    if (token.text == "ParseOrderedPair") {
-      const arg2 = parser.parse(tokens, 0, varMap);  // allow for second argument
-      args.push(arg2);
+
+    if (token.text != "InputN" && token.text != "InputB") {
+      const arg1 = parser.parse(tokens, 0, varMap);  // allow for one argument
+      args = [arg1];
+      // ParseOrderedPair is the only function that takes two arguments
+      if (token.text == "ParseOrderedPair") {
+        const arg2 = parser.parse(tokens, 0, varMap);  // allow for second argument
+        args.push(arg2);
+      }
     }
+
     tokens.expectToken(')');
 
     // If this is a builtin function, check it has the correct argument types

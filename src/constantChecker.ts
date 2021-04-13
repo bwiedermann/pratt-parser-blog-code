@@ -2,13 +2,6 @@ import {Position} from './position';
 import * as AST from './ast';
 import * as AnalyzedTree from './analyzedTree';
 
-
-// export function constCheck(nodes: AnalyzedTree.AnalyzedNode[], registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}): void {
-//   nodes.forEach(node => {
-//     constCheckNode(node, registeredNodes);
-//   });
-// }
-
 export function constCheckNode(node: AnalyzedTree.AnalyzedNode, registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}): void {
   checkerMap[node.nodeType].check(node, registeredNodes);
 }
@@ -81,19 +74,24 @@ class CheckBinary implements ConstChecker {
 class CheckFunction implements ConstChecker {
   check(node: AnalyzedTree.FunctionNode, registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode}): void {
 
-    // First typecheck the argument(s)
-    constCheckNode(node.args[0], registeredNodes);
-    if (node.args.length > 1) {
-      constCheckNode(node.args[1], registeredNodes);
-    }
-
-    if (node.args[0].outputType.constType == 'Constant') {
+    if (node.name != "InputN" && node.name != "InputB") {
+      // First typecheck the argument(s)
+      constCheckNode(node.args[0], registeredNodes);
+      if (node.args.length > 1) {
+        constCheckNode(node.args[1], registeredNodes);
+      }
+      
+      if (node.args[0].outputType.constType == 'Constant') {
         // if the argument is constant, we can evaluate it
         const result = evaluate(node);
         node.value = result;
+      }
+      else {
+          node.outputType.constType = 'Non-Constant';
+      }
     }
     else {
-        node.outputType.constType = 'Non-Constant';
+      node.outputType.constType = 'Non-Constant';
     }
 
   }

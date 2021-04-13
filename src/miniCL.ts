@@ -34,6 +34,7 @@ export const miniCL: StreamParser<State> = {
   // Error checking
   const {errors: typeErrors, aTree: analyzedNodes} = typecheck(results.nodes, registeredNodes);
   const mudErrors = mudCheck(analyzedNodes, registeredNodes, dependsMap);
+  console.log(analyzedNodes);
 
   // Create a diagnostic for each kind of error
   const parseDiagnostics = results.parseErrors.map(makeDiagnostic(view));

@@ -134,21 +134,22 @@ class CheckFunction implements TypeChecker {
     const functionName = node.name
     const argType = builtins[functionName].inputType;
 
-    // First typecheck the argument(s)
-    const { errors: arg1Errors, aNode: arg1Node } = typecheckNode(node.args[0], registeredNodes);
-    totalErrors = totalErrors.concat(arg1Errors);
-    aArgs.push(arg1Node);
-    if (node.args.length > 1) {
-      const { errors: arg2Errors, aNode: arg2Node } = typecheckNode(node.args[1], registeredNodes);
-      totalErrors = totalErrors.concat(arg2Errors);
-      aArgs.push(arg2Node);
-      // Both arguments must have the same type
-      if (aArgs[0].outputType.valueType != aArgs[1].outputType.valueType) {
-        totalErrors.push(new TypeError("arguments must have same type", node.args[0].pos));
+    // The Input functions do not have arguments so we don't type check them
+    if (functionName != "InputN" && functionName != "InputB") {
+      // First typecheck the argument(s)
+      const { errors: arg1Errors, aNode: arg1Node } = typecheckNode(node.args[0], registeredNodes);
+      totalErrors = totalErrors.concat(arg1Errors);
+      aArgs.push(arg1Node);
+      if (node.args.length > 1) {
+        const { errors: arg2Errors, aNode: arg2Node } = typecheckNode(node.args[1], registeredNodes);
+        totalErrors = totalErrors.concat(arg2Errors);
+        aArgs.push(arg2Node);
+        // Both arguments must have the same type
+        if (aArgs[0].outputType.valueType != aArgs[1].outputType.valueType) {
+          totalErrors.push(new TypeError("arguments must have same type", node.args[0].pos));
+        }
       }
     }
-
-    
 
     let newNode = {
       nodeType: 'Function' as 'Function',
@@ -293,13 +294,13 @@ class CheckIdentifier implements TypeChecker {
 export const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType, status: string, constType: string} } = {
   "IsDefined": {inputType: 'any', resultType: 'boolean', status: "Definitely", constType: "Constant"},
   "Inverse": {inputType: 'number', resultType: 'number', status: "Variable", constType: "Constant"},
-  "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined", constType: "Non-Constant"},
+  "InputN": {inputType: 'any', resultType: 'number', status: "Maybe-Undefined", constType: "Non-Constant"},
   "Sink": {inputType: 'any', resultType: 'any', status: "Maybe-Undefined", constType: "Constant"},
   "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Variable", constType: "Constant"},
   "X": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
   "Y": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
   "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely", constType: "Constant"},
-  "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined", constType: "Non-Constant"},
+  "InputB": {inputType: 'any', resultType: 'boolean', status: "Maybe-Undefined", constType: "Non-Constant"},
   "Sqrt": {inputType: 'number', resultType: 'number', status: "Variable", constType: "Constant"}
 }
 

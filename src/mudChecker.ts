@@ -107,12 +107,16 @@ class MudCheckFunction implements MudChecker {
             dependsMap: {[key: string]: string[]}): TypeError[] {
         let errors: TypeError[] = [];
 
-        // First mud-check the argument(s)
-        const arg1Errors = mudCheckNode(node.args[0], nodes, registeredNodes, dependsMap);
-        errors = errors.concat(arg1Errors);
-        if (node.args.length > 1) {
-          const arg2Errors = mudCheckNode(node.args[1], nodes, registeredNodes, dependsMap);
-          errors = errors.concat(arg2Errors);
+        const functionName = node.name;
+
+        if (functionName != "InputN" && functionName != "InputB") {
+          // First mud-check the argument(s)
+          const arg1Errors = mudCheckNode(node.args[0], nodes, registeredNodes, dependsMap);
+          errors = errors.concat(arg1Errors);
+          if (node.args.length > 1) {
+            const arg2Errors = mudCheckNode(node.args[1], nodes, registeredNodes, dependsMap);
+            errors = errors.concat(arg2Errors);
+          }
         }
 
         // IsDefined is the only function that asserts anything
@@ -122,8 +126,6 @@ class MudCheckFunction implements MudChecker {
           node.outputType.asserts = node.outputType.asserts.concat(bases);
         }
 
-        const functionName = node.name
-        
         // If sink "node" takes in possibly undefined values, warn the author
         if (functionName == 'Sink') {
           // a sink has one argument

@@ -76,7 +76,7 @@
         7
       ],
       "id": 5,
-      "mtime": 1618272390437,
+      "mtime": 1618275660985,
       "packageId": "default",
       "publicPath": "src/miniCL.ts"
     },
@@ -173,7 +173,7 @@
         190
       ],
       "id": 14,
-      "mtime": 1618273744015,
+      "mtime": 1618275147230,
       "packageId": "default",
       "publicPath": "src/typechecker.ts"
     },
@@ -184,7 +184,7 @@
         14
       ],
       "id": 15,
-      "mtime": 1617930496367,
+      "mtime": 1618275283512,
       "packageId": "default",
       "publicPath": "src/mudChecker.ts"
     },
@@ -614,7 +614,7 @@
         14
       ],
       "id": 47,
-      "mtime": 1618273732378,
+      "mtime": 1618274875740,
       "packageId": "default",
       "publicPath": "src/parselet.ts"
     },
@@ -2003,7 +2003,7 @@
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/constantChecker.ts",
       "dependencies": [],
       "id": 190,
-      "mtime": 1617930357635,
+      "mtime": 1618275420453,
       "packageId": "default",
       "publicPath": "src/constantChecker.ts"
     }
