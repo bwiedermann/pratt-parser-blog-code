@@ -16,10 +16,6 @@ import { parseResults } from "./parseResults"
   const astJSON = JSON.stringify(results.nodes, null, 2)
   replaceContents(astViewer, astJSON);
 
-  // Display JSON for depends map
-  const dependsJSON = JSON.stringify(results.dependsMap, null, 2);
-  replaceContents(dependsViewer, dependsJSON);
-
   // Draw the AST
   visualize(results.nodes);
 }
@@ -42,11 +38,6 @@ let astViewer = new EditorView({
   parent: document.querySelector("#ast-json"),
 });
 
-// JSON viewer for depends map
-let dependsViewer = new EditorView({
-  state: newJSONViewerState(),
-  parent: document.querySelector("#depends-json"),
-});
 
 /**
  * Replace the entire contents of an editor

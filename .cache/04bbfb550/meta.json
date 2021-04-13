@@ -76,7 +76,7 @@
         7
       ],
       "id": 5,
-      "mtime": 1618275660985,
+      "mtime": 1618276451820,
       "packageId": "default",
       "publicPath": "src/miniCL.ts"
     },
@@ -108,14 +108,14 @@
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/devTools.ts",
       "dependencies": [
         20,
+        37,
         3,
         4,
         7,
-        36,
-        37
+        36
       ],
       "id": 8,
-      "mtime": 1615938130810,
+      "mtime": 1618276523467,
       "packageId": "default",
       "publicPath": "src/devTools.ts"
     },
@@ -431,9 +431,9 @@
     "36": {
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/lang-json/dist/index.js",
       "dependencies": [
+        43,
         21,
-        30,
-        43
+        30
       ],
       "id": 36,
       "mtime": 499162500000,
