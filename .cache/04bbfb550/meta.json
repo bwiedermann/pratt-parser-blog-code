@@ -71,12 +71,12 @@
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/miniCL.ts",
       "dependencies": [
         13,
+        14,
         15,
-        7,
-        14
+        7
       ],
       "id": 5,
-      "mtime": 1617925144686,
+      "mtime": 1618272390437,
       "packageId": "default",
       "publicPath": "src/miniCL.ts"
     },
@@ -173,7 +173,7 @@
         190
       ],
       "id": 14,
-      "mtime": 1617930354185,
+      "mtime": 1618273744015,
       "packageId": "default",
       "publicPath": "src/typechecker.ts"
     },
@@ -610,10 +610,11 @@
     "47": {
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/parselet.ts",
       "dependencies": [
-        49
+        49,
+        14
       ],
       "id": 47,
-      "mtime": 1617925144687,
+      "mtime": 1618273732378,
       "packageId": "default",
       "publicPath": "src/parselet.ts"
     },

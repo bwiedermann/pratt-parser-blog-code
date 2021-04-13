@@ -2,7 +2,8 @@ import { TokenStream } from './tokenstream';
 import { Token, TokenType, BinaryOperationTokenType} from './lexer';
 import * as AST from './ast';
 import { AbstractParser } from './parser';
-import {token2pos, join, pos2string} from './position';
+import {ParseError, token2pos, join, pos2string} from './position';
+import {builtins} from './typechecker';
 
 // All parselets add their nodeType to the AST
 export interface InitialParselet {
@@ -134,6 +135,15 @@ export class FunctionParselet implements InitialParselet {
       args.push(arg2);
     }
     tokens.expectToken(')');
+
+    // If this is a builtin function, check it has the correct argument types
+    // otherwise throw an error (we don't know what this function is)
+    if (!builtins[token.text]) {
+      throw new ParseError(
+        `Unknown Function`,
+        position,
+      );
+    }
 
     let newNode = {
       nodeType: 'Function' as 'Function',

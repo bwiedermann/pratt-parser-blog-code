@@ -131,6 +131,9 @@ class CheckFunction implements TypeChecker {
     let totalErrors: TypeError[] = [];
     let aArgs: AnalyzedTree.AnalyzedNode[] = [];
 
+    const functionName = node.name
+    const argType = builtins[functionName].inputType;
+
     // First typecheck the argument(s)
     const { errors: arg1Errors, aNode: arg1Node } = typecheckNode(node.args[0], registeredNodes);
     totalErrors = totalErrors.concat(arg1Errors);
@@ -145,8 +148,7 @@ class CheckFunction implements TypeChecker {
       }
     }
 
-    const functionName = node.name
-    const argType = builtins[functionName].inputType;
+    
 
     let newNode = {
       nodeType: 'Function' as 'Function',
@@ -163,16 +165,9 @@ class CheckFunction implements TypeChecker {
       value: undefined
     };
 
-    // If this is a builtin function, check it has the correct argument types
-    // otherwise throw an error (we don't know what this function is)
-    if (argType) {
-      // Assume both arguments are the same type (see error produced above)
-      if (argType != 'any' && newNode.args[0].outputType.valueType != argType) {
-        totalErrors.push(new TypeError("incompatible argument type for " + functionName, node.pos));
-      }
-      
-    } else {
-      totalErrors.push(new TypeError("unknown function", node.pos));
+    // Assume both arguments are the same type (see error produced above)
+    if (argType != 'any' && newNode.args[0].outputType.valueType != argType) {
+      totalErrors.push(new TypeError("incompatible argument type for " + functionName, node.pos));
     }
 
     registeredNodes[newNode.nodeId] = newNode;
