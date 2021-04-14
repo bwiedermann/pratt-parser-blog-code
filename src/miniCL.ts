@@ -33,6 +33,7 @@ export const miniCL: StreamParser<State> = {
   let registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode} = {}
   // Error checking
   const {errors: typeErrors, aTree: analyzedNodes} = typecheck(results.nodes, registeredNodes);
+  
   const mudErrors = mudCheck(analyzedNodes, registeredNodes, dependsMap);
 
   // Create a diagnostic for each kind of error

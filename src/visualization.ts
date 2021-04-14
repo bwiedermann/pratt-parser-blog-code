@@ -2,8 +2,9 @@ import * as d3Hierarchy from 'd3-hierarchy';
 import * as d3Select from 'd3-selection';
 import * as d3shape from 'd3-shape';
 import * as AST from './ast';
+import * as AnalyzedTree from './analyzedTree';
 
-export function visualize(nodes: AST.Node[]): void {
+export function visualize(nodes: AnalyzedTree.AnalyzedNode[]): void {
 
     // Placement and size of tree
     const margin = {top: 20, right: 90, bottom: 20, left: 90};
@@ -109,8 +110,8 @@ function yep(selection) {
 
 const connection = d3shape.linkHorizontal().x(d => d.y).y(d => d.x)
 
-function getChildren(node: AST.Node): AST.Node[] {
-  var children: AST.Node[] = [];
+function getChildren(node: AnalyzedTree.AnalyzedNode): AnalyzedTree.AnalyzedNode[] {
+  var children: AnalyzedTree.AnalyzedNode[] = [];
   switch (node.nodeType) {
     case 'Program':
       children = node.children;
@@ -180,5 +181,5 @@ function getFill(node): string {
 }
 
 function isUndefined(d) {
-  return d.data.outputType?.status === 'Maybe-Undefined'
+  return d.data.outputType?.status === 'Maybe-Undefined' || d.data.outputType?.status === 'Def-Undefined'
 }
