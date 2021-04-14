@@ -21,6 +21,11 @@ main h1 {
   background-color: #bbb;
 }
 
+.accordion-button:not(.collapsed) {
+  background-color: inherit;
+  color: inherit;
+}
+
 /** From Desmos's styles **/
 
 .instructions {
@@ -40,4 +45,6 @@ main h1 {
   top: 3px;
   margin: 0 2px;
 }
+
+
 
