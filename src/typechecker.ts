@@ -73,8 +73,8 @@ class CheckFunction implements TypeChecker {
       const arg2Errors = typecheckNode(node.args[1], registeredNodes);
       errors = errors.concat(arg2Errors);
       if (node.args[0]?.outputType?.valueType != node.args[1]?.outputType?.valueType) {
-
-        errors.push(new TypeError("arguments must have same type", node.args[0]!.pos));
+        const temp : any = node.args[0];
+        errors.push(new TypeError("arguments must have same type", temp.pos));
       }
     }
 
@@ -104,9 +104,9 @@ class CheckChoose implements TypeChecker {
   check(node: AST.ChooseNode, registeredNodes: {[key: string]: AST.Node}): TypeError[] {
     let errors: TypeError[] = [];
 
-    const predicate = node.case.predicate;
-    const consequent = node.case.consequent;
-    const otherwise = node.otherwise;
+    const predicate : any = node.case.predicate;
+    const consequent : any = node.case.consequent;
+    const otherwise : any = node.otherwise;
 
     // First typecheck the inner nodes
     const predErrors = typecheckNode(predicate, registeredNodes);
@@ -116,13 +116,13 @@ class CheckChoose implements TypeChecker {
 
     // check return types are the same for both cases
     if (consequent?.outputType?.valueType != otherwise?.outputType?.valueType) {
-      errors.push(new TypeError("Return types are not the same for both cases", consequent!.pos));
-      errors.push(new TypeError("Return types are not the same for both cases", otherwise!.pos));
+      errors.push(new TypeError("Return types are not the same for both cases", consequent.pos));
+      errors.push(new TypeError("Return types are not the same for both cases", otherwise.pos));
     }
 
     // check that the predicate returns a boolean
     if (predicate!.outputType!.valueType != 'boolean') {
-      errors.push(new TypeError("Predicate must return a boolean", predicate!.pos));
+      errors.push(new TypeError("Predicate must return a boolean", predicate.pos));
     }
 
     node.outputType.valueType = consequent?.outputType?.valueType;

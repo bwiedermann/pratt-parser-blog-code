@@ -47,7 +47,7 @@ export type BinaryOperationNode = {
 export type FunctionNode = {
   nodeType: 'Function';
   name: string;
-  args: Exclude<Node, ProgramNode>[]; //Everything except program node
+  args: Node[]; //Everything except program node
   outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
@@ -55,8 +55,8 @@ export type FunctionNode = {
 
 export type ChooseNode = {
   nodeType: 'Choose';
-  case: { predicate: Exclude<Node, ProgramNode>, consequent: Exclude<Node, ProgramNode> };
-  otherwise: Exclude<Node, ProgramNode>;
+  case: { predicate: Node, consequent: Node };
+  otherwise: Node;
   outputType: Possible<ValueType>;
   pos: Position
   nodeId: string;

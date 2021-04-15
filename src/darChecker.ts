@@ -4,8 +4,6 @@ import {equals} from './equals';
 
 
 
-
-
 export function darCheck(nodes: AST.Node[],  registeredNodes: {[key: string]: AST.Node}): TypeError[] {
     const errors = nodes.map(n => darCheckNode(n, nodes, registeredNodes));
     return ([] as TypeError[]).concat(...errors);
@@ -24,7 +22,13 @@ export class TypeError {
   }
 
 export interface DarChecker {
-
+    /**
+     * 
+     * @param {AST.Node}                node            The current root note to darCheck 
+     * @param {AST.Node[]}              nodes           The entire tree of nodes  
+     * @param {[key: string]: AST.Node} registeredNodes A map of nodeId's to nodes
+     * @return {TypeError[]}                            A list of type errors, if errors are present
+     */
     darCheck(node: AST.Node,
             nodes: AST.Node[], 
             registeredNodes: {[key: string]: AST.Node},): TypeError[];
@@ -54,7 +58,6 @@ class DarCheckNumber implements DarChecker {
             if (node?.args[0]?.outputType?.value == undefined){
                 errors.push(new TypeError("Input to TestConstant() is not constant", node.pos));
             }
-
         }
         return errors;
       }
@@ -63,6 +66,13 @@ class DarCheckNumber implements DarChecker {
 class DarCheckBinary implements DarChecker {
 
 
+    /**
+     * 
+     * @param {number}      left        Number on the left side of the operation
+     * @param {number}      right       Number on the right side of the operation 
+     * @param {string}      operator    A string representing the operator (+, -, *, /)
+     * @returns {number | undefined}    Returns undefined if either side is non-number, else returns the result of the operation
+     */
     evaluateOperation(left : number, right : number, operator : string): number | undefined {
 
         //check to make sure left & right are numbers
@@ -76,11 +86,11 @@ class DarCheckBinary implements DarChecker {
             } else if (operator =="/"){
                 return left / right
             } else {
-                return 999999
+                return undefined;
             }
         } else {
             //one or both sides is a non-number. We only care about numbers
-            return undefined
+            return undefined;
         }
     }
 
@@ -100,6 +110,7 @@ class DarCheckBinary implements DarChecker {
    
         } else{
             //One or both of the left + right does NOT have a value
+            //aka binary operation is NOT constant
             console.log("One or both sides has no 'value'");
         }
    
@@ -109,7 +120,6 @@ class DarCheckBinary implements DarChecker {
 
 class DarCheckVariable implements DarChecker {
     darCheck(node: AST.VariableAssignmentNode, nodes: AST.Node[], registeredNodes: {[key: string]: AST.Node}): TypeError[] {
-
 
         //check the assignment (and propagate value, if applicable)
         darCheckNode(node.assignment, nodes, registeredNodes);
@@ -125,7 +135,7 @@ class DarCheckVariable implements DarChecker {
 }
 
 class DarCheckIdentifier implements DarChecker {
-    darCheck(node: AST.IdentifierNode, nodes: AST.Node[], registeredNodes: {[key: string]: AST.Node}): TypeError[] {
+    darCheck(node: AST.IdentifierNode, _ : AST.Node[], registeredNodes: {[key: string]: AST.Node}): TypeError[] {
 
         //grab the assignment node that this ident refrences
         const assignmentNode = registeredNodes[node.assignmentId];
@@ -141,6 +151,13 @@ class DarCheckIdentifier implements DarChecker {
 
   class DarCheckIterator implements DarChecker {
 
+    /**
+     * 
+     * @param {number} start    A Number that represents the starting value for the iterator (inclusive) 
+     * @param {number} end      The end point of the range (exclusive)
+     * @param {number} step     The step of the range
+     * @returns {number[]}      A javascript array that contains the range represented by start, end, and step
+     */
     getRange(start: number, end: number, step: number): number[]{
         let current = start;
         let out = [];
@@ -153,14 +170,12 @@ class DarCheckIdentifier implements DarChecker {
     darCheck(node: AST.IteratorNode, nodes: AST.Node[], registeredNodes: {[key: string]: AST.Node}): TypeError[] {
         const errors: TypeError[] = [];
 
-        //pre-check nodes
+        //pre-check nodes, to populate their 'value' (if constant)
         darCheckNode(node.start, nodes, registeredNodes);
         darCheckNode(node.end, nodes, registeredNodes);
         darCheckNode(node.step, nodes, registeredNodes);
 
-
         //calculate range
-
         if (node.start?.outputType?.value != undefined && node.end?.outputType?.value != undefined && node.step?.outputType?.value != undefined){
             //if start, end, and step all are constant numbers
 
@@ -168,29 +183,24 @@ class DarCheckIdentifier implements DarChecker {
             const end = node.end?.outputType?.value;
             const step = node.step?.outputType?.value;
 
-            console.log("start, end, step:", start, end, step);
-
             node.values = this.getRange(start, end, step);
         } else {
-            console.log("Iterator used with non constant stuff")
             errors.push(new TypeError("Non constant value used in iterator decleration", node.pos));
         }
-
 
         return errors;
     }
   }
 
-
-
-
+/**
+ * DarCheckAny exists as a blank default checker that does nothing
+ * This helps appease the Typescript typechecker
+ */
 class DarCheckAny implements DarChecker {
     darCheck(node: AST.Node): TypeError[] {
         return [];
     }
 }
-
-
 
 const darCheckerMap: Partial<{[K in AST.NodeType]: DarChecker}> = {
 'Number' : new DarCheckNumber(),

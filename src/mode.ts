@@ -1,5 +1,5 @@
 // Code Mirror syntax-highlighing mode
-import { getToken, State } from './lexer';
+import { getToken, State, TokenType as TokenType2 } from './lexer';
 
 import * as CM from 'codemirror';
 
@@ -29,6 +29,7 @@ export function MakeMode(_config: CodeMirror.EditorConfiguration, _modeOptions?:
       }
 
       const type = token.type;
+
       switch (type) {
         case 'NUMBER':
           return 'number';

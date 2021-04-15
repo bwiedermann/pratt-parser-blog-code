@@ -27,83 +27,462 @@ f.modules = modules;
 })();
 __fuse.bundle({
 
-// src/miniCL.ts @6
-6: function(__fusereq, exports, module){
+// src/lexer.ts @19
+19: function(__fusereq, exports, module){
 exports.__esModule = true;
-var lexer_1 = __fusereq(19);
-var typechecker_1 = __fusereq(20);
-var darChecker_1 = __fusereq(21);
-var parseResults_1 = __fusereq(8);
-exports.miniCL = {
-  startState: function () {
-    return {
-      line: 1,
-      stack: ['default']
-    };
-  },
-  token: function (stream, state) {
-    if (stream.eatSpace()) return null;
-    return token2tag(lexer_1.getDefaultToken(stream, state));
-  }
-};
-exports.miniCLLinter = () => view => {
-  const results = view.state.field(parseResults_1.parseResults);
-  let assertMap = [];
-  const darErrors = darChecker_1.darCheck(results.nodes, results.registeredNodes);
-  const typeErrors = typechecker_1.typecheck(results.nodes, results.registeredNodes);
-  const parseDiagnostics = results.parseErrors.map(makeDiagnostic(view));
-  const typeDiagnostics = typeErrors.map(makeDiagnostic(view));
-  const darDiagnostics = darErrors.map(makeDiagnostic(view, 'warning'));
-  return parseDiagnostics.concat(typeDiagnostics).concat(darDiagnostics);
-};
-const makeDiagnostic = (view, severity = 'error') => error => {
-  return {
-    from: firstLine(view, error) + error.position.first_column,
-    to: lastLine(view, error) + error.position.last_column,
-    message: error.message,
-    severity: severity
+var stream_parser_1 = __fusereq(7);
+function getTokens(text) {
+  const tokens = [];
+  const state = {
+    line: 1,
+    stack: ['default']
   };
-};
-function firstLine(view, error) {
-  return view.state.doc.line(error.position.first_line).from;
+  for (const line of text.split('\n')) {
+    const stream = new stream_parser_1.StringStream(line, 4, 1);
+    stream.string = line;
+    while (!stream.eol()) {
+      const token = getToken(stream, state);
+      const emitToken = makeEmit(stream, state);
+      const fullToken = emitToken(token);
+      if (token != undefined) {
+        tokens.push(fullToken);
+      }
+      if (stream.start == stream.pos) {
+        throw new Error(`getToken failed to advance stream at position ${stream.pos} in string ${stream.string}`);
+      }
+      stream.start = stream.pos;
+    }
+    state.line += 1;
+  }
+  return tokens;
 }
-function lastLine(view, error) {
-  return view.state.doc.line(error.position.last_line).from;
-}
-function token2tag(token) {
-  switch (token) {
-    case 'NUMBER':
-      return 'number';
-    case 'TRUE':
-      return 'boolean';
-    case 'FALSE':
-      return 'boolean';
-    case '(':
-    case ')':
-      return 'bracket';
-    case '+':
-    case '-':
-    case '*':
-    case '/':
-    case '|':
-    case '&':
-    case '=':
-      return 'operator';
-    case 'COMMENT':
-      return 'comment';
-    case 'CHOOSE1':
-    case 'CHOOSE2':
-      return 'choose';
-    case 'FUNCTION':
-      return 'function';
-    case 'IDENTIFIER':
-      return 'variable';
-    case 'ERROR':
-      return 'error';
+exports.getTokens = getTokens;
+function getToken(stream, state) {
+  switch (state.stack[state.stack.length - 1]) {
     default:
-      return undefined;
+      return getDefaultToken(stream, state);
   }
 }
+exports.getToken = getToken;
+function makeEmit(stream, state) {
+  return function emitToken(type) {
+    return {
+      type,
+      first_column: stream.start,
+      last_column: stream.pos,
+      line: state.line,
+      text: stream.current()
+    };
+  };
+}
+function getDefaultToken(stream, state) {
+  if (stream.eatSpace()) {
+    return undefined;
+  }
+  if (stream.match(/\+/)) {
+    return '+';
+  }
+  if (stream.match(/\-/)) {
+    return '-';
+  }
+  if (stream.match(/\*/)) {
+    return '*';
+  }
+  if (stream.match(/\//)) {
+    return '/';
+  }
+  if (stream.match(/\|/)) {
+    return '|';
+  }
+  if (stream.match(/\&/)) {
+    return '&';
+  }
+  if (stream.match(/\(/)) {
+    return '(';
+  }
+  if (stream.match(/\)/)) {
+    return ')';
+  }
+  if (stream.match(/\[/)) {
+    return '[';
+  }
+  if (stream.match(/\]/)) {
+    return ']';
+  }
+  if (stream.match(/\=/)) {
+    return '=';
+  }
+  if (stream.match(/-?[0-9]+(\.[0-9]+)?/)) {
+    return 'NUMBER';
+  }
+  if (stream.match(/True/)) {
+    return 'TRUE';
+  }
+  if (stream.match(/False/)) {
+    return 'FALSE';
+  }
+  if (stream.match(/#/)) {
+    if (!stream.match(/\n/)) {
+      stream.match(/.*/);
+    }
+    return 'COMMENT';
+  }
+  if (stream.match(/WHEN/)) {
+    return 'CHOOSE1';
+  }
+  if (stream.match(/OTHERWISE/)) {
+    return 'CHOOSE2';
+  }
+  if (stream.match(/[A-Z]([a-z|A-Z])*/)) {
+    return 'FUNCTION';
+  }
+  if (stream.match(/[A-Za-z][(\w|\%)$]*(\.[\w$]+)?(\[\d+])?/)) {
+    return 'IDENTIFIER';
+  }
+  stream.next();
+  return 'ERROR';
+}
+exports.getDefaultToken = getDefaultToken;
+
+},
+
+// src/typechecker.ts @20
+20: function(__fusereq, exports, module){
+var _1_, _2_;
+var _3_, _4_;
+var _5_, _6_;
+var _7_, _8_;
+var _9_, _10_;
+var _11_, _12_;
+var _13_, _14_;
+var _15_, _16_;
+var _17_, _18_;
+var _19_, _20_;
+var _21_, _22_;
+var _23_, _24_;
+function typecheck(nodes, registeredNodes) {
+  const errors = nodes.map(n => typecheckNode(n, registeredNodes));
+  return [].concat(...errors);
+}
+exports.typecheck = typecheck;
+function typecheckNode(node, registeredNodes) {
+  if (node != undefined && node.nodeType != undefined && checkerMap[node.nodeType] != undefined) {
+    return checkerMap[node.nodeType].check(node, registeredNodes);
+  } else {
+    return [];
+  }
+}
+class TypeError {
+  constructor(message, position) {
+    this.message = message;
+    this.position = position;
+  }
+}
+exports.TypeError = TypeError;
+class CheckNumber {
+  check(node) {
+    return [];
+  }
+}
+class CheckBoolean {
+  check(node) {
+    return [];
+  }
+}
+class CheckBinary {
+  check(node, registeredNodes) {
+    const errors = typecheckNode(node.left, registeredNodes).concat(typecheckNode(node.right, registeredNodes));
+    if (((_2_ = (_1_ = node.left) === null || _1_ === void 0 ? void 0 : _1_.outputType) === null || _2_ === void 0 ? void 0 : _2_.valueType) != ((_4_ = (_3_ = node.right) === null || _3_ === void 0 ? void 0 : _3_.outputType) === null || _4_ === void 0 ? void 0 : _4_.valueType)) {
+      errors.push(new TypeError("incompatible types for binary operator", node.pos));
+    } else if (((_6_ = (_5_ = node.right) === null || _5_ === void 0 ? void 0 : _5_.outputType) === null || _6_ === void 0 ? void 0 : _6_.valueType) == 'boolean' && (node.operator != "|" && node.operator != '&')) {
+      errors.push(new TypeError("incompatible operation for boolean operands", node.pos));
+    } else if (((_8_ = (_7_ = node.right) === null || _7_ === void 0 ? void 0 : _7_.outputType) === null || _8_ === void 0 ? void 0 : _8_.valueType) == 'number' && (node.operator == "|" || node.operator == '&')) {
+      errors.push(new TypeError("incompatible operation for number operands", node.pos));
+    }
+    node.outputType.valueType = (_10_ = (_9_ = node.left) === null || _9_ === void 0 ? void 0 : _9_.outputType) === null || _10_ === void 0 ? void 0 : _10_.valueType;
+    return errors;
+  }
+}
+class CheckFunction {
+  check(node, registeredNodes) {
+    let errors = [];
+    const arg1Errors = typecheckNode(node.args[0], registeredNodes);
+    errors = errors.concat(arg1Errors);
+    if (node.args.length > 1) {
+      const arg2Errors = typecheckNode(node.args[1], registeredNodes);
+      errors = errors.concat(arg2Errors);
+      if (((_12_ = (_11_ = node.args[0]) === null || _11_ === void 0 ? void 0 : _11_.outputType) === null || _12_ === void 0 ? void 0 : _12_.valueType) != ((_14_ = (_13_ = node.args[1]) === null || _13_ === void 0 ? void 0 : _13_.outputType) === null || _14_ === void 0 ? void 0 : _14_.valueType)) {
+        errors.push(new TypeError("arguments must have same type", node.args[0].pos));
+      }
+    }
+    const functionName = node.name;
+    const argType = builtins[functionName].inputType;
+    if (argType) {
+      if (argType != 'any' && ((_16_ = (_15_ = node.args[0]) === null || _15_ === void 0 ? void 0 : _15_.outputType) === null || _16_ === void 0 ? void 0 : _16_.valueType) != argType) {
+        errors.push(new TypeError("incompatible argument type for " + functionName, node.pos));
+      }
+    } else {
+      errors.push(new TypeError("unknown function", node.pos));
+    }
+    return errors;
+  }
+}
+class CheckChoose {
+  check(node, registeredNodes) {
+    let errors = [];
+    const predicate = node.case.predicate;
+    const consequent = node.case.consequent;
+    const otherwise = node.otherwise;
+    const predErrors = typecheckNode(predicate, registeredNodes);
+    const consErrors = typecheckNode(consequent, registeredNodes);
+    const otherErrors = typecheckNode(otherwise, registeredNodes);
+    errors = errors.concat(predErrors).concat(consErrors).concat(otherErrors);
+    if (((_18_ = (_17_ = consequent) === null || _17_ === void 0 ? void 0 : _17_.outputType) === null || _18_ === void 0 ? void 0 : _18_.valueType) != ((_20_ = (_19_ = otherwise) === null || _19_ === void 0 ? void 0 : _19_.outputType) === null || _20_ === void 0 ? void 0 : _20_.valueType)) {
+      errors.push(new TypeError("Return types are not the same for both cases", consequent.pos));
+      errors.push(new TypeError("Return types are not the same for both cases", otherwise.pos));
+    }
+    if (predicate.outputType.valueType != 'boolean') {
+      errors.push(new TypeError("Predicate must return a boolean", predicate.pos));
+    }
+    node.outputType.valueType = (_22_ = (_21_ = consequent) === null || _21_ === void 0 ? void 0 : _21_.outputType) === null || _22_ === void 0 ? void 0 : _22_.valueType;
+    return errors;
+  }
+}
+class CheckVariable {
+  check(node, registeredNodes) {
+    let errors = [];
+    const assignmentErrors = typecheckNode(node.assignment, registeredNodes);
+    errors = errors.concat(assignmentErrors);
+    node.outputType.valueType = (_24_ = (_23_ = node.assignment) === null || _23_ === void 0 ? void 0 : _23_.outputType) === null || _24_ === void 0 ? void 0 : _24_.valueType;
+    return errors;
+  }
+}
+class CheckIdentifier {
+  check(node, registeredNodes) {
+    let errors = [];
+    let assignmentNode = registeredNodes[node.assignmentId];
+    let valueNode = assignmentNode.assignment;
+    if (valueNode == undefined) {
+      errors.push(new TypeError("This variable doesn't have a value", node.pos));
+    }
+    node.outputType.valueType = valueNode.outputType.valueType;
+    return errors;
+  }
+}
+class CheckIterator {
+  check(node) {
+    return [];
+  }
+}
+class CheckRangeIdentifier {
+  check(node) {
+    return [];
+  }
+}
+const builtins = {
+  "IsDefined": {
+    inputType: 'any',
+    resultType: 'boolean'
+  },
+  "Inverse": {
+    inputType: 'number',
+    resultType: 'number'
+  },
+  "Input": {
+    inputType: 'number',
+    resultType: 'number'
+  },
+  "Sink": {
+    inputType: 'any',
+    resultType: 'any'
+  },
+  "RandomChoice": {
+    inputType: 'number',
+    resultType: 'number'
+  },
+  "TestConstant": {
+    inputType: 'any',
+    resultType: 'any'
+  },
+  "ParseOrderedPair": {
+    inputType: 'number',
+    resultType: 'pair'
+  },
+  "X": {
+    inputType: 'pair',
+    resultType: 'number'
+  },
+  "Y": {
+    inputType: 'pair',
+    resultType: 'number'
+  }
+};
+const checkerMap = {
+  'Number': new CheckNumber(),
+  'Boolean': new CheckBoolean(),
+  'BinaryOperation': new CheckBinary(),
+  'Function': new CheckFunction(),
+  'Choose': new CheckChoose(),
+  'VariableAssignment': new CheckVariable(),
+  'Identifier': new CheckIdentifier(),
+  'Iterator': new CheckIterator(),
+  'RangeIdentifier': new CheckRangeIdentifier()
+};
+
+},
+
+// src/darChecker.ts @21
+21: function(__fusereq, exports, module){
+var _1_, _2_, _3_;
+var _4_, _5_;
+var _6_, _7_;
+var _8_, _9_;
+var _10_;
+var _11_;
+var _12_, _13_;
+var _14_, _15_;
+var _16_, _17_;
+var _18_, _19_;
+var _20_, _21_;
+var _22_, _23_;
+var _24_, _25_;
+var _26_, _27_;
+function darCheck(nodes, registeredNodes) {
+  const errors = nodes.map(n => darCheckNode(n, nodes, registeredNodes));
+  return [].concat(...errors);
+}
+exports.darCheck = darCheck;
+function darCheckNode(node, nodes, registeredNodes) {
+  if (darCheckerMap != undefined && node != undefined && node.nodeType != undefined && darCheckerMap[node.nodeType] == undefined) {
+    return [];
+  } else {
+    return darCheckerMap[node.nodeType].darCheck(node, nodes, registeredNodes);
+  }
+}
+class TypeError {
+  constructor(message, position) {
+    this.message = message;
+    this.position = position;
+  }
+}
+exports.TypeError = TypeError;
+class DarCheckNumber {
+  darCheck(node) {
+    node.outputType.value = node.value;
+    return [];
+  }
+}
+class DarCheckFunction {
+  darCheck(node, nodes, registeredNodes) {
+    const errors = [];
+    if (node.name == "TestConstant") {
+      darCheckNode(node.args[0], nodes, registeredNodes);
+      if (((_3_ = (_2_ = (_1_ = node) === null || _1_ === void 0 ? void 0 : _1_.args[0]) === null || _2_ === void 0 ? void 0 : _2_.outputType) === null || _3_ === void 0 ? void 0 : _3_.value) == undefined) {
+        errors.push(new TypeError("Input to TestConstant() is not constant", node.pos));
+      }
+    }
+    return errors;
+  }
+}
+class DarCheckBinary {
+  evaluateOperation(left, right, operator) {
+    if (typeof left == 'number' && typeof right == 'number') {
+      if (operator == "+") {
+        return left + right;
+      } else if (operator == "-") {
+        return left - right;
+      } else if (operator == "*") {
+        return left * right;
+      } else if (operator == "/") {
+        return left / right;
+      } else {
+        return 999999;
+      }
+    } else {
+      return undefined;
+    }
+  }
+  darCheck(node, nodes, registeredNodes) {
+    const errors = darCheckNode(node.left, nodes, registeredNodes).concat(darCheckNode(node.right, nodes, registeredNodes));
+    if (((_5_ = (_4_ = node.left) === null || _4_ === void 0 ? void 0 : _4_.outputType) === null || _5_ === void 0 ? void 0 : _5_.value) != undefined && ((_7_ = (_6_ = node.right) === null || _6_ === void 0 ? void 0 : _6_.outputType) === null || _7_ === void 0 ? void 0 : _7_.value) != undefined) {
+      node.outputType = {
+        status: node.outputType.status,
+        valueType: (_9_ = (_8_ = node.left) === null || _8_ === void 0 ? void 0 : _8_.outputType) === null || _9_ === void 0 ? void 0 : _9_.valueType,
+        value: this.evaluateOperation((_10_ = node.left) === null || _10_ === void 0 ? void 0 : _10_.outputType.value, (_11_ = node.right) === null || _11_ === void 0 ? void 0 : _11_.outputType.value, node.operator)
+      };
+    } else {
+      console.log("One or both sides has no 'value'");
+    }
+    return errors;
+  }
+}
+class DarCheckVariable {
+  darCheck(node, nodes, registeredNodes) {
+    darCheckNode(node.assignment, nodes, registeredNodes);
+    if (((_13_ = (_12_ = node.assignment) === null || _12_ === void 0 ? void 0 : _12_.outputType) === null || _13_ === void 0 ? void 0 : _13_.value) != undefined) {
+      node.outputType.value = node.assignment.outputType.value;
+    }
+    return [];
+  }
+}
+class DarCheckIdentifier {
+  darCheck(node, nodes, registeredNodes) {
+    const assignmentNode = registeredNodes[node.assignmentId];
+    if (((_15_ = (_14_ = assignmentNode) === null || _14_ === void 0 ? void 0 : _14_.outputType) === null || _15_ === void 0 ? void 0 : _15_.value) != undefined) {
+      node.outputType.value = assignmentNode.outputType.value;
+    }
+    return [];
+  }
+}
+class DarCheckIterator {
+  getRange(start, end, step) {
+    let current = start;
+    let out = [];
+    while (current < end) {
+      out.push(current);
+      current += step;
+    }
+    return out;
+  }
+  darCheck(node, nodes, registeredNodes) {
+    const errors = [];
+    darCheckNode(node.start, nodes, registeredNodes);
+    darCheckNode(node.end, nodes, registeredNodes);
+    darCheckNode(node.step, nodes, registeredNodes);
+    if (((_17_ = (_16_ = node.start) === null || _16_ === void 0 ? void 0 : _16_.outputType) === null || _17_ === void 0 ? void 0 : _17_.value) != undefined && ((_19_ = (_18_ = node.end) === null || _18_ === void 0 ? void 0 : _18_.outputType) === null || _19_ === void 0 ? void 0 : _19_.value) != undefined && ((_21_ = (_20_ = node.step) === null || _20_ === void 0 ? void 0 : _20_.outputType) === null || _21_ === void 0 ? void 0 : _21_.value) != undefined) {
+      const start = (_23_ = (_22_ = node.start) === null || _22_ === void 0 ? void 0 : _22_.outputType) === null || _23_ === void 0 ? void 0 : _23_.value;
+      const end = (_25_ = (_24_ = node.end) === null || _24_ === void 0 ? void 0 : _24_.outputType) === null || _25_ === void 0 ? void 0 : _25_.value;
+      const step = (_27_ = (_26_ = node.step) === null || _26_ === void 0 ? void 0 : _26_.outputType) === null || _27_ === void 0 ? void 0 : _27_.value;
+      console.log("start, end, step:", start, end, step);
+      node.values = this.getRange(start, end, step);
+    } else {
+      console.log("Iterator used with non constant stuff");
+      errors.push(new TypeError("Non constant value used in iterator decleration", node.pos));
+    }
+    return errors;
+  }
+}
+class DarCheckAny {
+  darCheck(node) {
+    return [];
+  }
+}
+const darCheckerMap = {
+  'Number': new DarCheckNumber(),
+  'Boolean': new DarCheckAny(),
+  'BinaryOperation': new DarCheckBinary(),
+  'Function': new DarCheckFunction(),
+  'Choose': new DarCheckAny(),
+  'VariableAssignment': new DarCheckVariable(),
+  'Identifier': new DarCheckIdentifier(),
+  'Iterator': new DarCheckIterator(),
+  'RangeIdentifier': new DarCheckAny(),
+  'SinkAssignment': new DarCheckAny(),
+  'String': new DarCheckAny(),
+  'Pair': new DarCheckAny(),
+  'CalculatorReference': new DarCheckAny(),
+  'Program': new DarCheckAny()
+};
 
 },
 
@@ -488,125 +867,6 @@ exports.IdentifierParselet = IdentifierParselet;
 
 },
 
-// src/lexer.ts @19
-19: function(__fusereq, exports, module){
-exports.__esModule = true;
-var stream_parser_1 = __fusereq(7);
-function getTokens(text) {
-  const tokens = [];
-  const state = {
-    line: 1,
-    stack: ['default']
-  };
-  for (const line of text.split('\n')) {
-    const stream = new stream_parser_1.StringStream(line, 4, 1);
-    stream.string = line;
-    while (!stream.eol()) {
-      const token = getToken(stream, state);
-      const emitToken = makeEmit(stream, state);
-      const fullToken = emitToken(token);
-      if (token != undefined) {
-        tokens.push(fullToken);
-      }
-      if (stream.start == stream.pos) {
-        throw new Error(`getToken failed to advance stream at position ${stream.pos} in string ${stream.string}`);
-      }
-      stream.start = stream.pos;
-    }
-    state.line += 1;
-  }
-  return tokens;
-}
-exports.getTokens = getTokens;
-function getToken(stream, state) {
-  switch (state.stack[state.stack.length - 1]) {
-    default:
-      return getDefaultToken(stream, state);
-  }
-}
-exports.getToken = getToken;
-function makeEmit(stream, state) {
-  return function emitToken(type) {
-    return {
-      type,
-      first_column: stream.start,
-      last_column: stream.pos,
-      line: state.line,
-      text: stream.current()
-    };
-  };
-}
-function getDefaultToken(stream, state) {
-  if (stream.eatSpace()) {
-    return undefined;
-  }
-  if (stream.match(/\+/)) {
-    return '+';
-  }
-  if (stream.match(/\-/)) {
-    return '-';
-  }
-  if (stream.match(/\*/)) {
-    return '*';
-  }
-  if (stream.match(/\//)) {
-    return '/';
-  }
-  if (stream.match(/\|/)) {
-    return '|';
-  }
-  if (stream.match(/\&/)) {
-    return '&';
-  }
-  if (stream.match(/\(/)) {
-    return '(';
-  }
-  if (stream.match(/\)/)) {
-    return ')';
-  }
-  if (stream.match(/\[/)) {
-    return '[';
-  }
-  if (stream.match(/\]/)) {
-    return ']';
-  }
-  if (stream.match(/\=/)) {
-    return '=';
-  }
-  if (stream.match(/-?[0-9]+(\.[0-9]+)?/)) {
-    return 'NUMBER';
-  }
-  if (stream.match(/True/)) {
-    return 'TRUE';
-  }
-  if (stream.match(/False/)) {
-    return 'FALSE';
-  }
-  if (stream.match(/#/)) {
-    if (!stream.match(/\n/)) {
-      stream.match(/.*/);
-    }
-    return 'COMMENT';
-  }
-  if (stream.match(/WHEN/)) {
-    return 'CHOOSE1';
-  }
-  if (stream.match(/OTHERWISE/)) {
-    return 'CHOOSE2';
-  }
-  if (stream.match(/[A-Z]([a-z|A-Z])*/)) {
-    return 'FUNCTION';
-  }
-  if (stream.match(/[A-Za-z][(\w|\%)$]*(\.[\w$]+)?(\[\d+])?/)) {
-    return 'IDENTIFIER';
-  }
-  stream.next();
-  return 'ERROR';
-}
-exports.getDefaultToken = getDefaultToken;
-
-},
-
 // src/tokenstream.ts @40
 40: function(__fusereq, exports, module){
 exports.__esModule = true;
@@ -789,6 +1049,86 @@ const emptyParseResults = {
   registeredNodes: {},
   dependsMap: {}
 };
+
+},
+
+// src/miniCL.ts @6
+6: function(__fusereq, exports, module){
+exports.__esModule = true;
+var lexer_1 = __fusereq(19);
+var typechecker_1 = __fusereq(20);
+var darChecker_1 = __fusereq(21);
+var parseResults_1 = __fusereq(8);
+exports.miniCL = {
+  startState: function () {
+    return {
+      line: 1,
+      stack: ['default']
+    };
+  },
+  token: function (stream, state) {
+    if (stream.eatSpace()) return null;
+    return token2tag(lexer_1.getDefaultToken(stream, state));
+  }
+};
+exports.miniCLLinter = () => view => {
+  const results = view.state.field(parseResults_1.parseResults);
+  let assertMap = [];
+  const darErrors = darChecker_1.darCheck(results.nodes, results.registeredNodes);
+  const typeErrors = typechecker_1.typecheck(results.nodes, results.registeredNodes);
+  const parseDiagnostics = results.parseErrors.map(makeDiagnostic(view));
+  const typeDiagnostics = typeErrors.map(makeDiagnostic(view));
+  const darDiagnostics = darErrors.map(makeDiagnostic(view, 'warning'));
+  return parseDiagnostics.concat(typeDiagnostics).concat(darDiagnostics);
+};
+const makeDiagnostic = (view, severity = 'error') => error => {
+  return {
+    from: firstLine(view, error) + error.position.first_column,
+    to: lastLine(view, error) + error.position.last_column,
+    message: error.message,
+    severity: severity
+  };
+};
+function firstLine(view, error) {
+  return view.state.doc.line(error.position.first_line).from;
+}
+function lastLine(view, error) {
+  return view.state.doc.line(error.position.last_line).from;
+}
+function token2tag(token) {
+  switch (token) {
+    case 'NUMBER':
+      return 'number';
+    case 'TRUE':
+      return 'boolean';
+    case 'FALSE':
+      return 'boolean';
+    case '(':
+    case ')':
+      return 'bracket';
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+    case '|':
+    case '&':
+    case '=':
+      return 'operator';
+    case 'COMMENT':
+      return 'comment';
+    case 'CHOOSE1':
+    case 'CHOOSE2':
+      return 'choose';
+    case 'FUNCTION':
+      return 'function';
+    case 'IDENTIFIER':
+      return 'variable';
+    case 'ERROR':
+      return 'error';
+    default:
+      return undefined;
+  }
+}
 
 },
 
@@ -1005,346 +1345,6 @@ function updateOutput(tr) {
   miniCLEditor.update([tr]);
   devTools_1.updateDevTools(tr);
 }
-
-},
-
-// src/typechecker.ts @20
-20: function(__fusereq, exports, module){
-var _1_, _2_;
-var _3_, _4_;
-var _5_, _6_;
-var _7_, _8_;
-var _9_, _10_;
-var _11_, _12_;
-var _13_, _14_;
-var _15_, _16_;
-var _17_, _18_;
-var _19_, _20_;
-var _21_, _22_;
-var _23_, _24_;
-function typecheck(nodes, registeredNodes) {
-  const errors = nodes.map(n => typecheckNode(n, registeredNodes));
-  return [].concat(...errors);
-}
-exports.typecheck = typecheck;
-function typecheckNode(node, registeredNodes) {
-  if (node != undefined && node.nodeType != undefined && checkerMap[node.nodeType] != undefined) {
-    return checkerMap[node.nodeType].check(node, registeredNodes);
-  } else {
-    return [];
-  }
-}
-class TypeError {
-  constructor(message, position) {
-    this.message = message;
-    this.position = position;
-  }
-}
-exports.TypeError = TypeError;
-class CheckNumber {
-  check(node) {
-    return [];
-  }
-}
-class CheckBoolean {
-  check(node) {
-    return [];
-  }
-}
-class CheckBinary {
-  check(node, registeredNodes) {
-    const errors = typecheckNode(node.left, registeredNodes).concat(typecheckNode(node.right, registeredNodes));
-    if (((_2_ = (_1_ = node.left) === null || _1_ === void 0 ? void 0 : _1_.outputType) === null || _2_ === void 0 ? void 0 : _2_.valueType) != ((_4_ = (_3_ = node.right) === null || _3_ === void 0 ? void 0 : _3_.outputType) === null || _4_ === void 0 ? void 0 : _4_.valueType)) {
-      errors.push(new TypeError("incompatible types for binary operator", node.pos));
-    } else if (((_6_ = (_5_ = node.right) === null || _5_ === void 0 ? void 0 : _5_.outputType) === null || _6_ === void 0 ? void 0 : _6_.valueType) == 'boolean' && (node.operator != "|" && node.operator != '&')) {
-      errors.push(new TypeError("incompatible operation for boolean operands", node.pos));
-    } else if (((_8_ = (_7_ = node.right) === null || _7_ === void 0 ? void 0 : _7_.outputType) === null || _8_ === void 0 ? void 0 : _8_.valueType) == 'number' && (node.operator == "|" || node.operator == '&')) {
-      errors.push(new TypeError("incompatible operation for number operands", node.pos));
-    }
-    node.outputType.valueType = (_10_ = (_9_ = node.left) === null || _9_ === void 0 ? void 0 : _9_.outputType) === null || _10_ === void 0 ? void 0 : _10_.valueType;
-    return errors;
-  }
-}
-class CheckFunction {
-  check(node, registeredNodes) {
-    let errors = [];
-    const arg1Errors = typecheckNode(node.args[0], registeredNodes);
-    errors = errors.concat(arg1Errors);
-    if (node.args.length > 1) {
-      const arg2Errors = typecheckNode(node.args[1], registeredNodes);
-      errors = errors.concat(arg2Errors);
-      if (((_12_ = (_11_ = node.args[0]) === null || _11_ === void 0 ? void 0 : _11_.outputType) === null || _12_ === void 0 ? void 0 : _12_.valueType) != ((_14_ = (_13_ = node.args[1]) === null || _13_ === void 0 ? void 0 : _13_.outputType) === null || _14_ === void 0 ? void 0 : _14_.valueType)) {
-        errors.push(new TypeError("arguments must have same type", node.args[0].pos));
-      }
-    }
-    const functionName = node.name;
-    const argType = builtins[functionName].inputType;
-    if (argType) {
-      if (argType != 'any' && ((_16_ = (_15_ = node.args[0]) === null || _15_ === void 0 ? void 0 : _15_.outputType) === null || _16_ === void 0 ? void 0 : _16_.valueType) != argType) {
-        errors.push(new TypeError("incompatible argument type for " + functionName, node.pos));
-      }
-    } else {
-      errors.push(new TypeError("unknown function", node.pos));
-    }
-    return errors;
-  }
-}
-class CheckChoose {
-  check(node, registeredNodes) {
-    let errors = [];
-    const predicate = node.case.predicate;
-    const consequent = node.case.consequent;
-    const otherwise = node.otherwise;
-    const predErrors = typecheckNode(predicate, registeredNodes);
-    const consErrors = typecheckNode(consequent, registeredNodes);
-    const otherErrors = typecheckNode(otherwise, registeredNodes);
-    errors = errors.concat(predErrors).concat(consErrors).concat(otherErrors);
-    if (((_18_ = (_17_ = consequent) === null || _17_ === void 0 ? void 0 : _17_.outputType) === null || _18_ === void 0 ? void 0 : _18_.valueType) != ((_20_ = (_19_ = otherwise) === null || _19_ === void 0 ? void 0 : _19_.outputType) === null || _20_ === void 0 ? void 0 : _20_.valueType)) {
-      errors.push(new TypeError("Return types are not the same for both cases", consequent.pos));
-      errors.push(new TypeError("Return types are not the same for both cases", otherwise.pos));
-    }
-    if (predicate.outputType.valueType != 'boolean') {
-      errors.push(new TypeError("Predicate must return a boolean", predicate.pos));
-    }
-    node.outputType.valueType = (_22_ = (_21_ = consequent) === null || _21_ === void 0 ? void 0 : _21_.outputType) === null || _22_ === void 0 ? void 0 : _22_.valueType;
-    return errors;
-  }
-}
-class CheckVariable {
-  check(node, registeredNodes) {
-    let errors = [];
-    const assignmentErrors = typecheckNode(node.assignment, registeredNodes);
-    errors = errors.concat(assignmentErrors);
-    node.outputType.valueType = (_24_ = (_23_ = node.assignment) === null || _23_ === void 0 ? void 0 : _23_.outputType) === null || _24_ === void 0 ? void 0 : _24_.valueType;
-    return errors;
-  }
-}
-class CheckIdentifier {
-  check(node, registeredNodes) {
-    let errors = [];
-    let assignmentNode = registeredNodes[node.assignmentId];
-    let valueNode = assignmentNode.assignment;
-    if (valueNode == undefined) {
-      errors.push(new TypeError("This variable doesn't have a value", node.pos));
-    }
-    node.outputType.valueType = valueNode.outputType.valueType;
-    return errors;
-  }
-}
-class CheckIterator {
-  check(node) {
-    return [];
-  }
-}
-class CheckRangeIdentifier {
-  check(node) {
-    return [];
-  }
-}
-const builtins = {
-  "IsDefined": {
-    inputType: 'any',
-    resultType: 'boolean'
-  },
-  "Inverse": {
-    inputType: 'number',
-    resultType: 'number'
-  },
-  "Input": {
-    inputType: 'number',
-    resultType: 'number'
-  },
-  "Sink": {
-    inputType: 'any',
-    resultType: 'any'
-  },
-  "RandomChoice": {
-    inputType: 'number',
-    resultType: 'number'
-  },
-  "TestConstant": {
-    inputType: 'any',
-    resultType: 'any'
-  },
-  "ParseOrderedPair": {
-    inputType: 'number',
-    resultType: 'pair'
-  },
-  "X": {
-    inputType: 'pair',
-    resultType: 'number'
-  },
-  "Y": {
-    inputType: 'pair',
-    resultType: 'number'
-  }
-};
-const checkerMap = {
-  'Number': new CheckNumber(),
-  'Boolean': new CheckBoolean(),
-  'BinaryOperation': new CheckBinary(),
-  'Function': new CheckFunction(),
-  'Choose': new CheckChoose(),
-  'VariableAssignment': new CheckVariable(),
-  'Identifier': new CheckIdentifier(),
-  'Iterator': new CheckIterator(),
-  'RangeIdentifier': new CheckRangeIdentifier()
-};
-
-},
-
-// src/darChecker.ts @21
-21: function(__fusereq, exports, module){
-var _1_, _2_, _3_;
-var _4_, _5_;
-var _6_, _7_;
-var _8_, _9_;
-var _10_;
-var _11_;
-var _12_, _13_;
-var _14_, _15_;
-var _16_, _17_;
-var _18_, _19_;
-var _20_, _21_;
-var _22_, _23_;
-var _24_, _25_;
-var _26_, _27_;
-function darCheck(nodes, registeredNodes) {
-  const errors = nodes.map(n => darCheckNode(n, nodes, registeredNodes));
-  return [].concat(...errors);
-}
-exports.darCheck = darCheck;
-function darCheckNode(node, nodes, registeredNodes) {
-  if (darCheckerMap != undefined && node != undefined && node.nodeType != undefined && darCheckerMap[node.nodeType] == undefined) {
-    return [];
-  } else {
-    return darCheckerMap[node.nodeType].darCheck(node, nodes, registeredNodes);
-  }
-}
-class TypeError {
-  constructor(message, position) {
-    this.message = message;
-    this.position = position;
-  }
-}
-exports.TypeError = TypeError;
-class DarCheckNumber {
-  darCheck(node) {
-    node.outputType.value = node.value;
-    return [];
-  }
-}
-class DarCheckFunction {
-  darCheck(node, nodes, registeredNodes) {
-    const errors = [];
-    if (node.name == "TestConstant") {
-      darCheckNode(node.args[0], nodes, registeredNodes);
-      if (((_3_ = (_2_ = (_1_ = node) === null || _1_ === void 0 ? void 0 : _1_.args[0]) === null || _2_ === void 0 ? void 0 : _2_.outputType) === null || _3_ === void 0 ? void 0 : _3_.value) == undefined) {
-        errors.push(new TypeError("Input to TestConstant() is not constant", node.pos));
-      }
-    }
-    return errors;
-  }
-}
-class DarCheckBinary {
-  evaluateOperation(left, right, operator) {
-    if (typeof left == 'number' && typeof right == 'number') {
-      if (operator == "+") {
-        return left + right;
-      } else if (operator == "-") {
-        return left - right;
-      } else if (operator == "*") {
-        return left * right;
-      } else if (operator == "/") {
-        return left / right;
-      } else {
-        return 999999;
-      }
-    } else {
-      return undefined;
-    }
-  }
-  darCheck(node, nodes, registeredNodes) {
-    const errors = darCheckNode(node.left, nodes, registeredNodes).concat(darCheckNode(node.right, nodes, registeredNodes));
-    if (((_5_ = (_4_ = node.left) === null || _4_ === void 0 ? void 0 : _4_.outputType) === null || _5_ === void 0 ? void 0 : _5_.value) != undefined && ((_7_ = (_6_ = node.right) === null || _6_ === void 0 ? void 0 : _6_.outputType) === null || _7_ === void 0 ? void 0 : _7_.value) != undefined) {
-      node.outputType = {
-        status: node.outputType.status,
-        valueType: (_9_ = (_8_ = node.left) === null || _8_ === void 0 ? void 0 : _8_.outputType) === null || _9_ === void 0 ? void 0 : _9_.valueType,
-        value: this.evaluateOperation((_10_ = node.left) === null || _10_ === void 0 ? void 0 : _10_.outputType.value, (_11_ = node.right) === null || _11_ === void 0 ? void 0 : _11_.outputType.value, node.operator)
-      };
-    } else {
-      console.log("One or both sides has no 'value'");
-    }
-    return errors;
-  }
-}
-class DarCheckVariable {
-  darCheck(node, nodes, registeredNodes) {
-    darCheckNode(node.assignment, nodes, registeredNodes);
-    if (((_13_ = (_12_ = node.assignment) === null || _12_ === void 0 ? void 0 : _12_.outputType) === null || _13_ === void 0 ? void 0 : _13_.value) != undefined) {
-      node.outputType.value = node.assignment.outputType.value;
-    }
-    return [];
-  }
-}
-class DarCheckIdentifier {
-  darCheck(node, nodes, registeredNodes) {
-    const assignmentNode = registeredNodes[node.assignmentId];
-    if (((_15_ = (_14_ = assignmentNode) === null || _14_ === void 0 ? void 0 : _14_.outputType) === null || _15_ === void 0 ? void 0 : _15_.value) != undefined) {
-      node.outputType.value = assignmentNode.outputType.value;
-    }
-    return [];
-  }
-}
-class DarCheckIterator {
-  getRange(start, end, step) {
-    let current = start;
-    let out = [];
-    while (current < end) {
-      out.push(current);
-      current += step;
-    }
-    return out;
-  }
-  darCheck(node, nodes, registeredNodes) {
-    const errors = [];
-    darCheckNode(node.start, nodes, registeredNodes);
-    darCheckNode(node.end, nodes, registeredNodes);
-    darCheckNode(node.step, nodes, registeredNodes);
-    if (((_17_ = (_16_ = node.start) === null || _16_ === void 0 ? void 0 : _16_.outputType) === null || _17_ === void 0 ? void 0 : _17_.value) != undefined && ((_19_ = (_18_ = node.end) === null || _18_ === void 0 ? void 0 : _18_.outputType) === null || _19_ === void 0 ? void 0 : _19_.value) != undefined && ((_21_ = (_20_ = node.step) === null || _20_ === void 0 ? void 0 : _20_.outputType) === null || _21_ === void 0 ? void 0 : _21_.value) != undefined) {
-      const start = (_23_ = (_22_ = node.start) === null || _22_ === void 0 ? void 0 : _22_.outputType) === null || _23_ === void 0 ? void 0 : _23_.value;
-      const end = (_25_ = (_24_ = node.end) === null || _24_ === void 0 ? void 0 : _24_.outputType) === null || _25_ === void 0 ? void 0 : _25_.value;
-      const step = (_27_ = (_26_ = node.step) === null || _26_ === void 0 ? void 0 : _26_.outputType) === null || _27_ === void 0 ? void 0 : _27_.value;
-      console.log("start, end, step:", start, end, step);
-      node.values = this.getRange(start, end, step);
-    } else {
-      console.log("Iterator used with non constant stuff");
-      errors.push(new TypeError("Non constant value used in iterator decleration", node.pos));
-    }
-    return errors;
-  }
-}
-class DarCheckAny {
-  darCheck(node) {
-    return [];
-  }
-}
-const darCheckerMap = {
-  'Number': new DarCheckNumber(),
-  'Boolean': new DarCheckAny(),
-  'BinaryOperation': new DarCheckBinary(),
-  'Function': new DarCheckFunction(),
-  'Choose': new DarCheckAny(),
-  'VariableAssignment': new DarCheckVariable(),
-  'Identifier': new DarCheckIdentifier(),
-  'Iterator': new DarCheckIterator(),
-  'RangeIdentifier': new DarCheckAny(),
-  'SinkAssignment': new DarCheckAny(),
-  'String': new DarCheckAny(),
-  'Pair': new DarCheckAny(),
-  'CalculatorReference': new DarCheckAny(),
-  'Program': new DarCheckAny()
-};
 
 }
 })

@@ -205,6 +205,8 @@ export class FunctionParselet implements InitialParselet {
       pos: position,
       nodeId: id
     };
+
+
     registeredNodes[id] = newNode;
     return newNode;
   }
