@@ -6,6 +6,7 @@ import {ParseError} from './position'
 import {typecheck} from './typechecker';
 import {mudCheck} from './mudChecker';
 import {parseResults} from './parseResults';
+import * as AnalyzedTree from './analyzedTree';
 
 /**
  * The extension for our language
@@ -28,17 +29,31 @@ export const miniCL: StreamParser<State> = {
   // Get the result types
   const results = view.state.field(parseResults);
 
-  let dependsMap: {[key: string]: string[]} = {}
+  let dependsMap: {[key: string]: string[]} = {};
+  let registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode} = {}
   // Error checking
-  const mudErrors = mudCheck(results.nodes, results.registeredNodes, dependsMap);
-  const typeErrors = typecheck(results.nodes, results.registeredNodes);
+  const {errors: typeErrors, aTree: analyzedNodes} = typecheck(results.nodes, registeredNodes);
+  
+  const mudErrors = mudCheck(analyzedNodes, registeredNodes, dependsMap);
 
   // Create a diagnostic for each kind of error
   const parseDiagnostics = results.parseErrors.map(makeDiagnostic(view));
   const typeDiagnostics = typeErrors.map(makeDiagnostic(view));
   const mudDiagnostics = mudErrors.map(makeDiagnostic(view, 'warning'));
 
-  return parseDiagnostics.concat(typeDiagnostics).concat(mudDiagnostics);
+  // CodeMirror requires diagnostics to be sorted by the `from` attribute.
+  return parseDiagnostics
+          .concat(typeDiagnostics)
+          .concat(mudDiagnostics)
+          .sort((a, b) => {
+            if (a.from < b.from) {
+              return -1;
+            } else if (a.from > b.from) {
+              return 1;
+            } else {
+              return 0;
+            }
+          }); 
 }
 
 /**

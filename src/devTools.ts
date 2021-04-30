@@ -5,6 +5,9 @@ import { visualize } from "./visualization"
 import {EditorState, EditorView, basicSetup} from "@codemirror/basic-setup"
 import {linter} from "@codemirror/lint"
 import { parseResults } from "./parseResults"
+import {typecheck} from './typechecker';
+import {mudCheck} from './mudChecker';
+import * as AnalyzedTree from './analyzedTree';
 
 /**
  * Given a transaction, update the developer tools
@@ -12,16 +15,24 @@ import { parseResults } from "./parseResults"
  export function updateDevTools(tr: Transaction) {
   const results = tr.state.field(parseResults)
 
+  // Maybe this should be factored out, this is repeating computation
+  let dependsMap: {[key: string]: string[]} = {};
+  let registeredNodes: {[key: string]: AnalyzedTree.AnalyzedNode} = {}
+  // Error checking
+  const {errors: typeErrors, aTree: analyzedNodes} = typecheck(results.nodes, registeredNodes);
+  
+  const mudErrors = mudCheck(analyzedNodes, registeredNodes, dependsMap);
+
   // Display JSON for AST
   const astJSON = JSON.stringify(results.nodes, null, 2)
   replaceContents(astViewer, astJSON);
 
-  // Display JSON for depends map
-  const dependsJSON = JSON.stringify(results.dependsMap, null, 2);
-  replaceContents(dependsViewer, dependsJSON);
+  // Display JSON for aTree
+  const aTreeJSON = JSON.stringify(analyzedNodes, null, 2)
+  replaceContents(aTreeViewer, aTreeJSON);
 
   // Draw the AST
-  visualize(results.nodes);
+  visualize(analyzedNodes);
 }
 
 // Configuration for a read-only JSON viewer with folding, line numbers, etc.
@@ -42,11 +53,12 @@ let astViewer = new EditorView({
   parent: document.querySelector("#ast-json"),
 });
 
-// JSON viewer for depends map
-let dependsViewer = new EditorView({
+// JSON viewer for aTree
+let aTreeViewer = new EditorView({
   state: newJSONViewerState(),
-  parent: document.querySelector("#depends-json"),
+  parent: document.querySelector("#aTree-json"),
 });
+
 
 /**
  * Replace the entire contents of an editor

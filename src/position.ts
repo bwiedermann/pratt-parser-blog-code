@@ -25,6 +25,7 @@ export function join(start: Position, end: Position) {
   };
 }
 
+// Returns a string that uniquely identifies a node's position
 export function pos2string(pos: Position): string {
   return pos.first_line.toString() + "." +
          pos.first_column.toString() + "." +

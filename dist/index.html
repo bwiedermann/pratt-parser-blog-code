@@ -18,34 +18,66 @@
   
     <main>
       
+      <!-- Editor -->
       <div id="miniCL" class="container">
+        <!-- Label -->
         <div class="instructions">
           <i class="pillow-icon-sparkline"></i><span class="title">Edit This Script</span>
         </div>
+        <!-- Code mirror -->
         <div id="miniCL-editor" class="border border-5"></div>
-      </div>
+      </div> <!-- End editor -->
       
       <div id="analysis" class="container-fluid border-top">
 
-        <div class="row">
-            <div id="viz" class="col-md-6"></div>
-            <div id="json-pane" class="col-md-6">
-              <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active" id="ast-json-tab" data-bs-toggle="pill" data-bs-target="#ast-json" type="button" role="tab" aria-controls="ast-json" aria-selected="true">ast</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="depends-json-tab" data-bs-toggle="pill" data-bs-target="#depends-json" type="button" role="tab" aria-controls="depends-json" aria-selected="false">depends</button>
-                </li>
-              </ul>
-              <div class="tab-content" id="pills-tabContent">
-                <div class="tab-pane fade show active" id="ast-json" role="tabpanel" aria-labelledby="ast-json-tab"></div>
-                <div class="tab-pane fade" id="depends-json" role="tabpanel" aria-labelledby="depends-json-tab"></div>
-              </div>              
-            </div>    
-        </div>
+            <div class="accordion accordion-flush" id="devTools">
+              <div class="accordion-item">
+              
+                <h2 class="accordion-header" id="headingOne">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTools" aria-expanded="false" aria-controls="collapseTools">
+                    Developer Tools
+                  </button>
+                </h2>
+              
+                <div id="collapseTools" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#devTools">
+                  <div class="row accordion-body">  
 
-      </div>
+                    <!-- Tree Visualization -->
+                    <div id="viz" class="col-md-6"></div>   
+
+                    <!-- JSON viewers -->
+                    <div id="json-pane" class="col-md-6">
+
+                      <!-- Controls -->
+                      <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                        <!-- AST button -->
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link active" id="ast-json-tab" data-bs-toggle="pill" data-bs-target="#ast-json" type="button" role="tab" aria-controls="ast-json" aria-selected="true">ast</button>
+                        </li>
+                        <!-- Analyzed tree button -->
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link" id="aTree-json-tab" data-bs-toggle="pill" data-bs-target="#aTree-json" type="button" role="tab" aria-controls="aTree-json" aria-selected="true">analyzedTree</button>
+                        </li>
+                      </ul> <!-- End controls -->
+
+                      <!-- Displays -->
+                      <div class="tab-content" id="pills-tabContent">
+                        <!-- AST JSON Viewer -->
+                        <div class="tab-pane fade show active" id="ast-json" role="tabpanel" aria-labelledby="ast-json-tab"></div>
+                        <!-- Analyzed tree JSON Viewer -->
+                        <div class="tab-pane fade" id="aTree-json" role="tabpanel" aria-labelledby="aTree-json-tab"></div>
+                      </div> <!-- End displays -->
+                      
+                      
+                    </div>  <!-- End JSON viewers-->  
+                  
+                  </div> <!-- End accordion body-->
+                </div> <!-- End collapse-->
+                
+              </div> <!-- End accordion item -->
+            </div> <!-- End accordion -->
+
+      </div> <!-- End analysis -->
 
     </main>
     

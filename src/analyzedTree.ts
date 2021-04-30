@@ -13,7 +13,7 @@ export type NodeType =
 export type NumberNode = {
   nodeType: 'Number';
   value: number;
-  valueType: ValueType;
+  outputType: Definitely<ValueType>;
   pos: Position;
   nodeId: string;
 };
@@ -21,7 +21,7 @@ export type NumberNode = {
 export type BooleanNode = {
   nodeType: 'Boolean';
   value: boolean;
-  valueType: ValueType;
+  outputType: Definitely<ValueType>;
   pos: Position;
   nodeId: string;
 };
@@ -29,47 +29,57 @@ export type BooleanNode = {
 export type BinaryOperationNode = {
   nodeType: 'BinaryOperation';
   operator: BinaryOperationTokenType;
-  left: Node;
-  right: Node;
+  left: AnalyzedNode;
+  right: AnalyzedNode;
+  outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
+  value: number | boolean | undefined;
 };
 
 // This supports only builtin functions (defined in typechecker.ts)
 export type FunctionNode = {
   nodeType: 'Function';
   name: string;
-  args: Node[];
+  args: AnalyzedNode[];
+  outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
+  value: number | boolean | undefined; // the builtin functions we have that return values are only numbers or booleans
 }
 
 // This only allows one predicate-consequent pair per choose node
 export type ChooseNode = {
   nodeType: 'Choose';
-  case: { predicate: Node, consequent: Node };
-  otherwise: Node;
+  case: { predicate: AnalyzedNode, consequent: AnalyzedNode };
+  otherwise: AnalyzedNode;
+  outputType: Possible<ValueType>;
   pos: Position
   nodeId: string;
+  value: number | boolean | undefined;
 }
 
 export type VariableAssignmentNode = {
   nodeType: 'VariableAssignment';
   name: string;
-  assignment: Node;
+  assignment: AnalyzedNode;
+  outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
+  value: number | boolean | undefined;
 }
 
 export type IdentifierNode = {
   nodeType: 'Identifier';
   name: string;
   assignmentId: string;
+  outputType: Possible<ValueType>;
   pos: Position;
   nodeId: string;
+  value: number | boolean | undefined;
 }
 
-export type Node = 
+export type AnalyzedNode = 
   | BooleanNode 
   | NumberNode 
   | BinaryOperationNode 
@@ -78,4 +88,29 @@ export type Node =
   | VariableAssignmentNode 
   | IdentifierNode;
 
+// These are the new types
+export type Definitely<ValueType> = {
+  status: 'Definitely';
+  valueType: ValueType;
+  asserts: string[];
+  constType: ConstantType;
+}
+
+export type Maybe<ValueType> = {
+  status: 'Maybe-Undefined';
+  valueType: ValueType;
+  asserts: string[];
+  constType: ConstantType;
+}
+
+export type Und<ValueType> = {
+  status: 'Def-Undefined';
+  valueType: ValueType;
+  asserts: string[];
+  constType: ConstantType;
+}
+
 export type ValueType = 'number' | 'boolean' | 'pair' | 'any' | undefined;
+export type ConstantType = 'Constant' | 'Non-Constant' | undefined;
+
+export type Possible<ValueType> = Definitely<ValueType> | Maybe<ValueType> | Und<ValueType>;

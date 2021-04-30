@@ -1,47 +1,62 @@
 import * as AST from './ast';
+import {builtins} from './typechecker';
+import * as AnalyzedTree from './analyzedTree';
 
-export function findBases(node: AST.Node, dependsMap: {[key: string]: string[]}): string[] {
+/*
+    The findBases function, given an AST node and the current dependsMap, determines
+    the "bases" of that node and returns them in a list of nodeIds.
+
+    Bases are nodes that introduce the possibility of being undefined.
+    For example, the InputN() function represents student input, and therefore
+    introduces the possibility to be undefined.
+*/
+
+export function findBases(node: AnalyzedTree.AnalyzedNode, dependsMap: {[key: string]: string[]}): string[] {
     return baseMap[node.nodeType].findBase(node, dependsMap); 
 }
 
 export interface BaseFinder {
-  findBase(node: AST.Node, dependsMap: {[key: string]: string[]}): string[];
+  findBase(node: AnalyzedTree.AnalyzedNode, dependsMap: {[key: string]: string[]}): string[];
 }
 
+// Numbers are constant, and therefore cannot have bases
 class BaseNumber implements BaseFinder {
-  findBase(node: AST.NumberNode): string[] {
+  findBase(node: AnalyzedTree.NumberNode): string[] {
     return []
   }
 }
 
+// Booleans are constant, and therefore cannot have bases
 class BaseBoolean implements BaseFinder {
-    findBase(node: AST.BooleanNode): string[] {
+    findBase(node: AnalyzedTree.BooleanNode): string[] {
         return []
     }
 }
 
+// Binary operations could have bases on either side of their operator
 class BaseBinary implements BaseFinder {
-    findBase(node: AST.BinaryOperationNode, dependsMap: {[key: string]: string[]}): string[] {
+    findBase(node: AnalyzedTree.BinaryOperationNode, dependsMap: {[key: string]: string[]}): string[] {
         let baseList: string[] = [];
         // recursively call findBases on left and right
         let leftList = findBases(node.left, dependsMap);
         baseList = baseList.concat(leftList);
         let rightList = findBases(node.right, dependsMap)
+        // combine bases from left and right
         baseList = baseList.concat(rightList);
         return baseList;
     }
 }
 
-// examples: x = Input(3); x = IsDefined(Input(3)); z = Inverse(x)
-// need dependsMap for the third example
+// In this proof of concept, functions are the only bases
+// They can produce an undefined value (e.g. Inverse(0)) or are inherently non-constant (e.g. InputN)
+// Otherwise, the base of the function is determined by its argument(s)
+// This means that the base is the id of the function node itself
 class BaseFunction implements BaseFinder {
-    findBase(node: AST.FunctionNode, dependsMap: {[key: string]: string[]}): string[] {
+    findBase(node: AnalyzedTree.FunctionNode, dependsMap: {[key: string]: string[]}): string[] {
         let baseList: string[] = [];
-        
-        // If the builtin status IS a variable, then it does depend on its arguments
-        // Unlike for Definitely and Maybe-Undefined functions, which status is the same always
 
         if (node.outputType.status == 'Def-Undefined') {
+            // e.g. with Inverse(0)
             baseList.push(node.nodeId);
         } else if (builtins[node.name].status == 'Variable') {
             // recursively call findBases on argument(s)
@@ -49,7 +64,7 @@ class BaseFunction implements BaseFinder {
                 baseList = baseList.concat(findBases(node.args[i], dependsMap));
             }
         } else if (builtins[node.name].constType == 'Non-Constant') {
-            // If Maybe-Undefined funtion, it IS a base (the root of a maybe-undefined status)
+            // e.g. with InputN(2)
             baseList.push(node.nodeId);
         }
 
@@ -57,33 +72,36 @@ class BaseFunction implements BaseFinder {
     }
 }
 
-// assume that choose nodes will never create their own bases
-// they can still error check previously defined bases
+// The bases of choose nodes are determined by the bases of their consequent and their otherwise
 class BaseChoose implements BaseFinder {
-    findBase(node: AST.ChooseNode, dependsMap: {[key: string]: string[]}): string[] {
+    findBase(node: AnalyzedTree.ChooseNode, dependsMap: {[key: string]: string[]}): string[] {
         let baseList: string[] = [];
-        // the bases of the cons and the otherwise
+ 
         let consBases = findBases(node.case.consequent, dependsMap);
         baseList = baseList.concat(consBases);
+
         let otherBases = findBases(node.otherwise, dependsMap);
         baseList = baseList.concat(otherBases);
+
         return baseList;
     }
 }
 
+// Variable assignments are constant, and therefore cannot have bases
 class BaseVariableAssignment implements BaseFinder {
-    findBase(node: AST.VariableAssignmentNode): string[] {
+    findBase(node: AnalyzedTree.VariableAssignmentNode): string[] {
         return []
     }
 }
 
+// The bases of an identifier are stored in the dependsMap, which has a reference
+// to its assignment.
 class BaseIdentifier implements BaseFinder {
-    findBase(node: AST.IdentifierNode, dependsMap: {[key: string]: string[]}): string[] {
+    findBase(node: AnalyzedTree.IdentifierNode, dependsMap: {[key: string]: string[]}): string[] {
         // follow the chain in the dependsMap
         return dependsMap[node.assignmentId];
     }
 }
-
 
 const baseMap: Partial<{[K in AST.NodeType]: BaseFinder}> = {
   'Number' : new BaseNumber(),
@@ -94,17 +112,3 @@ const baseMap: Partial<{[K in AST.NodeType]: BaseFinder}> = {
   'VariableAssignment': new BaseVariableAssignment(),
   'Identifier': new BaseIdentifier()
 }
-
-const builtins : {[name: string]: {inputType: AST.ValueType, resultType: AST.ValueType, status: string, constType: string} } = {
-    "IsDefined": {inputType: 'any', resultType: 'boolean', status: "Definitely", constType: "Constant"},
-    "Inverse": {inputType: 'number', resultType: 'number', status: "Variable", constType: "Constant"},
-    "InputN": {inputType: 'number', resultType: 'number', status: "Maybe-Undefined", constType: "Non-Constant"},
-    "Sink": {inputType: 'any', resultType: 'any', status: "Variable", constType: "Constant"},
-    // change ParseOrderedPair to be Variable to show constant type stuff
-    "ParseOrderedPair": {inputType: 'number', resultType: 'pair', status: "Variable", constType: "Constant"},
-    "X": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
-    "Y": {inputType: 'pair', resultType: 'number', status: "Variable", constType: "Constant"},
-    "Not": {inputType: 'boolean', resultType: 'boolean', status: "Definitely", constType: "Constant"},
-    "InputB": {inputType: 'boolean', resultType: 'boolean', status: "Maybe-Undefined", constType: "Non-Constant"},
-    "Sqrt": {inputType: 'number', resultType: 'number', status: "Variable", constType: "Constant"}
-  }

@@ -1,5 +1,5 @@
 {
-  "currentId": 189,
+  "currentId": 190,
   "modules": {
     "1": {
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/index.ts",
@@ -76,7 +76,7 @@
         7
       ],
       "id": 5,
-      "mtime": 1617319509671,
+      "mtime": 1618276451820,
       "packageId": "default",
       "publicPath": "src/miniCL.ts"
     },
@@ -100,7 +100,7 @@
         17
       ],
       "id": 7,
-      "mtime": 1617319509672,
+      "mtime": 1617925144687,
       "packageId": "default",
       "publicPath": "src/parseResults.ts"
     },
@@ -108,14 +108,14 @@
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/devTools.ts",
       "dependencies": [
         20,
+        37,
         3,
         4,
         7,
-        36,
-        37
+        36
       ],
       "id": 8,
-      "mtime": 1615938130810,
+      "mtime": 1618276523467,
       "packageId": "default",
       "publicPath": "src/devTools.ts"
     },
@@ -163,25 +163,28 @@
         6
       ],
       "id": 13,
-      "mtime": 1617320045082,
+      "mtime": 1617324245717,
       "packageId": "default",
       "publicPath": "src/lexer.ts"
     },
     "14": {
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/typechecker.ts",
-      "dependencies": [],
+      "dependencies": [
+        190
+      ],
       "id": 14,
-      "mtime": 1617320382245,
+      "mtime": 1618275147230,
       "packageId": "default",
       "publicPath": "src/typechecker.ts"
     },
     "15": {
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/mudChecker.ts",
       "dependencies": [
-        42
+        42,
+        14
       ],
       "id": 15,
-      "mtime": 1617321484379,
+      "mtime": 1618275283512,
       "packageId": "default",
       "publicPath": "src/mudChecker.ts"
     },
@@ -198,12 +201,12 @@
     "17": {
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/parser.ts",
       "dependencies": [
-        48,
         49,
-        47
+        47,
+        48
       ],
       "id": 17,
-      "mtime": 1617319509673,
+      "mtime": 1617925144687,
       "packageId": "default",
       "publicPath": "src/parser.ts"
     },
@@ -428,9 +431,9 @@
     "36": {
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/node_modules/@codemirror/lang-json/dist/index.js",
       "dependencies": [
+        43,
         21,
-        30,
-        43
+        30
       ],
       "id": 36,
       "mtime": 499162500000,
@@ -485,9 +488,11 @@
     },
     "42": {
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/findBase.ts",
-      "dependencies": [],
+      "dependencies": [
+        14
+      ],
       "id": 42,
-      "mtime": 1617320189503,
+      "mtime": 1617925144685,
       "packageId": "default",
       "publicPath": "src/findBase.ts"
     },
@@ -605,10 +610,11 @@
     "47": {
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/parselet.ts",
       "dependencies": [
-        49
+        49,
+        14
       ],
       "id": 47,
-      "mtime": 1617320080640,
+      "mtime": 1618274875740,
       "packageId": "default",
       "publicPath": "src/parselet.ts"
     },
@@ -627,7 +633,7 @@
       "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/position.ts",
       "dependencies": [],
       "id": 49,
-      "mtime": 1614302927787,
+      "mtime": 1617925144688,
       "packageId": "default",
       "publicPath": "src/position.ts"
     },
@@ -1992,6 +1998,14 @@
       "mtime": 1471771140000,
       "packageId": "d3-selection@2.0.0",
       "publicPath": "node_modules/d3-selection/src/selection/sparse.js"
+    },
+    "190": {
+      "absPath": "/Users/sarahgrade/pratt-parser-blog-code/src/constantChecker.ts",
+      "dependencies": [],
+      "id": 190,
+      "mtime": 1618275420453,
+      "packageId": "default",
+      "publicPath": "src/constantChecker.ts"
     }
   },
   "packages": {

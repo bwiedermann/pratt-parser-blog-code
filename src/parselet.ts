@@ -3,13 +3,13 @@ import { Token, TokenType, BinaryOperationTokenType} from './lexer';
 import * as AST from './ast';
 import { AbstractParser } from './parser';
 import {ParseError, token2pos, join, pos2string} from './position';
-import {findBases} from './findBase';
+import {builtins} from './typechecker';
 
+// All parselets add their nodeType to the AST
 export interface InitialParselet {
   parse(parser: AbstractParser,
         tokens: TokenStream, token: Token,
-        varMap: {[key: string]: string},
-        registeredNodes: {[key: string]: AST.Node}): AST.Node;
+        varMap: {[key: string]: string}): AST.Node;
 }
 
 
@@ -17,22 +17,18 @@ export class NumberParselet implements InitialParselet {
   parse(_parser: AbstractParser,
         _tokens: TokenStream,
         token: Token,
-        varMap: {[key: string]: string},
-        registeredNodes: {[key: string]: AST.Node}) {
+        varMap: {[key: string]: string}) {
     const position = token2pos(token);
     const id = pos2string(position);
-    // add node to the map
+
     let newNode = {
       nodeType: 'Number' as 'Number',
       value: parseFloat(token.text),
-      outputType: { status: 'Definitely' as 'Definitely',
-                    valueType: 'number' as 'number',
-                    asserts: [],
-                    constType: 'Constant' as 'Constant'},
+      valueType: 'number' as 'number',
       pos: position,
       nodeId: id
     };
-    registeredNodes[id] = newNode;
+    
     return newNode;
   }
 }
@@ -41,21 +37,18 @@ export class BooleanParselet implements InitialParselet {
   constructor(private value: boolean) {}
   parse(_parser: AbstractParser,
         _tokens: TokenStream, token: Token,
-        varMap: {[key: string]: string},
-        registeredNodes: {[key: string]: AST.Node}) {
+        varMap: {[key: string]: string}) {
     const position = token2pos(token);
     const id = pos2string(position);
+
     let newNode = {
       nodeType: 'Boolean' as 'Boolean',
       value: this.value,
-      outputType: { status: 'Definitely' as 'Definitely',
-                    valueType: 'boolean' as 'boolean',
-                    asserts: [],
-                    constType: 'Constant' as 'Constant'},
+      valueType: 'boolean' as 'boolean',
       pos: position,
       nodeId: id
     };
-    registeredNodes[id] = newNode;
+
     return newNode;
   }
 }
@@ -64,10 +57,9 @@ export class ParenParselet implements InitialParselet {
   parse(parser: AbstractParser,
     tokens: TokenStream,
     _token: Token,
-    varMap: {[key: string]: string},
-    registeredNodes: {[key: string]: AST.Node}) {
+    varMap: {[key: string]: string}) {
 
-    const exp = parser.parse(tokens, 0, varMap, registeredNodes);
+    const exp = parser.parse(tokens, 0, varMap);
     tokens.expectToken(')');
 
     return exp;
@@ -84,8 +76,7 @@ export abstract class ConsequentParselet {
     tokens: TokenStream,
     left: AST.Node,
     token: Token,
-    varMap: {[key: string]: string},
-    registeredNodes: {[key: string]: AST.Node}): AST.Node;
+    varMap: {[key: string]: string}): AST.Node;
 }
 
 export class BinaryOperatorParselet extends ConsequentParselet {
@@ -101,15 +92,13 @@ export class BinaryOperatorParselet extends ConsequentParselet {
     tokens: TokenStream,
     left: AST.Node,
     token: Token,
-    varMap: {[key: string]: string},
-    registeredNodes: {[key: string]: AST.Node}): AST.Node {
+    varMap: {[key: string]: string}): AST.Node {
     const bindingPower = parser.bindingPower(token);
 
     const right = parser.parse(
       tokens,
       this.associativity == 'left' ? bindingPower : bindingPower - 1,
-      varMap,
-      registeredNodes
+      varMap
     );
     const position = join(left.pos, token2pos(tokens.last()));
     const id = pos2string(position);
@@ -118,52 +107,57 @@ export class BinaryOperatorParselet extends ConsequentParselet {
       operator: this.tokenType,
       left,
       right,
-      outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
-                    valueType: undefined,
-                    asserts: [],
-                    constType: undefined},
       pos: position,
       nodeId: id
     };
-    registeredNodes[id] = newNode;
 
     return newNode;
   }
 }
 
-// Parse function calls
 export class FunctionParselet implements InitialParselet {
   
   parse(parser: AbstractParser,
     tokens: TokenStream,
     token: Token,
-    varMap: {[key: string]: string},
-    registeredNodes: {[key: string]: AST.Node}) {
+    varMap: {[key: string]: string}) {
 
     const position = token2pos(token);
     const id = pos2string(position);
+    let args : AST.Node[] = [];
+
+    // All functions have at least one argument inside parens
     tokens.expectToken('(');
-    const arg1 = parser.parse(tokens, 0, varMap, registeredNodes);  // allow for one argument
-    let args = [arg1];
-    if (token.text == "ParseOrderedPair") {
-      const arg2 = parser.parse(tokens, 0, varMap, registeredNodes);  // allow for second argument
-      args.push(arg2);
+
+    if (token.text != "InputN" && token.text != "InputB") {
+      const arg1 = parser.parse(tokens, 0, varMap);  // allow for one argument
+      args = [arg1];
+      // ParseOrderedPair is the only function that takes two arguments
+      if (token.text == "ParseOrderedPair") {
+        const arg2 = parser.parse(tokens, 0, varMap);  // allow for second argument
+        args.push(arg2);
+      }
     }
+
     tokens.expectToken(')');
+
+    // If this is a builtin function, check it has the correct argument types
+    // otherwise throw an error (we don't know what this function is)
+    if (!builtins[token.text]) {
+      throw new ParseError(
+        `Unknown Function`,
+        position,
+      );
+    }
 
     let newNode = {
       nodeType: 'Function' as 'Function',
       name: token.text,
       args: args,
-      outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
-                    valueType: undefined,
-                    asserts: [],
-                    constType: undefined},
       pos: position,
       nodeId: id
     };
 
-    registeredNodes[id] = newNode;
     return newNode;
   }
 }
@@ -172,28 +166,25 @@ export class ChooseParselet implements InitialParselet {
   parse(parser: AbstractParser,
     tokens: TokenStream,
     token: Token,
-    varMap: {[key: string]: string},
-    registeredNodes: {[key: string]: AST.Node}) {
+    varMap: {[key: string]: string}) {
     const position = token2pos(token);
     const id = pos2string(position);
 
-    const predicate = parser.parse(tokens, 0, varMap, registeredNodes);
-    const consequent = parser.parse(tokens, 0, varMap, registeredNodes);
+    // Choose nodes include two nodes followed by the keyword "OTHERWISE" (CHOOSE2)
+    // which is followed by another node
+    const predicate = parser.parse(tokens, 0, varMap);
+    const consequent = parser.parse(tokens, 0, varMap);
     tokens.expectToken('CHOOSE2');
-    const otherwise = parser.parse(tokens, 0, varMap, registeredNodes);
+    const otherwise = parser.parse(tokens, 0, varMap);
 
     let newNode = {
       nodeType: 'Choose' as 'Choose',
       case: { predicate: predicate, consequent: consequent },
       otherwise: otherwise,
-      outputType: { status: 'Maybe-Undefined' as 'Maybe-Undefined',
-                    valueType: undefined,
-                    asserts: [],
-                    constType: undefined},
       pos: position,
       nodeId: id
     };
-    registeredNodes[id] = newNode;
+
     return newNode;
   }
 }
@@ -202,30 +193,24 @@ export class VariableAssignmentParselet implements InitialParselet {
   parse(parser: AbstractParser,
     tokens: TokenStream,
     token: Token,
-    varMap: {[key: string]: string},
-    registeredNodes: {[key: string]: AST.Node}) {
+    varMap: {[key: string]: string}) {
 
     const position = token2pos(token);
     const id = pos2string(position);
     
-    // deal with variable assignment
     tokens.expectToken('=');
-    const assignment = parser.parse(tokens, 0, varMap, registeredNodes);
+    const assignment = parser.parse(tokens, 0, varMap);
 
-    // need to save the variable and its assignment in a lookup table
+    // Save the variable and its assignment in the variable map
     varMap[token.text] = id;
+
     let newNode = {
       nodeType: 'VariableAssignment' as 'VariableAssignment',
       name: token.text,
       assignment: assignment,
-      outputType: { status: "Maybe-Undefined" as "Maybe-Undefined",
-                    valueType: assignment?.outputType?.valueType,
-                    asserts: [],
-                    constType: undefined},
       pos: position,
       nodeId: id
     };
-    registeredNodes[id] = newNode;
 
     return newNode;
   }
@@ -235,32 +220,29 @@ export class IdentifierParselet implements InitialParselet {
   parse(parser: AbstractParser,
     tokens: TokenStream,
     token: Token,
-    varMap: {[key: string]: string},
-    registeredNodes: {[key: string]: AST.Node}) {
+    varMap: {[key: string]: string}) {
     
     const position = token2pos(token);
     const id = pos2string(position);
-    // need to look up known variables in a lookup table (map?)
 
+    // Look up the node this identifier was assigned to
     const assignmentId = varMap[token.text];
 
+    // An identifier must be previously assigned,
+    // otherwise we call the variable assignment parselet
     if (!assignmentId) {
       const varParselet = new VariableAssignmentParselet();
-      return varParselet.parse(parser, tokens, token, varMap, registeredNodes);
+      return varParselet.parse(parser, tokens, token, varMap);
     }
     else {
       let newNode = {
         nodeType: 'Identifier' as 'Identifier',
         name: token.text,
         assignmentId: assignmentId,
-        outputType: { status: "Maybe-Undefined" as "Maybe-Undefined",
-                      valueType: undefined,
-                      asserts: [],
-                      constType: undefined},
         pos: position,
         nodeId: id
       };
-      registeredNodes[id] = newNode;
+      
       return newNode;
     }
   }

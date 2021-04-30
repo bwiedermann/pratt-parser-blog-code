@@ -74,6 +74,8 @@ export function getDefaultToken(
     return '+';
   }
 
+  // NOTE: when subtracting a positive number, make sure to use parentheses around it
+  // e.g. 1-(2) will work but 1-2 won't
   if (stream.match(/\-/)) {
     return '-';
   }
@@ -102,7 +104,6 @@ export function getDefaultToken(
     return ')';
   }
 
-  // adding an equals operator
   if (stream.match(/\=/)) {
     return '=';
   }
@@ -123,28 +124,27 @@ export function getDefaultToken(
     return 'COMMENT';
   }
 
-  // hardcode when to be a choose node not an identifier to get around parsing
+  // keyword WHEN begins a choose node
   if (stream.match(/WHEN/)) {
     return 'CHOOSE1';
   }
 
-  // Remove otherwise clause for now
+  // keyword OTHERWISE is used in a choose node
   if (stream.match(/OTHERWISE/)) {
     return 'CHOOSE2';
   }
 
+  // functions start with a capital letter and do not contain numbers
   if (stream.match(/[A-Z]([a-z|A-Z])*/)) {
     return 'FUNCTION';
   }
 
-  // Identifiers
-  // For now, the form of a valid identifier is: a lower-case alphabetic character,
+  // The form of a valid identifier is: a lower-case alphabetic character,
   // followed by zero or more alpha characters.
   if (stream.match(/[a-z]([a-z|A-Z])*/)) {
     return 'IDENTIFIER';
   }
   
-
   stream.next();
   return 'ERROR';
 }
