@@ -22,3 +22,14 @@ node fuse.js
 ```
 
 Then open http://localhost:4444/
+
+# Notes
+
+We added a new type ConstantNumber which are different from Number types. The ConstantNumber type will be used within the iteration node type.
+
+We also created a new IterationNode type that can be used with the syntax [start end step]
+
+New functions are as follows:
+
+IsConstantOperation(): a simple recursive function in the typechecker to see if a binary operation includes any non-constant numbers.
+RandomChoice(ConstantNumber): an example function that is not eligible for iteration as it is not a ConstantNumber. Mainly used for testing.
