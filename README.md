@@ -1,10 +1,6 @@
-# pratt-parser-blog-code
+# Maybe-Undefined or Definitely Type
 
 This project started as an implementation of a lexer and Pratt parser for a simple language.
-
-It also creates a CodeMirror mode, `myMode`, that provides syntax highliting based on the lexer, and linting for parsing errors.
-
-For more details, see this [blog post on the Desmos engineering blog](https://engineering.desmos.com/articles/pratt-parser).
 
 We turned this into the proof of concept for a Maybe-Undefined or Definitely (MUD) type to be added to Desmos' Computation Layer.
 
